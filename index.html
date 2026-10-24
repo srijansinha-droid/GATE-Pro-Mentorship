@@ -10,7 +10,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg-gradient); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 30px 20px; }
         
-        /* Common Login UI */
+        /* Login UI */
         .container { background: var(--card-bg); border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); width: 100%; padding: 40px; display: flex; flex-direction: column; animation: slideUp 0.5s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         #loginSection { max-width: 450px; }
@@ -28,11 +28,10 @@
 
         .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-right: 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
         .msg { padding: 12px; border-radius: 8px; margin-top: 15px; display: none; font-size: 14px; text-align: center; font-weight: 500; }
         .error-msg { background: #fee2e2; color: #991b1b; } .success-msg { background: #d1fae5; color: #065f46; }
 
-        /* ================= DASHBOARD LAYOUT (Full Wide) ================= */
+        /* ================= FULL WIDE DASHBOARD ================= */
         #dashboardLayout { display: none; width: 100%; height: 95vh; background: #f1f5f9; border-radius: 15px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         
         .sidebar { width: 260px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; }
@@ -50,7 +49,6 @@
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        /* Tables & Cards */
         .card { background: white; padding: 25px; border-radius: 15px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
@@ -63,8 +61,6 @@
         
         .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
         .input-row > div { flex: 1; }
-
-        /* Filters for Admin Dashboard */
         .filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .filters input, .filters select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
     </style>
@@ -133,7 +129,6 @@
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">All Student Bookings</h3>
                         
-                        <!-- Filters -->
                         <div class="filters">
                             <input type="text" id="searchFilter" placeholder="Search Name or Phone..." onkeyup="filterBookings()">
                             <select id="branchFilter" onchange="filterBookings()"><option value="">All Branches</option></select>
@@ -229,7 +224,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
         let currentStudentId = null;
         let isAdminUser = false;
-        let allAdminBookings = []; // To handle filters
+        let allAdminBookings = []; 
 
         window.onload = function() {
             const saved = localStorage.getItem('studentId');
@@ -301,10 +296,9 @@
             if(btnElement) {
                 document.querySelectorAll('.sidebar-menu button').forEach(b => b.classList.remove('active'));
                 btnElement.classList.add('active');
-                document.getElementById('pageTitle').innerText = btnElement.innerText.replace(/[^\w\s]/gi, ''); // Remove emoji
+                document.getElementById('pageTitle').innerText = btnElement.innerText.replace(/[^\w\s]/gi, ''); 
             }
 
-            // Load data based on view
             if(viewId === 'viewAllBookings') loadAdminBookings();
             if(viewId === 'viewMySchedule') loadSchedule();
             if(viewId === 'viewTelegram') loadTelegramLink();
@@ -320,7 +314,7 @@
             .then(res => {
                 tbody.innerHTML = '';
                 if(!res.success || res.data.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No bookings.</td></tr>`; return; }
-                allAdminBookings = res.data.reverse(); // Save for filtering
+                allAdminBookings = res.data.reverse(); 
                 renderAdminBookingsTable(allAdminBookings);
             });
         }
@@ -347,7 +341,6 @@
             });
         }
 
-        // Filter Logic
         function filterBookings() {
             const search = document.getElementById('searchFilter').value.toLowerCase();
             const branch = document.getElementById('branchFilter').value;
@@ -384,7 +377,7 @@
 
         function cancelAdminBooking(bookingId) {
             const reason = prompt("Enter cancellation reason:");
-            if(reason === null) return; // User cancelled prompt
+            if(reason === null) return;
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminCancelBooking", data: { bookingId, reason } }) })
             .then(res => res.json())
             .then(res => { alert(res.message); loadAdminBookings(); });
