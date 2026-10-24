@@ -6,34 +6,25 @@
     <title>GATE Pro Mentorship</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #6366f1; --primary-hover: #4f46e5; --success: #10b981; --success-hover: #059669; --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; }
+        :root { --primary: #6366f1; --primary-hover: #4f46e5; --success: #10b981; --success-hover: #059669; --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --sidebar-bg: #1e293b; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg-gradient); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 30px 20px; }
+        
+        /* Common Login UI */
         .container { background: var(--card-bg); border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); width: 100%; padding: 40px; display: flex; flex-direction: column; animation: slideUp 0.5s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         #loginSection { max-width: 450px; }
-        #mainSection { max-width: 1050px; min-height: 80vh; display: none; }
         
         h2 { color: var(--text-main); font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 25px; }
         .input-group { margin-bottom: 18px; }
         .input-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; }
         .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: var(--text-main); background-color: #f8fafc; transition: 0.3s; }
         .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); outline: none; }
-        textarea { resize: vertical; height: 80px; }
 
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; color: white; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; }
+        .btn { padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; color: white; cursor: pointer; transition: 0.3s; display: inline-flex; justify-content: center; align-items: center; width: 100%;}
         .btn-primary { background: var(--primary); } .btn-primary:hover { background: var(--primary-hover); }
         .btn-success { background: var(--success); } .btn-success:hover { background: var(--success-hover); }
-        .btn-secondary { background: #e2e8f0; color: var(--text-main); }
-
-        .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
-        .form-header h2 { margin: 0; text-align: left; }
-        .logout-btn { padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; width: auto; }
-
-        .tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .tab-content { flex: 1; display: flex; flex-direction: column; }
-        .form-body { flex: 1; }
-        .submit-container { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+        .btn-danger { background: #ef4444; } .btn-danger:hover { background: #dc2626; }
 
         .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-right: 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -41,13 +32,41 @@
         .msg { padding: 12px; border-radius: 8px; margin-top: 15px; display: none; font-size: 14px; text-align: center; font-weight: 500; }
         .error-msg { background: #fee2e2; color: #991b1b; } .success-msg { background: #d1fae5; color: #065f46; }
 
+        /* ================= DASHBOARD LAYOUT (Full Wide) ================= */
+        #dashboardLayout { display: none; width: 100%; height: 95vh; background: #f1f5f9; border-radius: 15px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid #334155; font-size: 20px; font-weight: 700; color: #fff; }
+        .sidebar-menu { flex: 1; padding: 20px 0; overflow-y: auto; }
+        .sidebar-menu button { width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: #cbd5e1; font-size: 15px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .sidebar-menu button:hover, .sidebar-menu button.active { background: #334155; color: white; border-left: 4px solid var(--primary); }
+        .sidebar-footer { padding: 20px; border-top: 1px solid #334155; }
+
+        .main-content { flex: 1; display: flex; flex-direction: column; background: #f8fafc; overflow: hidden; }
+        .topbar { background: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
+        .topbar h2 { margin: 0; font-size: 22px; color: #1e293b; text-align: left; }
+        
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* Tables & Cards */
+        .card { background: white; padding: 25px; border-radius: 15px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
-        th { background: #f8fafc; color: var(--text-muted); white-space: nowrap; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; white-space: nowrap; }
+        th { background: #f8fafc; color: #64748b; font-weight: 600; }
         
-        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .form-row > div { flex: 1; }
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .bg-booked { background: #d1fae5; color: #065f46; }
+        .bg-cancelled { background: #fee2e2; color: #991b1b; }
+        
+        .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .input-row > div { flex: 1; }
+
+        /* Filters for Admin Dashboard */
+        .filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filters input, .filters select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
     </style>
 </head>
 <body>
@@ -64,7 +83,6 @@
             <input type="tel" id="loginPhone" placeholder="Enter 10-digit registered phone number">
         </div>
         
-        <!-- Hidden Admin Code Box -->
         <div class="input-group" id="adminCodeGroup" style="display: none;">
             <label style="color: #ef4444;">Security Code (Admin Only)</label>
             <input type="password" id="loginAdminCode" placeholder="Enter 4-digit code">
@@ -77,177 +95,334 @@
         <div class="msg error-msg" id="loginError"></div>
     </div>
 
-    <!-- MAIN APP SECTION -->
-    <div class="container" id="mainSection">
-        <div class="form-header">
-            <h2>Welcome, <span id="displayName" style="color: var(--primary);">User</span></h2>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-
-        <div class="tabs" id="navTabs">
-            <!-- Student Tabs -->
-            <button class="btn btn-primary" onclick="showTab('bookTab')" id="tabBookBtn">Book Mentorship</button>
-            <button class="btn btn-secondary" onclick="showTab('scheduleTab')" id="tabScheduleBtn">My Schedule</button>
-            
-            <!-- Admin Tabs (Hidden by default) -->
-            <button class="btn btn-secondary" onclick="showTab('allBookingsTab')" id="tabAllBookingsBtn" style="display: none;">All Bookings</button>
-            <button class="btn btn-secondary" onclick="showTab('facultyTab')" id="tabFacultyBtn" style="display: none;">Add Faculty</button>
-            <button class="btn btn-secondary" onclick="showTab('slotsTab')" id="tabSlotsBtn" style="display: none;">Upload Slots</button>
-            <button class="btn btn-secondary" onclick="showTab('usersTab')" id="tabUsersBtn" style="display: none;">Manage Users</button>
-        </div>
-
-        <!-- BOOKING TAB (Student) -->
-        <div id="bookTab" class="tab-content">
-            <div class="form-body">
-                <div class="input-group"><label>Name</label><input type="text" id="name"></div>
-                <div class="input-group"><label>Branch</label><select id="branch" onchange="fetchFaculties()"></select></div>
-                <div class="input-group"><label>Faculty</label><select id="faculty"></select></div>
-                <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="date" placeholder="e.g. 25/12/2026"></div>
-                <div class="input-group"><label>Time Slot</label>
-                    <select id="time"><option value="10:00 AM">10:00 AM</option><option value="11:00 AM">11:00 AM</option><option value="02:00 PM">02:00 PM</option><option value="04:00 PM">04:00 PM</option></select>
+    <!-- FULL WIDE DASHBOARD LAYOUT -->
+    <div id="dashboardLayout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">GATE Pro</div>
+            <div class="sidebar-menu" id="sidebarMenu">
+                <!-- Admin Menus -->
+                <div id="adminMenus" style="display: none;">
+                    <button onclick="switchView('viewAllBookings', this)" id="menuAllBookings" class="active">📊 All Bookings</button>
+                    <button onclick="switchView('viewAddFaculty', this)">👨‍🏫 Add Faculty</button>
+                    <button onclick="switchView('viewSlots', this)">⏰ Upload Slots</button>
+                    <button onclick="switchView('viewUsers', this)">👥 Manage Users</button>
+                    <button onclick="switchView('viewTelegram', this)">📢 Telegram Link</button>
                 </div>
-                <div class="input-group"><label>Target Year</label><select id="targetYear"><option>2025</option><option>2026</option></select></div>
-                <div class="input-group"><label>Batch Name</label><input type="text" id="batchName"></div>
-                <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
+                <!-- Student Menus -->
+                <div id="studentMenus" style="display: none;">
+                    <button onclick="switchView('viewBook', this)" id="menuBook" class="active">📝 Book Mentorship</button>
+                    <button onclick="switchView('viewMySchedule', this)">📅 My Schedule</button>
+                </div>
             </div>
-            <div class="submit-container">
-                <button class="btn btn-success" id="bookBtn" onclick="handleBooking()">
-                    <span class="spinner" id="bookSpinner"></span><span id="bookBtnText">Book Now</span>
-                </button>
-                <div class="msg error-msg" id="bookError"></div>
-                <div class="msg success-msg" id="bookSuccess"></div>
+            <div class="sidebar-footer">
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
             </div>
         </div>
 
-        <!-- MY SCHEDULE TAB (Student) -->
-        <div id="scheduleTab" class="tab-content" style="display: none;">
-            <div class="table-container">
-                <table><thead><tr><th>Booking ID</th><th>Date & Time</th><th>Faculty</th><th>Status</th><th>Link</th></tr></thead><tbody id="scheduleBody"></tbody></table>
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="topbar">
+                <h2 id="pageTitle">Dashboard</h2>
+                <div style="font-weight: 600; color: #64748b;">Welcome, <span id="displayName" style="color: var(--primary);">User</span></div>
+            </div>
+
+            <div class="content-area">
+                <!-- ================= ADMIN VIEWS ================= -->
+                <div id="viewAllBookings" class="view-section active">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">All Student Bookings</h3>
+                        
+                        <!-- Filters -->
+                        <div class="filters">
+                            <input type="text" id="searchFilter" placeholder="Search Name or Phone..." onkeyup="filterBookings()">
+                            <select id="branchFilter" onchange="filterBookings()"><option value="">All Branches</option></select>
+                            <select id="statusFilter" onchange="filterBookings()"><option value="">All Status</option><option value="Booked">Booked</option><option value="Cancelled">Cancelled</option></select>
+                        </div>
+
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Student Info</th><th>Batch & Year</th><th>Branch / Faculty</th>
+                                        <th>Date & Time</th><th>Status</th><th>Meeting Link</th><th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminBookingsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="viewAddFaculty" class="view-section">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">Add New Faculty</h3>
+                        <div class="input-row">
+                            <div><label>Faculty ID</label><input type="text" id="facId" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;"></div>
+                            <div><label>Faculty Name</label><input type="text" id="facName" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;"></div>
+                            <div><label>Branch</label><input type="text" id="facBranch" placeholder="e.g. CSE, ECE" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;"></div>
+                        </div>
+                        <button class="btn btn-success" style="width: 200px;" onclick="addFaculty()">Add Faculty</button>
+                    </div>
+                </div>
+
+                <div id="viewSlots" class="view-section">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">Upload Slots (CSV)</h3>
+                        <p style="font-size: 14px; margin-bottom: 10px; color: #64748b;">Format: <b>Faculty Name, Branch, Date, Time</b></p>
+                        <textarea id="slotsCsv" rows="5" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;" placeholder="Dr. Sharma, CSE, 25/12/2026, 10:00 AM"></textarea>
+                        <button class="btn btn-primary" style="width: 200px; margin-top: 10px;" onclick="uploadSlots()">Upload CSV</button>
+                    </div>
+                </div>
+
+                <div id="viewUsers" class="view-section">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">Manage Users (CSV)</h3>
+                        <p style="font-size: 14px; margin-bottom: 10px; color: #64748b;">Format: <b>User ID, Phone, Branch, Name</b></p>
+                        <textarea id="usersCsv" rows="5" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;" placeholder="622710a6f186ed0011ecba1d, 7906446931, CSE, Test Student"></textarea>
+                        <button class="btn btn-primary" style="width: 200px; margin-top: 10px;" onclick="uploadUsers()">Upload Users</button>
+                    </div>
+                </div>
+
+                <div id="viewTelegram" class="view-section">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">Pro Telegram Group Link</h3>
+                        <p style="font-size: 14px; margin-bottom: 10px; color: #64748b;">Yeh link student dashboard par dikhega.</p>
+                        <input type="text" id="telegramLinkInput" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;" placeholder="https://t.me/yourgroup">
+                        <button class="btn btn-success" style="width: 200px; margin-top: 10px;" onclick="updateTelegramLink()">Update Link</button>
+                    </div>
+                </div>
+
+                <!-- ================= STUDENT VIEWS ================= -->
+                <div id="viewBook" class="view-section">
+                    <div class="card">
+                        <h3 style="margin-bottom: 20px;">Book Mentorship</h3>
+                        <div class="input-group"><label>Name</label><input type="text" id="name"></div>
+                        <div class="input-group"><label>Branch</label><select id="branch" onchange="fetchFaculties()"></select></div>
+                        <div class="input-group"><label>Faculty</label><select id="faculty"></select></div>
+                        <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="date" placeholder="e.g. 25/12/2026"></div>
+                        <div class="input-group"><label>Time Slot</label>
+                            <select id="time"><option value="10:00 AM">10:00 AM</option><option value="11:00 AM">11:00 AM</option><option value="02:00 PM">02:00 PM</option><option value="04:00 PM">04:00 PM</option></select>
+                        </div>
+                        <div class="input-group"><label>Target Year</label><select id="targetYear"><option>2025</option><option>2026</option></select></div>
+                        <div class="input-group"><label>Batch Name</label><input type="text" id="batchName"></div>
+                        <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
+                        <button class="btn btn-success" onclick="handleBooking()">Book Now</button>
+                        <div class="msg error-msg" id="bookError"></div>
+                        <div class="msg success-msg" id="bookSuccess"></div>
+                    </div>
+                </div>
+
+                <div id="viewMySchedule" class="view-section">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">My Schedule</h3>
+                        <div class="table-container">
+                            <table><thead><tr><th>Booking ID</th><th>Date & Time</th><th>Faculty</th><th>Status</th><th>Link</th></tr></thead><tbody id="scheduleBody"></tbody></table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <!-- ALL BOOKINGS TAB (Admin) -->
-        <div id="allBookingsTab" class="tab-content" style="display: none;">
-            <div class="table-container">
-                <table><thead><tr><th>Student</th><th>Branch/Faculty</th><th>Date/Time</th><th>Status</th><th>Meeting Link</th><th>Action</th></tr></thead><tbody id="adminBookingsBody"></tbody></table>
-            </div>
-        </div>
-
-        <!-- ADD FACULTY TAB (Admin) -->
-        <div id="facultyTab" class="tab-content" style="display: none;">
-            <div class="form-row">
-                <div><label>Faculty ID</label><input type="text" id="facId"></div>
-                <div><label>Faculty Name</label><input type="text" id="facName"></div>
-                <div><label>Branch</label><input type="text" id="facBranch" placeholder="e.g. CSE, ECE"></div>
-            </div>
-            <button class="btn btn-success" style="width: 200px;" onclick="addFaculty()">Add Faculty</button>
-        </div>
-
-        <!-- UPLOAD SLOTS TAB (Admin) -->
-        <div id="slotsTab" class="tab-content" style="display: none;">
-            <p style="font-size: 14px; margin-bottom: 10px;">Format: <b>Faculty Name, Branch, Date, Time</b></p>
-            <textarea id="slotsCsv" rows="5" placeholder="Dr. Sharma, CSE, 25/12/2026, 10:00 AM"></textarea>
-            <button class="btn btn-primary" style="width: 200px; margin-top: 10px;" onclick="uploadSlots()">Upload CSV</button>
-        </div>
-
-        <!-- MANAGE USERS TAB (Admin) -->
-        <div id="usersTab" class="tab-content" style="display: none;">
-            <p style="font-size: 14px; margin-bottom: 10px;">Format: <b>User ID, Phone, Branch, Name</b></p>
-            <textarea id="usersCsv" rows="5" placeholder="622710a6f186ed0011ecba1d, 7906446931, CSE, Test Student"></textarea>
-            <button class="btn btn-primary" style="width: 200px; margin-top: 10px;" onclick="uploadUsers()">Upload Users</button>
-        </div>
-
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
         let currentStudentId = null;
         let isAdminUser = false;
+        let allAdminBookings = []; // To handle filters
 
         window.onload = function() {
             const saved = localStorage.getItem('studentId');
             isAdminUser = localStorage.getItem('isAdmin') === 'true';
-            if (saved) { currentStudentId = saved; showMainSection(); }
+            if (saved) { currentStudentId = saved; showDashboard(); }
         };
 
+        // ================= LOGIN =================
         function handleLogin() {
             const userId = document.getElementById('loginUserId').value.trim();
             const phone = document.getElementById('loginPhone').value.trim();
             const adminCodeInput = document.getElementById('loginAdminCode');
             const adminCode = adminCodeInput ? adminCodeInput.value.trim() : '';
-            
             const btn = document.getElementById('loginBtn');
             const spinner = document.getElementById('loginSpinner');
             const btnText = document.getElementById('loginBtnText');
             const err = document.getElementById('loginError');
 
             if(!userId || !phone) { err.innerText = "Please enter all details."; err.style.display = 'block'; return; }
-
             spinner.style.display = 'inline-block'; btnText.innerText = "Verifying..."; btn.disabled = true; err.style.display = 'none';
 
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", data: { userId, phone, adminCode } }) })
             .then(res => res.json())
             .then(data => {
                 spinner.style.display = 'none'; btnText.innerText = "Login"; btn.disabled = false;
-
                 if (data.success) {
                     currentStudentId = userId;
                     isAdminUser = data.isAdmin || false;
                     localStorage.setItem('studentId', userId);
                     localStorage.setItem('studentName', data.name || 'Admin');
                     localStorage.setItem('isAdmin', isAdminUser);
-                    showMainSection();
+                    showDashboard();
                 } else if (data.requireCode) {
                     document.getElementById('adminCodeGroup').style.display = 'block';
-                    err.innerText = data.message; 
-                    err.style.display = 'block';
+                    err.innerText = data.message; err.style.display = 'block';
                 } else {
-                    err.innerText = data.message; 
-                    err.style.display = 'block';
+                    err.innerText = data.message; err.style.display = 'block';
                 }
             })
-            .catch(e => {
-                spinner.style.display = 'none'; btnText.innerText = "Login"; btn.disabled = false;
-                err.innerText = "Network error. Try again."; err.style.display = 'block';
-            });
-        }
-
-        function showMainSection() {
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('mainSection').style.display = 'flex';
-            document.getElementById('displayName').innerText = localStorage.getItem('studentName') || 'User';
-            document.getElementById('name').value = localStorage.getItem('studentName') || '';
-            
-            if (isAdminUser) {
-                document.getElementById('tabAllBookingsBtn').style.display = 'block';
-                document.getElementById('tabFacultyBtn').style.display = 'block';
-                document.getElementById('tabSlotsBtn').style.display = 'block';
-                document.getElementById('tabUsersBtn').style.display = 'block';
-                document.getElementById('tabBookBtn').style.display = 'none';
-                document.getElementById('tabScheduleBtn').style.display = 'none';
-                showTab('allBookingsTab');
-            } else {
-                document.getElementById('tabBookBtn').style.display = 'block';
-                document.getElementById('tabScheduleBtn').style.display = 'block';
-                document.getElementById('tabAllBookingsBtn').style.display = 'none';
-                document.getElementById('tabFacultyBtn').style.display = 'none';
-                document.getElementById('tabSlotsBtn').style.display = 'none';
-                document.getElementById('tabUsersBtn').style.display = 'none';
-                showTab('bookTab');
-                loadBranches();
-            }
+            .catch(e => { spinner.style.display = 'none'; btnText.innerText = "Login"; btn.disabled = false; err.innerText = "Network error."; err.style.display = 'block'; });
         }
 
         function logout() { localStorage.clear(); window.location.reload(); }
 
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.tabs .btn').forEach(btn => btn.className = "btn btn-secondary");
-            document.getElementById(tabId).style.display = 'flex';
-            event.currentTarget.className = "btn btn-primary";
+        // ================= DASHBOARD LOGIC =================
+        function showDashboard() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboardLayout').style.display = 'flex';
+            document.getElementById('displayName').innerText = localStorage.getItem('studentName') || 'User';
+            
+            if (isAdminUser) {
+                document.getElementById('adminMenus').style.display = 'block';
+                document.getElementById('studentMenus').style.display = 'none';
+                switchView('viewAllBookings', document.getElementById('menuAllBookings'));
+                loadBranchesForFilter();
+            } else {
+                document.getElementById('adminMenus').style.display = 'none';
+                document.getElementById('studentMenus').style.display = 'block';
+                document.getElementById('name').value = localStorage.getItem('studentName') || '';
+                switchView('viewBook', document.getElementById('menuBook'));
+                loadBranches();
+            }
+        }
 
-            if(tabId === 'scheduleTab') loadSchedule();
-            if(tabId === 'allBookingsTab') loadAdminBookings();
+        function switchView(viewId, btnElement) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            if(btnElement) {
+                document.querySelectorAll('.sidebar-menu button').forEach(b => b.classList.remove('active'));
+                btnElement.classList.add('active');
+                document.getElementById('pageTitle').innerText = btnElement.innerText.replace(/[^\w\s]/gi, ''); // Remove emoji
+            }
+
+            // Load data based on view
+            if(viewId === 'viewAllBookings') loadAdminBookings();
+            if(viewId === 'viewMySchedule') loadSchedule();
+            if(viewId === 'viewTelegram') loadTelegramLink();
+        }
+
+        // ================= ADMIN FUNCTIONS =================
+        function loadAdminBookings() {
+            const tbody = document.getElementById('adminBookingsBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading...</td></tr>';
+            
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getAllBookings" }) })
+            .then(res => res.json())
+            .then(res => {
+                tbody.innerHTML = '';
+                if(!res.success || res.data.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No bookings.</td></tr>`; return; }
+                allAdminBookings = res.data.reverse(); // Save for filtering
+                renderAdminBookingsTable(allAdminBookings);
+            });
+        }
+
+        function renderAdminBookingsTable(data) {
+            const tbody = document.getElementById('adminBookingsBody');
+            tbody.innerHTML = '';
+            if(data.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No matching bookings.</td></tr>`; return; }
+            
+            data.forEach(b => {
+                let badge = b.status === 'Booked' ? '<span class="badge bg-booked">Booked</span>' : '<span class="badge bg-cancelled">Cancelled</span>';
+                let linkInput = b.status === 'Booked' ? `<input type="text" id="link_${b.bookingId}" value="${b.meetingLink}" placeholder="Paste Link" style="width:100%; padding:5px; border:1px solid #ccc; border-radius:4px;">` : `-`;
+                let actionBtn = b.status === 'Booked' ? `<button class="btn btn-success" style="padding:5px 10px; width:auto; font-size:12px;" onclick="updateLink('${b.bookingId}', this)">Update</button>
+                                                         <button class="btn btn-danger" style="padding:5px 10px; width:auto; font-size:12px; margin-top:5px;" onclick="cancelAdminBooking('${b.bookingId}')">Cancel</button>` : `-`;
+                tbody.innerHTML += `<tr>
+                    <td><b>${b.name}</b><br><small>${b.studentId}</small></td>
+                    <td>${b.batchName}<br><small>Target: ${b.targetYear}</small></td>
+                    <td>${b.branch} / <br>${b.faculty}</td>
+                    <td>${b.date} <br> ${b.time}</td>
+                    <td>${badge}</td>
+                    <td>${linkInput}</td>
+                    <td>${actionBtn}</td>
+                </tr>`;
+            });
+        }
+
+        // Filter Logic
+        function filterBookings() {
+            const search = document.getElementById('searchFilter').value.toLowerCase();
+            const branch = document.getElementById('branchFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            const filtered = allAdminBookings.filter(b => {
+                const matchSearch = b.name.toLowerCase().includes(search) || b.studentId.toLowerCase().includes(search);
+                const matchBranch = branch ? b.branch === branch : true;
+                const matchStatus = status ? b.status === status : true;
+                return matchSearch && matchBranch && matchStatus;
+            });
+            renderAdminBookingsTable(filtered);
+        }
+
+        function loadBranchesForFilter() {
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getBranches" }) })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const sel = document.getElementById('branchFilter');
+                    data.data.forEach(b => sel.innerHTML += `<option value="${b}">${b}</option>`);
+                }
+            });
+        }
+
+        function updateLink(bookingId, btn) {
+            const link = document.getElementById(`link_${bookingId}`).value.trim();
+            if(!link) { alert("Please paste a valid link."); return; }
+            btn.innerText = "Saving..."; btn.disabled = true;
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "updateMeetingLink", data: { bookingId, meetingLink: link } }) })
+            .then(res => res.json())
+            .then(res => { btn.innerText = "Update"; btn.disabled = false; alert(res.success ? "Updated!" : res.message); });
+        }
+
+        function cancelAdminBooking(bookingId) {
+            const reason = prompt("Enter cancellation reason:");
+            if(reason === null) return; // User cancelled prompt
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminCancelBooking", data: { bookingId, reason } }) })
+            .then(res => res.json())
+            .then(res => { alert(res.message); loadAdminBookings(); });
+        }
+
+        function addFaculty() {
+            const facultyId = document.getElementById('facId').value.trim();
+            const facultyName = document.getElementById('facName').value.trim();
+            const branch = document.getElementById('facBranch').value.trim();
+            if(!facultyId || !facultyName || !branch) { alert("Fill all fields"); return; }
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminAddFaculty", data: { facultyId, facultyName, branch } }) })
+            .then(res => res.json()).then(res => { alert(res.message); document.getElementById('facId').value = ''; document.getElementById('facName').value = ''; document.getElementById('facBranch').value = ''; });
+        }
+
+        function uploadSlots() {
+            const csvContent = document.getElementById('slotsCsv').value.trim();
+            if(!csvContent) return;
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminUploadSlotsCSV", data: { csvContent } }) })
+            .then(res => res.json()).then(res => { alert(res.message); if(res.success) document.getElementById('slotsCsv').value = ''; });
+        }
+
+        function uploadUsers() {
+            const csvContent = document.getElementById('usersCsv').value.trim();
+            if(!csvContent) return;
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminUploadCSV", data: { csvContent } }) })
+            .then(res => res.json()).then(res => { alert(res.message); if(res.success) document.getElementById('usersCsv').value = ''; });
+        }
+
+        function loadTelegramLink() {
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getAdminConfigs" }) })
+            .then(res => res.json())
+            .then(res => { if(res.success) document.getElementById('telegramLinkInput').value = res.data.telegramLink; });
+        }
+
+        function updateTelegramLink() {
+            const link = document.getElementById('telegramLinkInput').value.trim();
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "updateTelegramLink", data: { link } }) })
+            .then(res => res.json()).then(res => alert(res.message));
         }
 
         // ================= STUDENT FUNCTIONS =================
@@ -277,12 +452,8 @@
         }
 
         function handleBooking() {
-            const btn = document.getElementById('bookBtn');
-            const spinner = document.getElementById('bookSpinner');
-            const btnText = document.getElementById('bookBtnText');
             const err = document.getElementById('bookError');
             const succ = document.getElementById('bookSuccess');
-            
             const data = {
                 studentId: currentStudentId,
                 name: document.getElementById('name').value,
@@ -295,17 +466,12 @@
                 query: document.getElementById('query').value
             };
 
-            if(!data.branch || !data.faculty || !data.dateStr || !data.query) {
-                err.innerText = "Please fill all required fields."; err.style.display = 'block'; return;
-            }
-
-            spinner.style.display = 'inline-block'; btnText.innerText = "Booking..."; btn.disabled = true; 
+            if(!data.branch || !data.faculty || !data.dateStr || !data.query) { err.innerText = "Please fill all required fields."; err.style.display = 'block'; return; }
             err.style.display = 'none'; succ.style.display = 'none';
 
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "book", data }) })
             .then(res => res.json())
             .then(res => {
-                spinner.style.display = 'none'; btnText.innerText = "Book Now"; btn.disabled = false;
                 if(res.success) {
                     succ.innerHTML = `Success! ID: ${res.bookingId}. Limit left: ${res.remainingThisMonth}`;
                     succ.style.display = 'block';
@@ -313,10 +479,6 @@
                 } else {
                     err.innerText = res.message; err.style.display = 'block';
                 }
-            })
-            .catch(e => {
-                spinner.style.display = 'none'; btnText.innerText = "Book Now"; btn.disabled = false;
-                err.innerText = "Network error."; err.style.display = 'block';
             });
         }
 
@@ -336,56 +498,6 @@
                     });
                 }
             });
-        }
-
-        // ================= ADMIN FUNCTIONS =================
-        function loadAdminBookings() {
-            const tbody = document.getElementById('adminBookingsBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getAllBookings" }) })
-            .then(res => res.json())
-            .then(res => {
-                tbody.innerHTML = '';
-                if(!res.success || res.data.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No bookings.</td></tr>`; return; }
-                res.data.reverse().forEach(b => {
-                    let badge = b.status === 'Booked' ? '<span style="color:#10b981;font-weight:bold;">Booked</span>' : '<span style="color:#ef4444;font-weight:bold;">Cancelled</span>';
-                    let linkInput = b.status === 'Booked' ? `<input type="text" id="link_${b.bookingId}" value="${b.meetingLink}" placeholder="Paste Link" style="width:100%; padding:5px;">` : `-`;
-                    let actionBtn = b.status === 'Booked' ? `<button class="btn btn-success" style="padding:5px 10px;" onclick="updateLink('${b.bookingId}', this)">Update</button>` : `-`;
-                    tbody.innerHTML += `<tr><td><b>${b.name}</b><br><small>${b.studentId}</small></td><td>${b.branch} / ${b.faculty}</td><td>${b.date} <br> ${b.time}</td><td>${badge}</td><td>${linkInput}</td><td>${actionBtn}</td></tr>`;
-                });
-            });
-        }
-
-        function updateLink(bookingId, btn) {
-            const link = document.getElementById(`link_${bookingId}`).value.trim();
-            if(!link) { alert("Please paste a valid link."); return; }
-            btn.innerText = "Saving..."; btn.disabled = true;
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "updateMeetingLink", data: { bookingId, meetingLink: link } }) })
-            .then(res => res.json())
-            .then(res => { btn.innerText = "Update"; btn.disabled = false; alert(res.success ? "Updated!" : res.message); });
-        }
-
-        function addFaculty() {
-            const facultyId = document.getElementById('facId').value.trim();
-            const facultyName = document.getElementById('facName').value.trim();
-            const branch = document.getElementById('facBranch').value.trim();
-            if(!facultyId || !facultyName || !branch) { alert("Fill all fields"); return; }
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminAddFaculty", data: { facultyId, facultyName, branch } }) })
-            .then(res => res.json()).then(res => { alert(res.message); });
-        }
-
-        function uploadSlots() {
-            const csvContent = document.getElementById('slotsCsv').value.trim();
-            if(!csvContent) return;
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminUploadSlotsCSV", data: { csvContent } }) })
-            .then(res => res.json()).then(res => { alert(res.message); if(res.success) document.getElementById('slotsCsv').value = ''; });
-        }
-
-        function uploadUsers() {
-            const csvContent = document.getElementById('usersCsv').value.trim();
-            if(!csvContent) return;
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminUploadCSV", data: { csvContent } }) })
-            .then(res => res.json()).then(res => { alert(res.message); if(res.success) document.getElementById('usersCsv').value = ''; });
         }
     </script>
 </body>
