@@ -6,296 +6,176 @@
     <title>GATE Pro Mentorship</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --success: #10b981;
-            --success-hover: #059669;
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 30px 20px;
-        }
-
-        /* Common Card Style */
-        .container {
-            background: var(--card-bg);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            animation: slideUp 0.5s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Login Container (Small) */
-        #loginSection {
-            max-width: 450px;
-        }
-
-        /* Form Container (Wide) */
-        #mainSection {
-            max-width: 1000px; /* Form ki width badha di */
-            min-height: 80vh; /* Taaki button niche chala jaye */
-            display: none; /* JS se block karenge */
-        }
-
-        h2 {
-            color: var(--text-main);
-            font-size: 24px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .input-group {
-            margin-bottom: 18px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .input-group input, .input-group select, .input-group textarea {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            color: var(--text-main);
-            background-color: #f8fafc;
-            transition: 0.3s;
-        }
-
-        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-            outline: none;
-        }
-
+        :root { --primary: #6366f1; --primary-hover: #4f46e5; --success: #10b981; --success-hover: #059669; --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-gradient); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 30px 20px; }
+        .container { background: var(--card-bg); border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); width: 100%; padding: 40px; display: flex; flex-direction: column; animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        #loginSection { max-width: 450px; }
+        #mainSection { max-width: 1050px; min-height: 80vh; display: none; }
+        
+        h2 { color: var(--text-main); font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 25px; }
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: var(--text-main); background-color: #f8fafc; transition: 0.3s; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); outline: none; }
         textarea { resize: vertical; height: 80px; }
 
-        /* Button Styles */
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
-            transition: 0.3s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .btn-primary { background: var(--primary); }
-        .btn-primary:hover { background: var(--primary-hover); }
-
-        .btn-success { background: var(--success); }
-        .btn-success:hover { background: var(--success-hover); }
-
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; color: white; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; }
+        .btn-primary { background: var(--primary); } .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--success); } .btn-success:hover { background: var(--success-hover); }
         .btn-secondary { background: #e2e8f0; color: var(--text-main); }
-        .btn-secondary:hover { background: #cbd5e1; }
 
-        /* Header inside Form */
-        .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 15px;
-        }
-
+        .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
         .form-header h2 { margin: 0; text-align: left; }
-        
-        .logout-btn {
-            padding: 8px 16px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            width: auto;
-        }
+        .logout-btn { padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; width: auto; }
 
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .tab-content { flex: 1; display: flex; flex-direction: column; }
+        .form-body { flex: 1; }
+        .submit-container { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
 
-        /* Form Layout (For pushing button down) */
-        .tab-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-body {
-            flex: 1;
-        }
-
-        .submit-container {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        /* Spinner */
-        .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
+        .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-right: 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Messages */
         .msg { padding: 12px; border-radius: 8px; margin-top: 15px; display: none; font-size: 14px; text-align: center; font-weight: 500; }
-        .error-msg { background: #fee2e2; color: #991b1b; }
-        .success-msg { background: #d1fae5; color: #065f46; }
+        .error-msg { background: #fee2e2; color: #991b1b; } .success-msg { background: #d1fae5; color: #065f46; }
 
-        /* Table */
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
-        th { background: #f8fafc; color: var(--text-muted); }
+        th { background: #f8fafc; color: var(--text-muted); white-space: nowrap; }
+        
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .form-row > div { flex: 1; }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN SECTION (Small & Centered) -->
+    <!-- LOGIN SECTION -->
     <div class="container" id="loginSection">
-        <h2>Student Login</h2>
+        <h2>Login Portal</h2>
         <div class="input-group">
             <label>User ID</label>
-            <input type="text" id="loginUserId" placeholder="Enter your 24-character User ID">
+            <input type="text" id="loginUserId" placeholder="Enter 24-character User ID">
         </div>
         <div class="input-group">
             <label>Phone Number</label>
             <input type="tel" id="loginPhone" placeholder="Enter 10-digit registered phone number">
         </div>
         
+        <!-- Hidden Admin Code Box -->
+        <div class="input-group" id="adminCodeGroup" style="display: none;">
+            <label style="color: #ef4444;">Security Code (Admin Only)</label>
+            <input type="password" id="loginAdminCode" placeholder="Enter 4-digit code">
+        </div>
+
         <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">
             <span class="spinner" id="loginSpinner"></span>
             <span id="loginBtnText">Login</span>
         </button>
-        
         <div class="msg error-msg" id="loginError"></div>
     </div>
 
-    <!-- MAIN FORM SECTION (Wide) -->
+    <!-- MAIN APP SECTION -->
     <div class="container" id="mainSection">
-        
         <div class="form-header">
-            <h2>Welcome, <span id="displayName" style="color: var(--primary);">Student</span></h2>
+            <h2>Welcome, <span id="displayName" style="color: var(--primary);">User</span></h2>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
-        <!-- Tabs -->
-        <div class="tabs">
+        <div class="tabs" id="navTabs">
+            <!-- Student Tabs -->
             <button class="btn btn-primary" onclick="showTab('bookTab')" id="tabBookBtn">Book Mentorship</button>
             <button class="btn btn-secondary" onclick="showTab('scheduleTab')" id="tabScheduleBtn">My Schedule</button>
+            
+            <!-- Admin Tabs (Hidden by default) -->
+            <button class="btn btn-secondary" onclick="showTab('allBookingsTab')" id="tabAllBookingsBtn" style="display: none;">All Bookings</button>
+            <button class="btn btn-secondary" onclick="showTab('facultyTab')" id="tabFacultyBtn" style="display: none;">Add Faculty</button>
+            <button class="btn btn-secondary" onclick="showTab('slotsTab')" id="tabSlotsBtn" style="display: none;">Upload Slots</button>
+            <button class="btn btn-secondary" onclick="showTab('usersTab')" id="tabUsersBtn" style="display: none;">Manage Users</button>
         </div>
 
-        <!-- BOOKING FORM TAB -->
+        <!-- BOOKING TAB (Student) -->
         <div id="bookTab" class="tab-content">
             <div class="form-body">
                 <div class="input-group"><label>Name</label><input type="text" id="name"></div>
                 <div class="input-group"><label>Branch</label><select id="branch" onchange="fetchFaculties()"></select></div>
                 <div class="input-group"><label>Faculty</label><select id="faculty"></select></div>
                 <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="date" placeholder="e.g. 25/12/2026"></div>
-                <div class="input-group">
-                    <label>Time Slot</label>
-                    <select id="time">
-                        <option value="10:00 AM">10:00 AM</option>
-                        <option value="11:00 AM">11:00 AM</option>
-                        <option value="02:00 PM">02:00 PM</option>
-                        <option value="04:00 PM">04:00 PM</option>
-                    </select>
+                <div class="input-group"><label>Time Slot</label>
+                    <select id="time"><option value="10:00 AM">10:00 AM</option><option value="11:00 AM">11:00 AM</option><option value="02:00 PM">02:00 PM</option><option value="04:00 PM">04:00 PM</option></select>
                 </div>
                 <div class="input-group"><label>Target Year</label><select id="targetYear"><option>2025</option><option>2026</option></select></div>
                 <div class="input-group"><label>Batch Name</label><input type="text" id="batchName"></div>
                 <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
             </div>
-            
-            <!-- Button pushed to bottom -->
             <div class="submit-container">
                 <button class="btn btn-success" id="bookBtn" onclick="handleBooking()">
-                    <span class="spinner" id="bookSpinner"></span>
-                    <span id="bookBtnText">Book Now</span>
+                    <span class="spinner" id="bookSpinner"></span><span id="bookBtnText">Book Now</span>
                 </button>
                 <div class="msg error-msg" id="bookError"></div>
                 <div class="msg success-msg" id="bookSuccess"></div>
             </div>
         </div>
 
-        <!-- SCHEDULE TAB -->
+        <!-- MY SCHEDULE TAB (Student) -->
         <div id="scheduleTab" class="tab-content" style="display: none;">
             <div class="table-container">
-                <table>
-                    <thead>
-                        <tr><th>Booking ID</th><th>Date & Time</th><th>Faculty</th><th>Status</th><th>Link</th></tr>
-                    </thead>
-                    <tbody id="scheduleBody"></tbody>
-                </table>
+                <table><thead><tr><th>Booking ID</th><th>Date & Time</th><th>Faculty</th><th>Status</th><th>Link</th></tr></thead><tbody id="scheduleBody"></tbody></table>
             </div>
-            <div class="msg error-msg" id="scheduleError" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- ALL BOOKINGS TAB (Admin) -->
+        <div id="allBookingsTab" class="tab-content" style="display: none;">
+            <div class="table-container">
+                <table><thead><tr><th>Student</th><th>Branch/Faculty</th><th>Date/Time</th><th>Status</th><th>Meeting Link</th><th>Action</th></tr></thead><tbody id="adminBookingsBody"></tbody></table>
+            </div>
+        </div>
+
+        <!-- ADD FACULTY TAB (Admin) -->
+        <div id="facultyTab" class="tab-content" style="display: none;">
+            <div class="form-row">
+                <div><label>Faculty ID</label><input type="text" id="facId"></div>
+                <div><label>Faculty Name</label><input type="text" id="facName"></div>
+                <div><label>Branch</label><input type="text" id="facBranch" placeholder="e.g. CSE, ECE"></div>
+            </div>
+            <button class="btn btn-success" style="width: 200px;" onclick="addFaculty()">Add Faculty</button>
+        </div>
+
+        <!-- UPLOAD SLOTS TAB (Admin) -->
+        <div id="slotsTab" class="tab-content" style="display: none;">
+            <p style="font-size: 14px; margin-bottom: 10px;">Format: <b>Faculty Name, Branch, Date, Time</b></p>
+            <textarea id="slotsCsv" rows="5" placeholder="Dr. Sharma, CSE, 25/12/2026, 10:00 AM"></textarea>
+            <button class="btn btn-primary" style="width: 200px; margin-top: 10px;" onclick="uploadSlots()">Upload CSV</button>
+        </div>
+
+        <!-- MANAGE USERS TAB (Admin) -->
+        <div id="usersTab" class="tab-content" style="display: none;">
+            <p style="font-size: 14px; margin-bottom: 10px;">Format: <b>User ID, Phone, Branch, Name</b></p>
+            <textarea id="usersCsv" rows="5" placeholder="622710a6f186ed0011ecba1d, 7906446931, CSE, Test Student"></textarea>
+            <button class="btn btn-primary" style="width: 200px; margin-top: 10px;" onclick="uploadUsers()">Upload Users</button>
         </div>
 
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; // <-- APNA URL DAALEIN
+        const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
         let currentStudentId = null;
+        let isAdminUser = false;
 
         window.onload = function() {
             const saved = localStorage.getItem('studentId');
+            isAdminUser = localStorage.getItem('isAdmin') === 'true';
             if (saved) { currentStudentId = saved; showMainSection(); }
         };
 
         function handleLogin() {
             const userId = document.getElementById('loginUserId').value.trim();
             const phone = document.getElementById('loginPhone').value.trim();
+            const adminCodeInput = document.getElementById('loginAdminCode');
+            const adminCode = adminCodeInput ? adminCodeInput.value.trim() : '';
+            
             const btn = document.getElementById('loginBtn');
             const spinner = document.getElementById('loginSpinner');
             const btnText = document.getElementById('loginBtnText');
@@ -303,27 +183,27 @@
 
             if(!userId || !phone) { err.innerText = "Please enter all details."; err.style.display = 'block'; return; }
 
-            // Spinner ON
-            spinner.style.display = 'inline-block';
-            btnText.innerText = "Verifying...";
-            btn.disabled = true; 
-            err.style.display = 'none';
+            spinner.style.display = 'inline-block'; btnText.innerText = "Verifying..."; btn.disabled = true; err.style.display = 'none';
 
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", data: { userId, phone } }) })
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", data: { userId, phone, adminCode } }) })
             .then(res => res.json())
             .then(data => {
-                // Spinner OFF
-                spinner.style.display = 'none';
-                btnText.innerText = "Login";
-                btn.disabled = false;
+                spinner.style.display = 'none'; btnText.innerText = "Login"; btn.disabled = false;
 
                 if (data.success) {
-                    currentStudentId = data.studentId;
-                    localStorage.setItem('studentId', data.studentId);
-                    localStorage.setItem('studentName', data.name);
+                    currentStudentId = userId;
+                    isAdminUser = data.isAdmin || false;
+                    localStorage.setItem('studentId', userId);
+                    localStorage.setItem('studentName', data.name || 'Admin');
+                    localStorage.setItem('isAdmin', isAdminUser);
                     showMainSection();
+                } else if (data.requireCode) {
+                    document.getElementById('adminCodeGroup').style.display = 'block';
+                    err.innerText = data.message; 
+                    err.style.display = 'block';
                 } else {
-                    err.innerText = data.message; err.style.display = 'block';
+                    err.innerText = data.message; 
+                    err.style.display = 'block';
                 }
             })
             .catch(e => {
@@ -335,29 +215,42 @@
         function showMainSection() {
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('mainSection').style.display = 'flex';
-            document.getElementById('displayName').innerText = localStorage.getItem('studentName') || 'Student';
+            document.getElementById('displayName').innerText = localStorage.getItem('studentName') || 'User';
             document.getElementById('name').value = localStorage.getItem('studentName') || '';
-            loadBranches();
+            
+            if (isAdminUser) {
+                document.getElementById('tabAllBookingsBtn').style.display = 'block';
+                document.getElementById('tabFacultyBtn').style.display = 'block';
+                document.getElementById('tabSlotsBtn').style.display = 'block';
+                document.getElementById('tabUsersBtn').style.display = 'block';
+                document.getElementById('tabBookBtn').style.display = 'none';
+                document.getElementById('tabScheduleBtn').style.display = 'none';
+                showTab('allBookingsTab');
+            } else {
+                document.getElementById('tabBookBtn').style.display = 'block';
+                document.getElementById('tabScheduleBtn').style.display = 'block';
+                document.getElementById('tabAllBookingsBtn').style.display = 'none';
+                document.getElementById('tabFacultyBtn').style.display = 'none';
+                document.getElementById('tabSlotsBtn').style.display = 'none';
+                document.getElementById('tabUsersBtn').style.display = 'none';
+                showTab('bookTab');
+                loadBranches();
+            }
         }
 
         function logout() { localStorage.clear(); window.location.reload(); }
 
         function showTab(tabId) {
-            document.getElementById('bookTab').style.display = 'none';
-            document.getElementById('scheduleTab').style.display = 'none';
-            document.getElementById(tabId).style.display = 'flex'; // Flex for layout
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tabs .btn').forEach(btn => btn.className = "btn btn-secondary");
+            document.getElementById(tabId).style.display = 'flex';
+            event.currentTarget.className = "btn btn-primary";
 
-            // Tab styling toggle
-            if(tabId === 'bookTab') {
-                document.getElementById('tabBookBtn').className = "btn btn-primary";
-                document.getElementById('tabScheduleBtn').className = "btn btn-secondary";
-            } else {
-                document.getElementById('tabScheduleBtn').className = "btn btn-primary";
-                document.getElementById('tabBookBtn').className = "btn btn-secondary";
-                loadSchedule();
-            }
+            if(tabId === 'scheduleTab') loadSchedule();
+            if(tabId === 'allBookingsTab') loadAdminBookings();
         }
 
+        // ================= STUDENT FUNCTIONS =================
         function loadBranches() {
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getBranches" }) })
             .then(res => res.json())
@@ -375,7 +268,6 @@
             const sel = document.getElementById('faculty');
             sel.innerHTML = '<option>Loading...</option>';
             if(!branch) { sel.innerHTML = '<option value="">Select Branch First</option>'; return; }
-
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getFaculties", data: { branch } }) })
             .then(res => res.json())
             .then(data => {
@@ -407,22 +299,15 @@
                 err.innerText = "Please fill all required fields."; err.style.display = 'block'; return;
             }
 
-            // Spinner ON
-            spinner.style.display = 'inline-block';
-            btnText.innerText = "Booking...";
-            btn.disabled = true; 
+            spinner.style.display = 'inline-block'; btnText.innerText = "Booking..."; btn.disabled = true; 
             err.style.display = 'none'; succ.style.display = 'none';
 
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "book", data }) })
             .then(res => res.json())
             .then(res => {
-                // Spinner OFF
-                spinner.style.display = 'none';
-                btnText.innerText = "Book Now";
-                btn.disabled = false;
-
+                spinner.style.display = 'none'; btnText.innerText = "Book Now"; btn.disabled = false;
                 if(res.success) {
-                    succ.innerHTML = `Success! ID: ${res.bookingId}. Monthly limit left: ${res.remainingThisMonth}`;
+                    succ.innerHTML = `Success! ID: ${res.bookingId}. Limit left: ${res.remainingThisMonth}`;
                     succ.style.display = 'block';
                     document.getElementById('query').value = '';
                 } else {
@@ -437,38 +322,70 @@
 
         function loadSchedule() {
             const tbody = document.getElementById('scheduleBody');
-            const err = document.getElementById('scheduleError');
-            
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading data...</td></tr>';
-            err.style.display = 'none';
-
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getBookings", data: { studentId: currentStudentId } }) })
             .then(res => res.json())
             .then(res => {
                 if(res.success) {
                     tbody.innerHTML = '';
-                    if(res.data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found.</td></tr>';
-                        return;
-                    }
+                    if(res.data.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found.</td></tr>'; return; }
                     res.data.forEach(b => {
                         let color = b.status === 'Booked' ? '#10b981' : '#ef4444';
                         let meetLink = b.meetingLink ? `<a href="${b.meetingLink}" target="_blank">Join</a>` : '-';
-                        tbody.innerHTML += `
-                            <tr>
-                                <td><b>${b.bookingId}</b></td>
-                                <td>${b.date} <br> <small style="color:#64748b">${b.time}</small></td>
-                                <td>${b.faculty}</td>
-                                <td style="color:${color}; font-weight:bold;">${b.status}</td>
-                                <td>${meetLink}</td>
-                            </tr>
-                        `;
+                        tbody.innerHTML += `<tr><td><b>${b.bookingId}</b></td><td>${b.date} <br> <small>${b.time}</small></td><td>${b.faculty}</td><td style="color:${color}; font-weight:bold;">${b.status}</td><td>${meetLink}</td></tr>`;
                     });
-                } else {
-                    tbody.innerHTML = '';
-                    err.innerText = res.message; err.style.display = 'block';
                 }
             });
+        }
+
+        // ================= ADMIN FUNCTIONS =================
+        function loadAdminBookings() {
+            const tbody = document.getElementById('adminBookingsBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getAllBookings" }) })
+            .then(res => res.json())
+            .then(res => {
+                tbody.innerHTML = '';
+                if(!res.success || res.data.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No bookings.</td></tr>`; return; }
+                res.data.reverse().forEach(b => {
+                    let badge = b.status === 'Booked' ? '<span style="color:#10b981;font-weight:bold;">Booked</span>' : '<span style="color:#ef4444;font-weight:bold;">Cancelled</span>';
+                    let linkInput = b.status === 'Booked' ? `<input type="text" id="link_${b.bookingId}" value="${b.meetingLink}" placeholder="Paste Link" style="width:100%; padding:5px;">` : `-`;
+                    let actionBtn = b.status === 'Booked' ? `<button class="btn btn-success" style="padding:5px 10px;" onclick="updateLink('${b.bookingId}', this)">Update</button>` : `-`;
+                    tbody.innerHTML += `<tr><td><b>${b.name}</b><br><small>${b.studentId}</small></td><td>${b.branch} / ${b.faculty}</td><td>${b.date} <br> ${b.time}</td><td>${badge}</td><td>${linkInput}</td><td>${actionBtn}</td></tr>`;
+                });
+            });
+        }
+
+        function updateLink(bookingId, btn) {
+            const link = document.getElementById(`link_${bookingId}`).value.trim();
+            if(!link) { alert("Please paste a valid link."); return; }
+            btn.innerText = "Saving..."; btn.disabled = true;
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "updateMeetingLink", data: { bookingId, meetingLink: link } }) })
+            .then(res => res.json())
+            .then(res => { btn.innerText = "Update"; btn.disabled = false; alert(res.success ? "Updated!" : res.message); });
+        }
+
+        function addFaculty() {
+            const facultyId = document.getElementById('facId').value.trim();
+            const facultyName = document.getElementById('facName').value.trim();
+            const branch = document.getElementById('facBranch').value.trim();
+            if(!facultyId || !facultyName || !branch) { alert("Fill all fields"); return; }
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminAddFaculty", data: { facultyId, facultyName, branch } }) })
+            .then(res => res.json()).then(res => { alert(res.message); });
+        }
+
+        function uploadSlots() {
+            const csvContent = document.getElementById('slotsCsv').value.trim();
+            if(!csvContent) return;
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminUploadSlotsCSV", data: { csvContent } }) })
+            .then(res => res.json()).then(res => { alert(res.message); if(res.success) document.getElementById('slotsCsv').value = ''; });
+        }
+
+        function uploadUsers() {
+            const csvContent = document.getElementById('usersCsv').value.trim();
+            if(!csvContent) return;
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "adminUploadCSV", data: { csvContent } }) })
+            .then(res => res.json()).then(res => { alert(res.message); if(res.success) document.getElementById('usersCsv').value = ''; });
         }
     </script>
 </body>
