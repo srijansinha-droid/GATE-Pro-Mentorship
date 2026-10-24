@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GATE Pro Mentorship</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        /* Common Container Style */
+        .container { background-color: #ffffff; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); width: 100%; max-width: 600px; }
+        .container h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        
+        /* Inputs */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; color: #555; font-size: 14px; font-weight: 600; }
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 15px; outline: none; transition: 0.3s;
+        }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: #007bff; }
+        .input-group textarea { resize: vertical; height: 80px; }
+        
+        /* Buttons */
+        .btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: 0.3s; font-weight: bold; margin-top: 10px; }
+        .btn-primary { background-color: #007bff; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-success { background-color: #28a745; }
+        .btn-success:hover { background-color: #218838; }
+        
+        /* Messages */
+        .msg { font-size: 14px; text-align: center; margin-top: 15px; display: none; font-weight: bold; padding: 10px; border-radius: 5px; }
+        .error-msg { color: #721c24; background: #f8d7da; }
+        .success-msg { color: #155724; background: #d4edda; }
+        .loading { text-align: center; color: #007bff; margin-top: 15px; display: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN SECTION -->
+    <div class="container" id="loginSection">
+        <h2>Student Login</h2>
+        <div class="input-group">
+            <label>User ID</label>
+            <input type="text" id="loginUserId" placeholder="Enter your 24-character User ID">
+        </div>
+        <div class="input-group">
+            <label>Phone Number</label>
+            <input type="tel" id="loginPhone" placeholder="Enter 10-digit registered phone number">
+        </div>
+        <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">Login</button>
+        
+        <div class="loading" id="loginLoading">Verifying details... Please wait.</div>
+        <div class="msg error-msg" id="loginError"></div>
+    </div>
+
+    <!-- BOOKING FORM SECTION (Hidden Initially) -->
+    <div class="container" id="formSection" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">Book Mentorship</h2>
+            <button onclick="logout()" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">Logout</button>
+        </div>
+        
+        <div class="input-group">
+            <label>Name</label>
+            <input type="text" id="name" placeholder="Enter your full name">
+        </div>
+        <div class="input-group">
+            <label>Branch</label>
+            <select id="branch" onchange="fetchFaculties()"><option value="">Select Branch</option></select>
+        </div>
+        <div class="input-group">
+            <label>Faculty</label>
+            <select id="faculty"><option value="">Select Branch First</option></select>
+        </div>
+        <div class="input-group">
+            <label>Date (DD/MM/YYYY)</label>
+            <input type="text" id="date" placeholder="e.g. 25/12/2026">
+        </div>
+        <div class="input-group">
+            <label>Time Slot</label>
+            <select id="time">
+                <option value="">Select Time</option>
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="11:00 AM">11:00 AM</option>
+                <option value="02:00 PM">02:00 PM</option>
+                <option value="04:00 PM">04:00 PM</option>
+                <option value="06:00 PM">06:00 PM</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Target Year</label>
+            <select id="targetYear">
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Complete Batch Name</label>
+            <input type="text" id="batchName" placeholder="e.g. GATE CSE 2026 Batch A">
+        </div>
+        <div class="input-group">
+            <label>Elaborate your query</label>
+            <textarea id="query" placeholder="What do you want to discuss?"></textarea>
+        </div>
+        
+        <button class="btn btn-success" id="bookBtn" onclick="handleBooking()">Book Now</button>
+        
+        <div class="loading" id="bookLoading">Processing your booking... Please wait.</div>
+        <div class="msg error-msg" id="bookError"></div>
+        <div class="msg success-msg" id="bookSuccess"></div>
+    </div>
+
+    <script>
+        // --- YAHAN APNA GOOGLE APPS SCRIPT URL DAALEIN ---
+        const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec";
+        
+        let currentStudentId = null;
+
+        // Check if already logged in
+        window.onload = function() {
+            const savedStudentId = localStorage.getItem('studentId');
+            if (savedStudentId) {
+                currentStudentId = savedStudentId;
+                showFormSection();
+            }
+        };
+
+        // Handle Login
+        function handleLogin() {
+            const userId = document.getElementById('loginUserId').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
+            const btn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('loginError');
+            const loading = document.getElementById('loginLoading');
+
+            if (!userId || !phone) {
+                errorMsg.innerText = "Please enter both User ID and Phone Number.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true; btn.innerText = "Logging in...";
+            errorMsg.style.display = 'none'; loading.style.display = 'block';
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "login", data: { userId: userId, phone: phone } })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Login";
+
+                if (data.success) {
+                    currentStudentId = data.studentId;
+                    localStorage.setItem('studentId', data.studentId);
+                    localStorage.setItem('studentName', data.name);
+                    localStorage.setItem('studentBranch', data.branch);
+                    showFormSection();
+                } else {
+                    errorMsg.innerText = data.message; errorMsg.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Login";
+                errorMsg.innerText = "Network error. Please try again."; errorMsg.style.display = 'block';
+            });
+        }
+
+        // Show Booking Form
+        function showFormSection() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('formSection').style.display = 'block';
+            document.getElementById('name').value = localStorage.getItem('studentName') || '';
+            loadBranches();
+        }
+
+        // Logout
+        function logout() {
+            localStorage.clear();
+            window.location.reload();
+        }
+
+        // Load Branches
+        function loadBranches() {
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getBranches" }) })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const branchSelect = document.getElementById('branch');
+                    branchSelect.innerHTML = '<option value="">Select Branch</option>';
+                    data.data.forEach(branch => {
+                        let opt = document.createElement('option');
+                        opt.value = branch; opt.innerHTML = branch;
+                        branchSelect.appendChild(opt);
+                    });
+                }
+            });
+        }
+
+        // Fetch Faculties
+        function fetchFaculties() {
+            const branch = document.getElementById('branch').value;
+            const facultySelect = document.getElementById('faculty');
+            facultySelect.innerHTML = '<option value="">Loading...</option>';
+            
+            if(!branch) {
+                facultySelect.innerHTML = '<option value="">Select Branch First</option>';
+                return;
+            }
+
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getFaculties", data: { branch: branch } }) })
+            .then(res => res.json())
+            .then(data => {
+                facultySelect.innerHTML = '<option value="">Select Faculty</option>';
+                if(data.success && data.data.length > 0) {
+                    data.data.forEach(fac => {
+                        let opt = document.createElement('option');
+                        opt.value = fac; opt.innerHTML = fac;
+                        facultySelect.appendChild(opt);
+                    });
+                } else {
+                    facultySelect.innerHTML = '<option value="">No faculties found</option>';
+                }
+            });
+        }
+
+        // Handle Booking
+        function handleBooking() {
+            const name = document.getElementById('name').value.trim();
+            const branch = document.getElementById('branch').value;
+            const faculty = document.getElementById('faculty').value;
+            const dateStr = document.getElementById('date').value.trim();
+            const timeStr = document.getElementById('time').value;
+            const targetYear = document.getElementById('targetYear').value;
+            const batchName = document.getElementById('batchName').value.trim();
+            const query = document.getElementById('query').value.trim();
+
+            const btn = document.getElementById('bookBtn');
+            const errorMsg = document.getElementById('bookError');
+            const successMsg = document.getElementById('bookSuccess');
+            const loading = document.getElementById('bookLoading');
+
+            if(!name || !branch || !faculty || !dateStr || !timeStr || !batchName || !query) {
+                errorMsg.innerText = "Please fill all the fields."; errorMsg.style.display = 'block'; return;
+            }
+
+            btn.disabled = true; btn.innerText = "Booking...";
+            errorMsg.style.display = 'none'; successMsg.style.display = 'none'; loading.style.display = 'block';
+
+            const payload = {
+                action: "book",
+                data: { studentId: currentStudentId, name: name, branch: branch, faculty: faculty, dateStr: dateStr, timeStr: timeStr, query: query, targetYear: targetYear, batchName: batchName }
+            };
+
+            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(data => {
+                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Book Now";
+
+                if(data.success) {
+                    successMsg.innerHTML = "Booking Successful! <br> ID: " + data.bookingId + "<br> Remaining this month: " + data.remainingThisMonth;
+                    successMsg.style.display = 'block';
+                    document.getElementById('query').value = '';
+                } else {
+                    errorMsg.innerText = data.message; errorMsg.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Book Now";
+                errorMsg.innerText = "Network error: " + err; errorMsg.style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>
