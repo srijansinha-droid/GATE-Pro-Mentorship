@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - GATE Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #6366f1; 
+            --bg: #f1f5f9; 
+            --text: #1e293b; 
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 20px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px 20px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header h2 { color: #0f172a; }
+        
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .table-container { overflow-x: auto; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        th { background: #f8fafc; color: #64748b; font-weight: 600; white-space: nowrap; }
+        tr:hover { background: #f8fafc; }
+        
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .bg-booked { background: #d1fae5; color: #065f46; }
+        .bg-cancelled { background: #fee2e2; color: #991b1b; }
+
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; white-space: nowrap; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-refresh { background: var(--primary); color: white; padding: 10px 20px; font-size: 14px; }
+        .btn-refresh:hover { background: #4f46e5; }
+
+        input[type="text"] { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; font-size: 13px; outline: none; }
+        input[type="text"]:focus { border-color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>Admin Dashboard</h2>
+        <button class="btn btn-refresh" onclick="loadBookings()">Refresh Data</button>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom: 15px; color: #475569;">All Student Bookings</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student Info</th>
+                        <th>Batch & Year</th>
+                        <th>Branch / Faculty</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                        <th>Meeting Link (Update here)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="7" style="text-align: center; padding: 20px;">Loading data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Aapka API URL (Wahi jo index.html mein hai)
+        const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
+
+        window.onload = function() {
+            loadBookings();
+        };
+
+        function loadBookings() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Loading data...</td></tr>';
+
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getAllBookings" }) })
+            .then(res => res.json())
+            .then(res => {
+                tbody.innerHTML = '';
+                
+                if(!res.success) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: red; padding: 20px;">${res.message}</td></tr>`;
+                    return;
+                }
+
+                if(res.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No bookings found.</td></tr>';
+                    return;
+                }
+
+                // Latest bookings sabse upar dikhane ke liye reverse
+                res.data.reverse().forEach(b => {
+                    let statusBadge = b.status === 'Booked' 
+                        ? '<span class="badge bg-booked">Booked</span>' 
+                        : '<span class="badge bg-cancelled">Cancelled</span>';
+                    
+                    let linkInput = '';
+                    let actionBtn = '';
+                    
+                    // Meeting link sirf Booked status ke liye dikhega
+                    if(b.status === 'Booked') {
+                        linkInput = `<input type="text" id="link_${b.bookingId}" value="${b.meetingLink}" placeholder="https://meet.google.com/...">`;
+                        actionBtn = `<button class="btn btn-success" onclick="updateLink('${b.bookingId}', this)">Update & Send</button>`;
+                    } else {
+                        linkInput = `<span style="color:#94a3b8; font-style:italic;">Cancelled</span>`;
+                        actionBtn = `<span style="color:#94a3b8;">-</span>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>
+                                <b>${b.name}</b><br>
+                                <small style="color:#64748b;">${b.studentId}</small>
+                            </td>
+                            <td>
+                                ${b.batchName}<br>
+                                <small style="color:#64748b;">Target: ${b.targetYear}</small>
+                            </td>
+                            <td>
+                                ${b.branch} <br> <small style="color:#64748b;">${b.faculty}</small>
+                            </td>
+                            <td>
+                                ${b.date} <br> <small style="color:#64748b;">${b.time}</small>
+                            </td>
+                            <td>${statusBadge}</td>
+                            <td>${linkInput}</td>
+                            <td>${actionBtn}</td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(e => {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: red; padding: 20px;">Network error. Please refresh.</td></tr>`;
+            });
+        }
+
+        function updateLink(bookingId, btnElement) {
+            const link = document.getElementById(`link_${bookingId}`).value.trim();
+            if(!link) { alert("Please paste a valid meeting link first."); return; }
+
+            const originalText = btnElement.innerText;
+            btnElement.innerText = "Saving...";
+            btnElement.disabled = true;
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: "updateMeetingLink", 
+                    data: { bookingId: bookingId, meetingLink: link } 
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                btnElement.innerText = originalText;
+                btnElement.disabled = false;
+                
+                if(res.success) {
+                    alert("Success! Meeting link updated. Student can now see it in their dashboard.");
+                } else {
+                    alert("Error: " + res.message);
+                }
+            })
+            .catch(e => {
+                btnElement.innerText = originalText;
+                btnElement.disabled = false;
+                alert("Network error. Try again.");
+            });
+        }
+    </script>
+</body>
+</html>
