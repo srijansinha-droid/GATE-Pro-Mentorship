@@ -11,11 +11,10 @@
             --primary-hover: #4f46e5;
             --success: #10b981;
             --success-hover: #059669;
-            --bg: #0f172a;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
             --card-bg: #ffffff;
-            --text: #1e293b;
-            --text-light: #64748b;
-            --border: #cbd5e1;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
         }
 
         * {
@@ -26,62 +25,51 @@
         }
 
         body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at top right, #1e1b4b, #0f172a);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Main Container Full Width/Height */
-        .main-container {
-            flex: 1;
+            background: var(--bg-gradient);
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            padding: 20px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 900px; /* Bada size */
-            min-height: 85vh; /* Screen ke hisaab se lamba */
-            border-radius: 16px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* Login Page Styles */
-        #loginSection {
-            padding: 60px 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100%;
-        }
-
-        /* Form Layout */
-        .form-content {
-            padding: 30px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-header {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e2e8f0;
+            min-height: 100vh;
+            padding: 30px 20px;
         }
 
-        h2 { color: var(--text); font-size: 24px; font-weight: 700; }
-        
+        /* Common Card Style */
+        .container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Login Container (Small) */
+        #loginSection {
+            max-width: 450px;
+        }
+
+        /* Form Container (Wide) */
+        #mainSection {
+            max-width: 1000px; /* Form ki width badha di */
+            min-height: 80vh; /* Taaki button niche chala jaye */
+            display: none; /* JS se block karenge */
+        }
+
+        h2 {
+            color: var(--text-main);
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
         .input-group {
             margin-bottom: 18px;
         }
@@ -89,7 +77,7 @@
         .input-group label {
             display: block;
             margin-bottom: 8px;
-            color: var(--text-light);
+            color: var(--text-muted);
             font-size: 13px;
             font-weight: 600;
             text-transform: uppercase;
@@ -99,24 +87,28 @@
             width: 100%;
             padding: 14px 16px;
             border: 2px solid #e2e8f0;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 15px;
+            color: var(--text-main);
+            background-color: #f8fafc;
             transition: 0.3s;
         }
 
         .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
             border-color: var(--primary);
-            outline: none;
+            background-color: #fff;
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            outline: none;
         }
 
-        textarea { resize: vertical; height: 100px; }
+        textarea { resize: vertical; height: 80px; }
 
-        /* Buttons */
+        /* Button Styles */
         .btn {
-            padding: 14px;
+            width: 100%;
+            padding: 15px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             color: white;
@@ -133,23 +125,55 @@
         .btn-success { background: var(--success); }
         .btn-success:hover { background: var(--success-hover); }
 
-        .btn-secondary { background: #64748b; padding: 10px 20px; font-size: 14px; }
-        .btn-secondary:hover { background: #475569; }
+        .btn-secondary { background: #e2e8f0; color: var(--text-main); }
+        .btn-secondary:hover { background: #cbd5e1; }
+
+        /* Header inside Form */
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 15px;
+        }
+
+        .form-header h2 { margin: 0; text-align: left; }
+        
+        .logout-btn {
+            padding: 8px 16px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: auto;
+        }
 
         /* Tabs */
         .tabs {
             display: flex;
             gap: 10px;
-            padding: 20px 30px 0 30px;
+            margin-bottom: 25px;
         }
-        .tabs .btn { flex: 1; }
 
-        /* Pushes Book Button to Bottom */
-        .form-body { flex: 1; }
-        
+        /* Form Layout (For pushing button down) */
+        .tab-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-body {
+            flex: 1;
+        }
+
         .submit-container {
-            margin-top: auto; /* Pushes to bottom */
+            margin-top: 30px;
             padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
         }
 
         /* Spinner */
@@ -163,107 +187,105 @@
             animation: spin 1s ease-in-out infinite;
             margin-right: 10px;
         }
-
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* Messages */
-        .msg { padding: 12px; border-radius: 8px; margin-top: 15px; display: none; font-size: 14px; text-align: center; }
-        .error { background: #fee2e2; color: #991b1b; }
-        .success { background: #d1fae5; color: #065f46; }
+        .msg { padding: 12px; border-radius: 8px; margin-top: 15px; display: none; font-size: 14px; text-align: center; font-weight: 500; }
+        .error-msg { background: #fee2e2; color: #991b1b; }
+        .success-msg { background: #d1fae5; color: #065f46; }
 
         /* Table */
-        .table-wrapper { overflow-x: auto; margin-top: 20px; }
+        .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
-        th { background: #f8fafc; color: var(--text-light); font-weight: 600; }
+        th { background: #f8fafc; color: var(--text-muted); }
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <div class="card">
-            
-            <!-- LOGIN SECTION -->
-            <div id="loginSection">
-                <h2 style="text-align: center; margin-bottom: 30px;">Student Login</h2>
+    <!-- LOGIN SECTION (Small & Centered) -->
+    <div class="container" id="loginSection">
+        <h2>Student Login</h2>
+        <div class="input-group">
+            <label>User ID</label>
+            <input type="text" id="loginUserId" placeholder="Enter your 24-character User ID">
+        </div>
+        <div class="input-group">
+            <label>Phone Number</label>
+            <input type="tel" id="loginPhone" placeholder="Enter 10-digit registered phone number">
+        </div>
+        
+        <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">
+            <span class="spinner" id="loginSpinner"></span>
+            <span id="loginBtnText">Login</span>
+        </button>
+        
+        <div class="msg error-msg" id="loginError"></div>
+    </div>
+
+    <!-- MAIN FORM SECTION (Wide) -->
+    <div class="container" id="mainSection">
+        
+        <div class="form-header">
+            <h2>Welcome, <span id="displayName" style="color: var(--primary);">Student</span></h2>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="btn btn-primary" onclick="showTab('bookTab')" id="tabBookBtn">Book Mentorship</button>
+            <button class="btn btn-secondary" onclick="showTab('scheduleTab')" id="tabScheduleBtn">My Schedule</button>
+        </div>
+
+        <!-- BOOKING FORM TAB -->
+        <div id="bookTab" class="tab-content">
+            <div class="form-body">
+                <div class="input-group"><label>Name</label><input type="text" id="name"></div>
+                <div class="input-group"><label>Branch</label><select id="branch" onchange="fetchFaculties()"></select></div>
+                <div class="input-group"><label>Faculty</label><select id="faculty"></select></div>
+                <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="date" placeholder="e.g. 25/12/2026"></div>
                 <div class="input-group">
-                    <label>User ID</label>
-                    <input type="text" id="loginUserId" placeholder="Enter 24-character User ID">
+                    <label>Time Slot</label>
+                    <select id="time">
+                        <option value="10:00 AM">10:00 AM</option>
+                        <option value="11:00 AM">11:00 AM</option>
+                        <option value="02:00 PM">02:00 PM</option>
+                        <option value="04:00 PM">04:00 PM</option>
+                    </select>
                 </div>
-                <div class="input-group">
-                    <label>Phone Number</label>
-                    <input type="tel" id="loginPhone" placeholder="Enter 10-digit Phone Number">
-                </div>
-                
-                <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()" style="width: 100%; margin-top: 10px;">
-                    <span class="spinner" id="loginSpinner"></span>
-                    <span id="loginBtnText">Login</span>
-                </button>
-                
-                <div class="msg error" id="loginError"></div>
+                <div class="input-group"><label>Target Year</label><select id="targetYear"><option>2025</option><option>2026</option></select></div>
+                <div class="input-group"><label>Batch Name</label><input type="text" id="batchName"></div>
+                <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
             </div>
-
-            <!-- MAIN APP (After Login) -->
-            <div id="mainSection" style="display: none; flex-direction: column; height: 100%;">
-                
-                <div class="form-header" style="padding: 20px 30px; margin: 0;">
-                    <h2>Welcome, <span id="displayName">Student</span></h2>
-                    <button class="btn btn-secondary" onclick="logout()">Logout</button>
-                </div>
-
-                <!-- Navigation Tabs -->
-                <div class="tabs">
-                    <button class="btn btn-primary" onclick="showTab('bookTab')" id="tabBookBtn">Book Mentorship</button>
-                    <button class="btn btn-secondary" onclick="showTab('scheduleTab')" id="tabScheduleBtn" style="background: #e2e8f0; color: #1e293b;">My Schedule</button>
-                </div>
-
-                <!-- BOOKING FORM TAB -->
-                <div id="bookTab" class="form-content">
-                    <div class="form-body">
-                        <div class="input-group"><label>Name</label><input type="text" id="name"></div>
-                        <div class="input-group"><label>Branch</label><select id="branch" onchange="fetchFaculties()"></select></div>
-                        <div class="input-group"><label>Faculty</label><select id="faculty"></select></div>
-                        <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="date" placeholder="e.g. 25/12/2026"></div>
-                        <div class="input-group"><label>Time Slot</label>
-                            <select id="time">
-                                <option value="10:00 AM">10:00 AM</option><option value="11:00 AM">11:00 AM</option>
-                                <option value="02:00 PM">02:00 PM</option><option value="04:00 PM">04:00 PM</option>
-                            </select>
-                        </div>
-                        <div class="input-group"><label>Target Year</label><select id="targetYear"><option>2025</option><option>2026</option></select></div>
-                        <div class="input-group"><label>Batch Name</label><input type="text" id="batchName"></div>
-                        <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
-                    </div>
-                    
-                    <div class="submit-container">
-                        <button class="btn btn-success" id="bookBtn" onclick="handleBooking()" style="width: 100%;">
-                            <span class="spinner" id="bookSpinner"></span>
-                            <span id="bookBtnText">Book Now</span>
-                        </button>
-                        <div class="msg error" id="bookError"></div>
-                        <div class="msg success" id="bookSuccess"></div>
-                    </div>
-                </div>
-
-                <!-- SCHEDULE TAB -->
-                <div id="scheduleTab" class="form-content" style="display: none;">
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr><th>Booking ID</th><th>Date & Time</th><th>Faculty</th><th>Status</th><th>Link</th></tr>
-                            </thead>
-                            <tbody id="scheduleBody"></tbody>
-                        </table>
-                    </div>
-                    <div class="msg error" id="scheduleError" style="margin-top: 20px;"></div>
-                </div>
-
+            
+            <!-- Button pushed to bottom -->
+            <div class="submit-container">
+                <button class="btn btn-success" id="bookBtn" onclick="handleBooking()">
+                    <span class="spinner" id="bookSpinner"></span>
+                    <span id="bookBtnText">Book Now</span>
+                </button>
+                <div class="msg error-msg" id="bookError"></div>
+                <div class="msg success-msg" id="bookSuccess"></div>
             </div>
         </div>
+
+        <!-- SCHEDULE TAB -->
+        <div id="scheduleTab" class="tab-content" style="display: none;">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Booking ID</th><th>Date & Time</th><th>Faculty</th><th>Status</th><th>Link</th></tr>
+                    </thead>
+                    <tbody id="scheduleBody"></tbody>
+                </table>
+            </div>
+            <div class="msg error-msg" id="scheduleError" style="margin-top: 20px;"></div>
+        </div>
+
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; // <-- YAHAN URL DAALEIN
+        const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; // <-- APNA URL DAALEIN
         let currentStudentId = null;
 
         window.onload = function() {
@@ -323,17 +345,15 @@
         function showTab(tabId) {
             document.getElementById('bookTab').style.display = 'none';
             document.getElementById('scheduleTab').style.display = 'none';
-            document.getElementById(tabId).style.display = 'block';
+            document.getElementById(tabId).style.display = 'flex'; // Flex for layout
 
-            // Tab Button Colors
+            // Tab styling toggle
             if(tabId === 'bookTab') {
                 document.getElementById('tabBookBtn').className = "btn btn-primary";
                 document.getElementById('tabScheduleBtn').className = "btn btn-secondary";
-                document.getElementById('tabScheduleBtn').style = "background: #e2e8f0; color: #1e293b;";
             } else {
                 document.getElementById('tabScheduleBtn').className = "btn btn-primary";
                 document.getElementById('tabBookBtn').className = "btn btn-secondary";
-                document.getElementById('tabBookBtn').style = "background: #e2e8f0; color: #1e293b;";
                 loadSchedule();
             }
         }
