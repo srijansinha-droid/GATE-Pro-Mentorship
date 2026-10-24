@@ -6,341 +6,137 @@
     <title>GATE Pro Mentorship</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --input-bg: #f8fafc;
-            --border-color: #e2e8f0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            color: var(--text-main);
-        }
-
-        /* Glassmorphism Card */
-        .container {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
-                        0 0 0 1px rgba(255, 255, 255, 0.2);
-            width: 100%;
-            max-width: 600px;
-            backdrop-filter: blur(10px);
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .container h2 {
-            text-align: center;
-            color: var(--text-main);
-            margin-bottom: 25px;
-            font-weight: 700;
-            font-size: 28px;
-            letter-spacing: -0.5px;
-        }
+        /* ... (Yahan wahi CSS rahega jo pichli baar diya tha) ... */
+        :root { --primary: #6366f1; --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); --card-bg: rgba(255, 255, 255, 0.95); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-gradient); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 40px 20px; }
+        .container { background: var(--card-bg); padding: 40px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 800px; }
+        h2 { text-align: center; margin-bottom: 20px; color: #1e293b; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: #64748b; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; margin-top: 10px; }
+        .btn-primary { background: #6366f1; } .btn-success { background: #10b981; } .btn-secondary { background: #64748b; }
+        .header-actions { display: flex; gap: 10px; margin-bottom: 20px; }
         
-        .input-group {
-            margin-bottom: 18px;
-            position: relative;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .input-group input, 
-        .input-group select, 
-        .input-group textarea {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 15px;
-            color: var(--text-main);
-            background-color: var(--input-bg);
-            transition: all 0.3s ease;
-        }
-
-        .input-group input:focus, 
-        .input-group select:focus, 
-        .input-group textarea:focus {
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-            outline: none;
-        }
-
-        .input-group textarea {
-            resize: vertical;
-            height: 100px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            letter-spacing: 0.5px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary {
-            background: linear-gradient(to right, #6366f1, #8b5cf6);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.6);
-        }
-
-        .btn-success {
-            background: linear-gradient(to right, #10b981, #059669);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.6);
-        }
-
-        .btn:disabled {
-            background: #cbd5e1;
-            box-shadow: none;
-            transform: none;
-            cursor: not-allowed;
-        }
-
-        .msg {
-            font-size: 14px;
-            text-align: center;
-            margin-top: 20px;
-            display: none;
-            font-weight: 500;
-            padding: 12px;
-            border-radius: 10px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .error-msg { color: #991b1b; background: #fee2e2; border: 1px solid #f87171; }
-        .success-msg { color: #065f46; background: #d1fae5; border: 1px solid #34d399; }
-
-        .loading {
-            text-align: center;
-            color: var(--primary);
-            margin-top: 15px;
-            display: none;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        /* Header with Logout */
-        .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-        }
-
-        .form-header h2 {
-            margin: 0;
-            text-align: left;
-            font-size: 24px;
-        }
-
-        .btn-logout {
-            padding: 8px 16px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: background 0.3s ease;
-        }
-
-        .btn-logout:hover {
-            background: #dc2626;
-        }
+        /* Table Style */
+        .table-container { overflow-x: auto; margin-top: 20px; display: none; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        th { background: #f8fafc; color: #475569; font-weight: 600; }
+        tr:hover { background: #f1f5f9; }
+        .status-booked { color: #10b981; font-weight: bold; }
+        .status-cancelled { color: #ef4444; font-weight: bold; }
+        
+        .msg { font-size: 14px; text-align: center; margin-top: 15px; display: none; padding: 10px; border-radius: 5px; }
+        .error-msg { color: #991b1b; background: #fee2e2; }
+        .success-msg { color: #065f46; background: #d1fae5; }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN SECTION -->
-    <div class="container" id="loginSection">
-        <h2>Student Login</h2>
-        <div class="input-group">
-            <label>User ID</label>
-            <input type="text" id="loginUserId" placeholder="Enter your 24-character User ID">
+    <div class="container">
+        <!-- LOGIN SECTION -->
+        <div id="loginSection">
+            <h2>Student Login</h2>
+            <div class="input-group"><label>User ID</label><input type="text" id="loginUserId"></div>
+            <div class="input-group"><label>Phone Number</label><input type="tel" id="loginPhone"></div>
+            <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">Login</button>
+            <div class="msg error-msg" id="loginError"></div>
         </div>
-        <div class="input-group">
-            <label>Phone Number</label>
-            <input type="tel" id="loginPhone" placeholder="Enter 10-digit registered phone number">
-        </div>
-        <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">Login Securely</button>
-        
-        <div class="loading" id="loginLoading">Verifying details... Please wait.</div>
-        <div class="msg error-msg" id="loginError"></div>
-    </div>
 
-    <!-- BOOKING FORM SECTION -->
-    <div class="container" id="formSection" style="display: none;">
-        <div class="form-header">
-            <h2>Book Mentorship</h2>
-            <button class="btn-logout" onclick="logout()">Logout</button>
+        <!-- MAIN APP (After Login) -->
+        <div id="mainSection" style="display: none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0;">Welcome, <span id="displayName">Student</span></h2>
+                <button class="btn btn-secondary" style="width:auto; padding: 8px 16px; margin:0;" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="showTab('bookTab')">Book Mentorship</button>
+                <button class="btn btn-success" onclick="showTab('scheduleTab')">My Schedule</button>
+            </div>
+
+            <!-- BOOKING FORM TAB -->
+            <div id="bookTab">
+                <div class="input-group"><label>Name</label><input type="text" id="name"></div>
+                <div class="input-group"><label>Branch</label><select id="branch" onchange="fetchFaculties()"></select></div>
+                <div class="input-group"><label>Faculty</label><select id="faculty"></select></div>
+                <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="date" placeholder="e.g. 25/12/2026"></div>
+                <div class="input-group"><label>Time Slot</label>
+                    <select id="time">
+                        <option value="10:00 AM">10:00 AM</option><option value="11:00 AM">11:00 AM</option>
+                        <option value="02:00 PM">02:00 PM</option><option value="04:00 PM">04:00 PM</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Target Year</label><select id="targetYear"><option>2025</option><option>2026</option></select></div>
+                <div class="input-group"><label>Batch Name</label><input type="text" id="batchName"></div>
+                <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
+                <button class="btn btn-success" id="bookBtn" onclick="handleBooking()">Book Now</button>
+                <div class="msg error-msg" id="bookError"></div>
+                <div class="msg success-msg" id="bookSuccess"></div>
+            </div>
+
+            <!-- SCHEDULE TAB -->
+            <div id="scheduleTab" style="display: none;">
+                <div class="table-container" id="tableContainer">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Date & Time</th>
+                                <th>Faculty</th>
+                                <th>Status</th>
+                                <th>Meeting Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBody">
+                            <!-- Data will load here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="msg error-msg" id="scheduleError"></div>
+            </div>
         </div>
-        
-        <div class="input-group">
-            <label>Name</label>
-            <input type="text" id="name" placeholder="Enter your full name">
-        </div>
-        <div class="input-group">
-            <label>Branch</label>
-            <select id="branch" onchange="fetchFaculties()"><option value="">Select Branch</option></select>
-        </div>
-        <div class="input-group">
-            <label>Faculty</label>
-            <select id="faculty"><option value="">Select Branch First</option></select>
-        </div>
-        <div class="input-group">
-            <label>Date (DD/MM/YYYY)</label>
-            <input type="text" id="date" placeholder="e.g. 25/12/2026">
-        </div>
-        <div class="input-group">
-            <label>Time Slot</label>
-            <select id="time">
-                <option value="">Select Time</option>
-                <option value="10:00 AM">10:00 AM</option>
-                <option value="11:00 AM">11:00 AM</option>
-                <option value="02:00 PM">02:00 PM</option>
-                <option value="04:00 PM">04:00 PM</option>
-                <option value="06:00 PM">06:00 PM</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>Target Year</label>
-            <select id="targetYear">
-                <option value="2025">2025</option>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>Complete Batch Name</label>
-            <input type="text" id="batchName" placeholder="e.g. GATE CSE 2026 Batch A">
-        </div>
-        <div class="input-group">
-            <label>Elaborate your query</label>
-            <textarea id="query" placeholder="What do you want to discuss?"></textarea>
-        </div>
-        
-        <button class="btn btn-success" id="bookBtn" onclick="handleBooking()">Book Now</button>
-        
-        <div class="loading" id="bookLoading">Processing your booking... Please wait.</div>
-        <div class="msg error-msg" id="bookError"></div>
-        <div class="msg success-msg" id="bookSuccess"></div>
     </div>
 
     <script>
-        // --- YAHAN APNA GOOGLE APPS SCRIPT URL DAALEIN ---
-        const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec";
-        
+        const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; // <-- PASTE URL HERE
         let currentStudentId = null;
 
         window.onload = function() {
-            const savedStudentId = localStorage.getItem('studentId');
-            if (savedStudentId) {
-                currentStudentId = savedStudentId;
-                showFormSection();
-            }
+            const saved = localStorage.getItem('studentId');
+            if (saved) { currentStudentId = saved; showMainSection(); }
         };
 
         function handleLogin() {
-            const userId = document.getElementById('loginUserId').value.trim();
-            const phone = document.getElementById('loginPhone').value.trim();
+            const userId = document.getElementById('loginUserId').value;
+            const phone = document.getElementById('loginPhone').value;
             const btn = document.getElementById('loginBtn');
-            const errorMsg = document.getElementById('loginError');
-            const loading = document.getElementById('loginLoading');
+            const err = document.getElementById('loginError');
 
-            if (!userId || !phone) {
-                errorMsg.innerText = "Please enter both User ID and Phone Number.";
-                errorMsg.style.display = 'block';
-                return;
-            }
+            btn.innerText = "Logging in..."; btn.disabled = true; err.style.display = 'none';
 
-            btn.disabled = true; btn.innerText = "Logging in...";
-            errorMsg.style.display = 'none'; loading.style.display = 'block';
-
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "login", data: { userId: userId, phone: phone } })
-            })
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", data: { userId, phone } }) })
             .then(res => res.json())
             .then(data => {
-                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Login Securely";
-
+                btn.innerText = "Login"; btn.disabled = false;
                 if (data.success) {
                     currentStudentId = data.studentId;
                     localStorage.setItem('studentId', data.studentId);
                     localStorage.setItem('studentName', data.name);
-                    localStorage.setItem('studentBranch', data.branch);
-                    showFormSection();
+                    showMainSection();
                 } else {
-                    errorMsg.innerText = data.message; errorMsg.style.display = 'block';
+                    err.innerText = data.message; err.style.display = 'block';
                 }
-            })
-            .catch(err => {
-                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Login Securely";
-                errorMsg.innerText = "Network error. Please try again."; errorMsg.style.display = 'block';
             });
         }
 
-        function showFormSection() {
+        function showMainSection() {
             document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('formSection').style.display = 'block';
+            document.getElementById('mainSection').style.display = 'block';
+            document.getElementById('displayName').innerText = localStorage.getItem('studentName') || 'Student';
             document.getElementById('name').value = localStorage.getItem('studentName') || '';
             loadBranches();
         }
@@ -350,91 +146,108 @@
             window.location.reload();
         }
 
+        function showTab(tabId) {
+            document.getElementById('bookTab').style.display = 'none';
+            document.getElementById('scheduleTab').style.display = 'none';
+            document.getElementById(tabId).style.display = 'block';
+
+            if (tabId === 'scheduleTab') {
+                loadSchedule();
+            }
+        }
+
         function loadBranches() {
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getBranches" }) })
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    const branchSelect = document.getElementById('branch');
-                    branchSelect.innerHTML = '<option value="">Select Branch</option>';
-                    data.data.forEach(branch => {
-                        let opt = document.createElement('option');
-                        opt.value = branch; opt.innerHTML = branch;
-                        branchSelect.appendChild(opt);
-                    });
+                    const sel = document.getElementById('branch');
+                    sel.innerHTML = '<option value="">Select Branch</option>';
+                    data.data.forEach(b => sel.innerHTML += `<option value="${b}">${b}</option>`);
                 }
             });
         }
 
         function fetchFaculties() {
             const branch = document.getElementById('branch').value;
-            const facultySelect = document.getElementById('faculty');
-            facultySelect.innerHTML = '<option value="">Loading...</option>';
-            
-            if(!branch) {
-                facultySelect.innerHTML = '<option value="">Select Branch First</option>';
-                return;
-            }
+            const sel = document.getElementById('faculty');
+            sel.innerHTML = '<option>Loading...</option>';
+            if(!branch) { sel.innerHTML = '<option value="">Select Branch First</option>'; return; }
 
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getFaculties", data: { branch: branch } }) })
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getFaculties", data: { branch } }) })
             .then(res => res.json())
             .then(data => {
-                facultySelect.innerHTML = '<option value="">Select Faculty</option>';
-                if(data.success && data.data.length > 0) {
-                    data.data.forEach(fac => {
-                        let opt = document.createElement('option');
-                        opt.value = fac; opt.innerHTML = fac;
-                        facultySelect.appendChild(opt);
-                    });
-                } else {
-                    facultySelect.innerHTML = '<option value="">No faculties found</option>';
-                }
+                sel.innerHTML = '<option value="">Select Faculty</option>';
+                if(data.success) data.data.forEach(f => sel.innerHTML += `<option value="${f}">${f}</option>`);
             });
         }
 
         function handleBooking() {
-            const name = document.getElementById('name').value.trim();
-            const branch = document.getElementById('branch').value;
-            const faculty = document.getElementById('faculty').value;
-            const dateStr = document.getElementById('date').value.trim();
-            const timeStr = document.getElementById('time').value;
-            const targetYear = document.getElementById('targetYear').value;
-            const batchName = document.getElementById('batchName').value.trim();
-            const query = document.getElementById('query').value.trim();
-
             const btn = document.getElementById('bookBtn');
-            const errorMsg = document.getElementById('bookError');
-            const successMsg = document.getElementById('bookSuccess');
-            const loading = document.getElementById('bookLoading');
-
-            if(!name || !branch || !faculty || !dateStr || !timeStr || !batchName || !query) {
-                errorMsg.innerText = "Please fill all the fields."; errorMsg.style.display = 'block'; return;
-            }
-
-            btn.disabled = true; btn.innerText = "Booking...";
-            errorMsg.style.display = 'none'; successMsg.style.display = 'none'; loading.style.display = 'block';
-
-            const payload = {
-                action: "book",
-                data: { studentId: currentStudentId, name: name, branch: branch, faculty: faculty, dateStr: dateStr, timeStr: timeStr, query: query, targetYear: targetYear, batchName: batchName }
+            const err = document.getElementById('bookError');
+            const succ = document.getElementById('bookSuccess');
+            const data = {
+                studentId: currentStudentId,
+                name: document.getElementById('name').value,
+                branch: document.getElementById('branch').value,
+                faculty: document.getElementById('faculty').value,
+                dateStr: document.getElementById('date').value,
+                timeStr: document.getElementById('time').value,
+                targetYear: document.getElementById('targetYear').value,
+                batchName: document.getElementById('batchName').value,
+                query: document.getElementById('query').value
             };
 
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
-            .then(res => res.json())
-            .then(data => {
-                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Book Now";
+            btn.innerText = "Processing..."; btn.disabled = true; err.style.display = 'none'; succ.style.display = 'none';
 
-                if(data.success) {
-                    successMsg.innerHTML = "Booking Successful! <br> ID: " + data.bookingId + "<br> Remaining this month: " + data.remainingThisMonth;
-                    successMsg.style.display = 'block';
-                    document.getElementById('query').value = '';
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "book", data }) })
+            .then(res => res.json())
+            .then(res => {
+                btn.innerText = "Book Now"; btn.disabled = false;
+                if(res.success) {
+                    succ.innerHTML = `Success! Booking ID: ${res.bookingId}. Remaining limit: ${res.remainingThisMonth}`;
+                    succ.style.display = 'block';
                 } else {
-                    errorMsg.innerText = data.message; errorMsg.style.display = 'block';
+                    err.innerText = res.message; err.style.display = 'block';
                 }
-            })
-            .catch(err => {
-                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Book Now";
-                errorMsg.innerText = "Network error: " + err; errorMsg.style.display = 'block';
+            });
+        }
+
+        function loadSchedule() {
+            const tableBody = document.getElementById('scheduleBody');
+            const container = document.getElementById('tableContainer');
+            const err = document.getElementById('scheduleError');
+            
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+            container.style.display = 'block';
+            err.style.display = 'none';
+
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getBookings", data: { studentId: currentStudentId } }) })
+            .then(res => res.json())
+            .then(res => {
+                if(res.success) {
+                    tableBody.innerHTML = '';
+                    if(res.data.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No bookings found.</td></tr>';
+                        return;
+                    }
+                    res.data.forEach(b => {
+                        let statusClass = b.status === 'Booked' ? 'status-booked' : 'status-cancelled';
+                        let meetLink = b.meetingLink ? `<a href="${b.meetingLink}" target="_blank">Join</a>` : '-';
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td>${b.bookingId}</td>
+                                <td>${b.date} <br> <small>${b.time}</small></td>
+                                <td>${b.faculty}</td>
+                                <td class="${statusClass}">${b.status}</td>
+                                <td>${meetLink}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    container.style.display = 'none';
+                    err.innerText = res.message; err.style.display = 'block';
+                }
             });
         }
     </script>
