@@ -4,35 +4,207 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GATE Pro Mentorship</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        
-        /* Common Container Style */
-        .container { background-color: #ffffff; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); width: 100%; max-width: 600px; }
-        .container h2 { text-align: center; color: #333; margin-bottom: 20px; }
-        
-        /* Inputs */
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; color: #555; font-size: 14px; font-weight: 600; }
-        .input-group input, .input-group select, .input-group textarea {
-            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 15px; outline: none; transition: 0.3s;
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --input-bg: #f8fafc;
+            --border-color: #e2e8f0;
         }
-        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: #007bff; }
-        .input-group textarea { resize: vertical; height: 80px; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-main);
+        }
+
+        /* Glassmorphism Card */
+        .container {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+                        0 0 0 1px rgba(255, 255, 255, 0.2);
+            width: 100%;
+            max-width: 600px;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container h2 {
+            text-align: center;
+            color: var(--text-main);
+            margin-bottom: 25px;
+            font-weight: 700;
+            font-size: 28px;
+            letter-spacing: -0.5px;
+        }
         
-        /* Buttons */
-        .btn { width: 100%; padding: 12px; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: 0.3s; font-weight: bold; margin-top: 10px; }
-        .btn-primary { background-color: #007bff; }
-        .btn-primary:hover { background-color: #0056b3; }
-        .btn-success { background-color: #28a745; }
-        .btn-success:hover { background-color: #218838; }
-        
-        /* Messages */
-        .msg { font-size: 14px; text-align: center; margin-top: 15px; display: none; font-weight: bold; padding: 10px; border-radius: 5px; }
-        .error-msg { color: #721c24; background: #f8d7da; }
-        .success-msg { color: #155724; background: #d4edda; }
-        .loading { text-align: center; color: #007bff; margin-top: 15px; display: none; font-size: 14px; }
+        .input-group {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input, 
+        .input-group select, 
+        .input-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--text-main);
+            background-color: var(--input-bg);
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus, 
+        .input-group select:focus, 
+        .input-group textarea:focus {
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            outline: none;
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            height: 100px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(to right, #10b981, #059669);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        .btn:disabled {
+            background: #cbd5e1;
+            box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .msg {
+            font-size: 14px;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+            font-weight: 500;
+            padding: 12px;
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .error-msg { color: #991b1b; background: #fee2e2; border: 1px solid #f87171; }
+        .success-msg { color: #065f46; background: #d1fae5; border: 1px solid #34d399; }
+
+        .loading {
+            text-align: center;
+            color: var(--primary);
+            margin-top: 15px;
+            display: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Header with Logout */
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .form-header h2 {
+            margin: 0;
+            text-align: left;
+            font-size: 24px;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+        }
     </style>
 </head>
 <body>
@@ -48,17 +220,17 @@
             <label>Phone Number</label>
             <input type="tel" id="loginPhone" placeholder="Enter 10-digit registered phone number">
         </div>
-        <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">Login</button>
+        <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">Login Securely</button>
         
         <div class="loading" id="loginLoading">Verifying details... Please wait.</div>
         <div class="msg error-msg" id="loginError"></div>
     </div>
 
-    <!-- BOOKING FORM SECTION (Hidden Initially) -->
+    <!-- BOOKING FORM SECTION -->
     <div class="container" id="formSection" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0;">Book Mentorship</h2>
-            <button onclick="logout()" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">Logout</button>
+        <div class="form-header">
+            <h2>Book Mentorship</h2>
+            <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
         
         <div class="input-group">
@@ -118,7 +290,6 @@
         
         let currentStudentId = null;
 
-        // Check if already logged in
         window.onload = function() {
             const savedStudentId = localStorage.getItem('studentId');
             if (savedStudentId) {
@@ -127,7 +298,6 @@
             }
         };
 
-        // Handle Login
         function handleLogin() {
             const userId = document.getElementById('loginUserId').value.trim();
             const phone = document.getElementById('loginPhone').value.trim();
@@ -150,7 +320,7 @@
             })
             .then(res => res.json())
             .then(data => {
-                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Login";
+                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Login Securely";
 
                 if (data.success) {
                     currentStudentId = data.studentId;
@@ -163,12 +333,11 @@
                 }
             })
             .catch(err => {
-                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Login";
+                loading.style.display = 'none'; btn.disabled = false; btn.innerText = "Login Securely";
                 errorMsg.innerText = "Network error. Please try again."; errorMsg.style.display = 'block';
             });
         }
 
-        // Show Booking Form
         function showFormSection() {
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('formSection').style.display = 'block';
@@ -176,13 +345,11 @@
             loadBranches();
         }
 
-        // Logout
         function logout() {
             localStorage.clear();
             window.location.reload();
         }
 
-        // Load Branches
         function loadBranches() {
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getBranches" }) })
             .then(res => res.json())
@@ -199,7 +366,6 @@
             });
         }
 
-        // Fetch Faculties
         function fetchFaculties() {
             const branch = document.getElementById('branch').value;
             const facultySelect = document.getElementById('faculty');
@@ -226,7 +392,6 @@
             });
         }
 
-        // Handle Booking
         function handleBooking() {
             const name = document.getElementById('name').value.trim();
             const branch = document.getElementById('branch').value;
