@@ -35,7 +35,7 @@
         #dashboardLayout { display: none; width: 100%; height: 95vh; background: #f1f5f9; border-radius: 15px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         
         .sidebar { width: 260px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid #334155; font-size: 20px; font-weight: 700; color: #fff; }
+        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid #334155; font-size: 18px; font-weight: 700; color: #fff; line-height: 1.2; }
         .sidebar-menu { flex: 1; padding: 20px 0; overflow-y: auto; }
         .sidebar-menu button { width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: #cbd5e1; font-size: 15px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
         .sidebar-menu button:hover, .sidebar-menu button.active { background: #334155; color: white; border-left: 4px solid var(--primary); }
@@ -69,7 +69,7 @@
 
     <!-- LOGIN SECTION -->
     <div class="container" id="loginSection">
-        <h2>Login Portal</h2>
+        <h2>GATE Pro Mentorship</h2>
         <div class="input-group">
             <label>User ID</label>
             <input type="text" id="loginUserId" placeholder="Enter 24-character User ID">
@@ -95,7 +95,7 @@
     <div id="dashboardLayout">
         <!-- Sidebar -->
         <div class="sidebar">
-            <div class="sidebar-header">GATE Pro</div>
+            <div class="sidebar-header">GATE Pro Mentorship</div>
             <div class="sidebar-menu" id="sidebarMenu">
                 <!-- Admin Menus -->
                 <div id="adminMenus" style="display: none;">
@@ -104,6 +104,7 @@
                     <button onclick="switchView('viewSlots', this)">⏰ Upload Slots</button>
                     <button onclick="switchView('viewUsers', this)">👥 Manage Users</button>
                     <button onclick="switchView('viewTelegram', this)">📢 Telegram Link</button>
+                    <button onclick="switchView('viewAdminProfile', this)">⚙️ Admin Profile</button>
                 </div>
                 <!-- Student Menus -->
                 <div id="studentMenus" style="display: none;">
@@ -185,6 +186,19 @@
                         <p style="font-size: 14px; margin-bottom: 10px; color: #64748b;">Yeh link student dashboard par dikhega.</p>
                         <input type="text" id="telegramLinkInput" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;" placeholder="https://t.me/yourgroup">
                         <button class="btn btn-success" style="width: 200px; margin-top: 10px;" onclick="updateTelegramLink()">Update Link</button>
+                    </div>
+                </div>
+
+                <!-- NEW ADMIN PROFILE VIEW -->
+                <div id="viewAdminProfile" class="view-section">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">Update Admin Credentials</h3>
+                        <p style="font-size: 14px; margin-bottom: 20px; color: #64748b;">Yahan se aap apni Admin ID aur Phone Number change kar sakte hain. Change karne ke baad aapko nayi details se login karna hoga.</p>
+                        <div class="input-row">
+                            <div><label>New Admin ID (24 chars)</label><input type="text" id="newAdminId" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;"></div>
+                            <div><label>New Phone Number</label><input type="text" id="newAdminPhone" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;"></div>
+                        </div>
+                        <button class="btn btn-success" style="width: 250px;" onclick="updateAdminProfile()">Update Profile</button>
                     </div>
                 </div>
 
@@ -301,7 +315,7 @@
 
             if(viewId === 'viewAllBookings') loadAdminBookings();
             if(viewId === 'viewMySchedule') loadSchedule();
-            if(viewId === 'viewTelegram') loadTelegramLink();
+            if(viewId === 'viewTelegram' || viewId === 'viewAdminProfile') loadAdminConfigs();
         }
 
         // ================= ADMIN FUNCTIONS =================
@@ -406,16 +420,36 @@
             .then(res => res.json()).then(res => { alert(res.message); if(res.success) document.getElementById('usersCsv').value = ''; });
         }
 
-        function loadTelegramLink() {
+        function loadAdminConfigs() {
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getAdminConfigs" }) })
             .then(res => res.json())
-            .then(res => { if(res.success) document.getElementById('telegramLinkInput').value = res.data.telegramLink; });
+            .then(res => { 
+                if(res.success) {
+                    document.getElementById('telegramLinkInput').value = res.data.telegramLink || '';
+                    document.getElementById('newAdminId').value = res.data.adminId || '';
+                    document.getElementById('newAdminPhone').value = res.data.adminPhone || '';
+                }
+            });
         }
 
         function updateTelegramLink() {
             const link = document.getElementById('telegramLinkInput').value.trim();
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "updateTelegramLink", data: { link } }) })
             .then(res => res.json()).then(res => alert(res.message));
+        }
+
+        function updateAdminProfile() {
+            const newId = document.getElementById('newAdminId').value.trim();
+            const newPhone = document.getElementById('newAdminPhone').value.trim();
+            if(!newId || !newPhone) { alert("Please fill both fields."); return; }
+
+            if(confirm("Are you sure? You will need to login again with these new details.")) {
+                fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "updateAdminProfile", data: { newId, newPhone } }) })
+                .then(res => res.json()).then(res => { 
+                    alert(res.message); 
+                    if(res.success) logout(); 
+                });
+            }
         }
 
         // ================= STUDENT FUNCTIONS =================
