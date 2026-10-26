@@ -70,28 +70,19 @@
 </head>
 <body>
 
-    <!-- PROFILE MODAL -->
     <div class="modal-overlay" id="profileModal">
         <div class="modal-box">
             <h2>Complete Your Profile</h2>
             <p style="font-size:13px; margin-bottom:15px; color:#64748b;">Please fill these details to continue.</p>
             <div class="input-group"><input type="text" id="profName" placeholder="Full Name"></div>
-            <div class="input-group">
-                <select id="profBranch">
-                    <option value="">Select Branch</option>
-                    <option value="CSE">CSE</option><option value="ECE">ECE</option><option value="ME">ME</option><option value="CE">CE</option>
-                </select>
-            </div>
+            <div class="input-group"><select id="profBranch"><option value="">Select Branch</option><option value="CSE">CSE</option><option value="ECE">ECE</option><option value="ME">ME</option><option value="CE">CE</option></select></div>
             <div class="input-group"><input type="text" id="profBatch" placeholder="Batch (e.g. CSE-A)"></div>
-            <div class="input-group">
-                <select id="profYear"><option value="">Target Year</option><option>2025</option><option>2026</option><option>2027</option></select>
-            </div>
+            <div class="input-group"><select id="profYear"><option value="">Target Year</option><option>2025</option><option>2026</option><option>2027</option></select></div>
             <div class="input-group"><input type="text" id="profPhone" placeholder="Register PW Number"></div>
             <button class="btn btn-primary" onclick="submitProfile()">Save Profile</button>
         </div>
     </div>
 
-    <!-- MARK STATUS MODAL -->
     <div class="modal-overlay" id="statusModal">
         <div class="modal-box">
             <h2>Mentorship Status</h2>
@@ -103,7 +94,6 @@
         </div>
     </div>
 
-    <!-- LOGIN -->
     <div class="container" id="loginSection">
         <h2>GATE Pro Mentorship</h2>
         <div class="input-group"><label>User ID</label><input type="text" id="loginUserId"></div>
@@ -112,16 +102,14 @@
             <label style="color: #ef4444;">Security Code (Admin)</label>
             <input type="password" id="loginAdminCode">
         </div>
-        <button class="btn btn-primary" onclick="handleLogin()"><span class="spinner" id="loginSpinner"></span>Login</button>
+        <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()"><span class="spinner" id="loginSpinner"></span><span id="loginBtnText">Login</span></button>
         <div class="msg error-msg" id="loginError"></div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboardLayout">
         <div class="sidebar">
             <div class="sidebar-header">GATE Pro Mentorship</div>
             <div class="sidebar-menu">
-                <!-- Admin Menus -->
                 <div id="adminMenus" style="display: none;">
                     <button onclick="switchView('viewAllBookings', this)" class="active">📊 All Bookings</button>
                     <button onclick="switchView('viewKnowStudents', this)">👨‍🎓 Know Your Students</button>
@@ -129,7 +117,6 @@
                     <button onclick="switchView('viewSlots', this)">⏰ Upload Slots</button>
                     <button onclick="switchView('viewSettings', this)">⚙️ System Settings</button>
                 </div>
-                <!-- Student Menus -->
                 <div id="studentMenus" style="display: none;">
                     <button onclick="switchView('viewBook', this)" class="active">📝 Book Mentorship</button>
                     <button onclick="switchView('viewMySchedule', this)">📅 My Schedule</button>
@@ -146,7 +133,6 @@
             </div>
 
             <div class="content-area">
-                <!-- ================= ADMIN ================= -->
                 <div id="viewAllBookings" class="view-section active">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">All Student Bookings</h3>
@@ -216,7 +202,6 @@
                     </div>
                 </div>
 
-                <!-- ================= STUDENT ================= -->
                 <div id="viewBook" class="view-section">
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -226,7 +211,7 @@
                         <div class="input-group"><label>Branch</label><select id="branch" onchange="fetchFac()"></select></div>
                         <div class="input-group"><label>Category</label><select id="category" onchange="filterFacultyByCategory()"></select></div>
                         <div class="input-group"><label>Faculty</label><select id="faculty" onchange="fetchSlots()"></select></div>
-                        <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="date" id="bookDate" onchange="formatDateInput()"></div>
+                        <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="date" id="bookDate"></div>
                         <div class="input-group"><label>Time Slot</label><select id="timeSlot"></select></div>
                         <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
                         <button class="btn btn-success" onclick="handleBooking()">Book Now</button>
@@ -273,15 +258,15 @@
             const u = document.getElementById('loginUserId').value.trim();
             const p = document.getElementById('loginPhone').value.trim();
             const c = document.getElementById('loginAdminCode').value.trim();
-            const btn = document.getElementById('loginBtn'), spinner = document.getElementById('loginSpinner'), err = document.getElementById('loginError');
+            const btn = document.getElementById('loginBtn'), spinner = document.getElementById('loginSpinner'), err = document.getElementById('loginError'), btnText = document.getElementById('loginBtnText');
             
-            if(!u || !p) return;
-            btn.disabled = true; spinner.style.display = 'inline-block'; err.style.display = 'none';
+            if(!u || !p) { err.innerText = "Please fill all details"; err.style.display = 'block'; return; }
+            btn.disabled = true; spinner.style.display = 'inline-block'; btnText.innerText = "Loading..."; err.style.display = 'none';
 
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", data: { userId: u, phone: p, adminCode: c } }) })
             .then(res => res.json())
             .then(data => {
-                btn.disabled = false; spinner.style.display = 'none';
+                btn.disabled = false; spinner.style.display = 'none'; btnText.innerText = "Login";
                 if (data.success) {
                     currentUserId = u; isAdmin = data.isAdmin || false;
                     localStorage.setItem('studentId', u); localStorage.setItem('isAdmin', isAdmin);
@@ -294,11 +279,12 @@
                     }
                 } else if (data.requireCode) {
                     document.getElementById('adminCodeGroup').style.display = 'block';
-                    err.innerText = data.message; err.style.display = 'block';
+                    err.innerText = "Admin verified. Enter security code."; err.style.display = 'block';
                 } else {
                     err.innerText = data.message; err.style.display = 'block';
                 }
-            });
+            })
+            .catch(e => { btn.disabled = false; spinner.style.display = 'none'; btnText.innerText = "Login"; err.innerText = "Network error. Try again."; err.style.display = 'block'; });
         }
 
         function submitProfile() {
@@ -356,7 +342,6 @@
             if(id==='viewBook') loadStudentData();
         }
 
-        // ================= ADMIN JS =================
         function loadAdminBookings() {
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getAdminData'})}).then(r=>r.json()).then(res=>{
                 if(res.success) { allAdminBookings = res.data.reverse(); renderAdminTable(); }
@@ -372,10 +357,9 @@
 
             const filtered = allAdminBookings.filter(b => {
                 let dMatch = true;
-                // Basic DD/MM/YYYY check
                 if(fDate || tDate) {
                     const pts = b.date.split('/');
-                    const bd = `${pts[2]}-${pts[1]}-${pts[0]}`; // YYYY-MM-DD
+                    const bd = `${pts[2]}-${pts[1]}-${pts[0]}`;
                     if(fDate && bd < fDate) dMatch = false;
                     if(tDate && bd > tDate) dMatch = false;
                 }
@@ -441,35 +425,23 @@
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateSettings', data})}).then(r=>r.json()).then(res=>alert(res.message));
         }
 
-        // ================= STUDENT JS =================
         function loadStudentData() {
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getDashboard', data:{studentId: currentUserId}})}).then(r=>r.json()).then(res=>{
                 if(res.success) {
                     document.getElementById('chancesBadge').innerText = res.chancesLeft + "/" + res.limit + " Left";
                     if(res.chancesLeft <= 0) document.getElementById('chancesBadge').className = 'badge bg-cancelled';
-                    
                     if(res.telegram) { document.getElementById('telegramLink').href = res.telegram; document.getElementById('telegramLink').style.display = 'inline-flex'; }
-                    
                     if(res.pendingAction) document.getElementById('statusModal').style.display = 'flex';
                 }
             });
-            // Load branches dynamically
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{
                 let sel = document.getElementById('category');
                 sel.innerHTML = '<option value="">Select Category</option>';
                 res.data.forEach(c => sel.innerHTML += `<option>${c}</option>`);
             });
             
-            // Dummy Branches for now, real app should fetch from Users sheet
             let selBr = document.getElementById('branch');
             selBr.innerHTML = '<option value="">Select Branch</option><option>CSE</option><option>ECE</option><option>ME</option>';
-        }
-
-        function formatDateInput() {
-            const d = document.getElementById('bookDate').value; // YYYY-MM-DD
-            if(!d) return;
-            const p = d.split('-');
-            // We keep it as YYYY-MM-DD internally but user asked to restrict past dates. Native date picker does this.
         }
 
         function fetchFac() {
@@ -496,7 +468,7 @@
         }
 
         function handleBooking() {
-            const d = document.getElementById('bookDate').value; // YYYY-MM-DD
+            const d = document.getElementById('bookDate').value;
             if(!d) { alert("Select Date"); return; }
             const p = d.split('-');
             const ddmmyyyy = `${p[2]}/${p[1]}/${p[0]}`;
@@ -527,7 +499,6 @@
         }
 
         function submitStatus(s) {
-            // Assuming the first pending booking in array is the one. (Ideally pass ID)
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getDashboard', data:{studentId: currentUserId}})}).then(r=>r.json()).then(res=>{
                 const pending = res.data.find(x => x.status==='Booked' && x.isDone === 'Pending');
                 if(pending) {
