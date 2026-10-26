@@ -215,8 +215,10 @@
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Upload Slots CSV</h3>
                         <p style="font-size: 13px; margin-bottom: 10px; color: #64748b;">Format: <b>Faculty Name, Branch, Date, Slot1, Slot2, Slot3...</b></p>
-                        <textarea id="slotsCsv" rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;"></textarea>
-                        <button class="btn btn-primary" style="width: 200px; margin-top: 10px;" onclick="uploadSlots()">Upload</button>
+                        
+                        <!-- File Input for CSV -->
+                        <input type="file" id="slotsFile" accept=".csv" style="margin-bottom: 15px; padding: 10px; border: 1px dashed #6366f1; border-radius: 8px; width: 100%;">
+                        <button class="btn btn-primary" style="width: 200px;" onclick="uploadSlots()">Upload File</button>
                     </div>
                 </div>
 
@@ -249,7 +251,6 @@
                         <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="date" id="bookDate"></div>
                         <div class="input-group"><label>Time Slot</label><select id="timeSlot"></select></div>
                         
-                        <!-- New Fields: Email & Phone -->
                         <div class="input-group"><label>Mail ID</label><input type="email" id="bookEmail" placeholder="student@example.com"></div>
                         <div class="input-group"><label>Registered Phone Number</label><input type="tel" id="bookPhone" placeholder="10-digit number"></div>
 
@@ -494,8 +495,6 @@
                         const faculty = cols[2].innerText;
                         const dt = cols[3].innerText.split('\n');
                         const status = cols[4].innerText;
-                        // Note: Email/Phone won't show in Admin Table UI but they are saved in DB. 
-                        // For UI simplicity, we export what's visible. 
                         csvContent += `"${name}","${id}","N/A","N/A","${branchBatch[0]}","${branchBatch[1]}","${faculty}","${dt[0]}","${dt[1]}","${status}"\n`;
                     }
                 });
@@ -558,9 +557,24 @@
         function removeFac(f) { if(!confirm("Remove Faculty?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'removeFaculty', data:{facName:f}})}).then(r=>r.json()).then(res=>{alert(res.message); loadMasterData();}); }
 
         function uploadSlots() {
-            const csv = document.getElementById('slotsCsv').value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'uploadSlots', data:{csv:csv}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('slotsCsv').value='';});
+            const fileInput = document.getElementById('slotsFile');
+            if (!fileInput.files.length) { alert("Please select a CSV file first."); return; }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                fetch(API_URL, {method:'POST', body:JSON.stringify({action:'uploadSlots', data:{csv:csv}})})
+                .then(r=>r.json())
+                .then(res=>{
+                    alert(res.message); 
+                    fileInput.value = ''; // Reset file input
+                });
+            };
+            reader.readAsText(file);
         }
+
         function loadSettings() {
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getSettings'})}).then(r=>r.json()).then(res=>{
                 if(res.success) {
