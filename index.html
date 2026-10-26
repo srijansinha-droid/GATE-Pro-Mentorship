@@ -116,6 +116,7 @@
                     <button onclick="switchView('viewAddMaster', this)">🗂️ Category & Branches</button>
                     <button onclick="switchView('viewAddFaculty', this)">👨‍🏫 Faculty List</button>
                     <button onclick="switchView('viewSlots', this)">⏰ Upload Slots</button>
+                    <button onclick="switchView('viewUsersCSV', this)">👥 Add Users</button>
                     <button onclick="switchView('viewSettings', this)">⚙️ System Settings</button>
                 </div>
                 <div id="studentMenus" style="display: none;">
@@ -216,9 +217,19 @@
                         <h3 style="margin-bottom: 15px;">Upload Slots CSV</h3>
                         <p style="font-size: 13px; margin-bottom: 10px; color: #64748b;">Format: <b>Faculty Name, Branch, Date, Slot1, Slot2, Slot3...</b></p>
                         
-                        <!-- File Input for CSV -->
                         <input type="file" id="slotsFile" accept=".csv" style="margin-bottom: 15px; padding: 10px; border: 1px dashed #6366f1; border-radius: 8px; width: 100%;">
                         <button class="btn btn-primary" style="width: 200px;" onclick="uploadSlots()">Upload File</button>
+                    </div>
+                </div>
+
+                <!-- ADMIN: Add Users CSV -->
+                <div id="viewUsersCSV" class="view-section">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">Add Students to System</h3>
+                        <p style="font-size: 13px; margin-bottom: 10px; color: #64748b;">Yahan se student login kar payenge. Format: <b>User ID, Phone Number, Branch</b></p>
+                        
+                        <input type="file" id="usersFile" accept=".csv" style="margin-bottom: 15px; padding: 10px; border: 1px dashed #10b981; border-radius: 8px; width: 100%;">
+                        <button class="btn btn-success" style="width: 200px;" onclick="uploadUsersCSV()">Upload Users</button>
                     </div>
                 </div>
 
@@ -256,7 +267,6 @@
 
                         <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
                         
-                        <!-- Telegram Link Below Query -->
                         <div id="telegramQueryBanner" style="background: #f1f5f9; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; display: none;">
                             Join this GATE Pro Mentorship telegram group link for further mentorship update - <a id="telegramLinkQuery" href="#" target="_blank" style="color: #6366f1; font-weight: 600;">Click Here</a>
                         </div>
@@ -566,6 +576,25 @@
             reader.onload = function(e) {
                 const csv = e.target.result;
                 fetch(API_URL, {method:'POST', body:JSON.stringify({action:'uploadSlots', data:{csv:csv}})})
+                .then(r=>r.json())
+                .then(res=>{
+                    alert(res.message); 
+                    fileInput.value = ''; // Reset file input
+                });
+            };
+            reader.readAsText(file);
+        }
+
+        function uploadUsersCSV() {
+            const fileInput = document.getElementById('usersFile');
+            if (!fileInput.files.length) { alert("Please select a CSV file first."); return; }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                fetch(API_URL, {method:'POST', body:JSON.stringify({action:'uploadUsers', data:{csv:csv}})})
                 .then(r=>r.json())
                 .then(res=>{
                     alert(res.message); 
