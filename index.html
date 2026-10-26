@@ -139,7 +139,7 @@
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                             <h3>All Student Bookings</h3>
-                            <button class="btn btn-primary" style="width:auto; padding:8px 15px;" onclick="downloadCSV()">Download CSV</button>
+                            <button class="btn btn-primary" style="width:auto; padding:8px 15px;" onclick="downloadCSV('bookings')">Download CSV</button>
                         </div>
                         <div class="filters">
                             <input type="date" id="filterFrom" onchange="filterAdminTable()">
@@ -161,7 +161,10 @@
                 <!-- ADMIN: Know Your Students -->
                 <div id="viewKnowStudents" class="view-section">
                     <div class="card">
-                        <h3 style="margin-bottom: 15px;">Student Database</h3>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h3>Student Database</h3>
+                            <button class="btn btn-primary" style="width:auto; padding:8px 15px;" onclick="downloadCSV('students')">Download CSV</button>
+                        </div>
                         <div class="filters">
                             <select id="searchStudentBranch" onchange="renderStudentsTable()"><option value="">All Branches</option></select>
                             <input type="text" id="searchStudentPhone" placeholder="Search Phone/Name..." onkeyup="renderStudentsTable()">
@@ -234,7 +237,7 @@
                 <div id="viewBook" class="view-section">
                     <div class="card">
                         <div id="telegramBanner" class="notice-banner">
-                            To join this pro mentorship group for further updates: <a id="telegramLinkForm" href="#" target="_blank">Click Here</a>
+                            Join this GATE Pro Mentorship Telegram group link for further mentorship update: <a id="telegramLinkForm" href="#" target="_blank">Click Here</a>
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                             <h3>Book Mentorship</h3>
@@ -245,7 +248,18 @@
                         <div class="input-group"><label>Faculty</label><select id="faculty" onchange="fetchSlots()"></select></div>
                         <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="date" id="bookDate"></div>
                         <div class="input-group"><label>Time Slot</label><select id="timeSlot"></select></div>
+                        
+                        <!-- New Fields: Email & Phone -->
+                        <div class="input-group"><label>Mail ID</label><input type="email" id="bookEmail" placeholder="student@example.com"></div>
+                        <div class="input-group"><label>Registered Phone Number</label><input type="tel" id="bookPhone" placeholder="10-digit number"></div>
+
                         <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
+                        
+                        <!-- Telegram Link Below Query -->
+                        <div id="telegramQueryBanner" style="background: #f1f5f9; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; display: none;">
+                            Join this GATE Pro Mentorship telegram group link for further mentorship update - <a id="telegramLinkQuery" href="#" target="_blank" style="color: #6366f1; font-weight: 600;">Click Here</a>
+                        </div>
+
                         <button class="btn btn-success" onclick="handleBooking()">Book Now</button>
                         <div class="msg error-msg" id="bookError"></div>
                     </div>
@@ -370,13 +384,11 @@
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{ 
                 allCategories = res.data; 
                 
-                // Populate dropdowns
                 let fCat = document.getElementById('facCategory');
                 let sCat = document.getElementById('category');
                 if(fCat) { fCat.innerHTML = '<option value="">Select</option>'; res.data.forEach(c => fCat.innerHTML += `<option>${c}</option>`); }
                 if(sCat) { sCat.innerHTML = '<option value="">Select Category</option>'; res.data.forEach(c => sCat.innerHTML += `<option>${c}</option>`); }
                 
-                // Populate lists
                 let catList = document.getElementById('categoryList');
                 if(catList) {
                     catList.innerHTML = '';
@@ -461,7 +473,6 @@
             let html = '';
             filtered.forEach(b => {
                 let badge = b.status==='Booked' ? '<span class="badge bg-booked">Booked</span>' : '<span class="badge bg-cancelled">Cancelled</span>';
-                // Google Meet, Zoom links are supported
                 let link = b.status==='Booked' ? `<input type="text" id="l_${b.bookingId}" value="${b.meetingLink}" placeholder="Paste Link" style="width:80px;"> <button class="btn btn-success" style="width:auto; padding:2px 5px;" onclick="updLink('${b.bookingId}')">Set</button>` : '-';
                 let act = b.status==='Booked' ? `<button class="btn btn-danger" style="width:auto; padding:2px 5px;" onclick="admCancel('${b.bookingId}')">Cancel</button>` : '-';
                 html += `<tr><td><b>${b.name}</b><br><small>${b.studentId}</small></td><td>${b.branch}/${b.batchName}</td><td>${b.faculty}</td><td>${b.date}<br>${b.time}</td><td>${badge}</td><td>${link}</td><td>${act}</td></tr>`;
@@ -469,25 +480,41 @@
             document.getElementById('adminBookingsBody').innerHTML = html;
         }
 
-        function downloadCSV() {
-            let csvContent = "data:text/csv;charset=utf-8,StudentName,StudentID,Branch,Batch,Faculty,Date,Time,Status\n";
-            const rows = document.querySelectorAll('#adminBookingsBody tr');
-            rows.forEach(row => {
-                const cols = row.querySelectorAll('td');
-                if(cols.length >= 5) {
-                    const name = cols[0].childNodes[0].nodeValue;
-                    const id = cols[0].querySelector('small').innerText;
-                    const branchBatch = cols[1].innerText.split('/');
-                    const faculty = cols[2].innerText;
-                    const dt = cols[3].innerText.split('\n');
-                    const status = cols[4].innerText;
-                    csvContent += `"${name}","${id}","${branchBatch[0]}","${branchBatch[1]}","${faculty}","${dt[0]}","${dt[1]}","${status}"\n`;
-                }
-            });
+        function downloadCSV(type) {
+            let csvContent = "";
+            if(type === 'bookings') {
+                csvContent = "data:text/csv;charset=utf-8,StudentName,StudentID,Email,Phone,Branch,Batch,Faculty,Date,Time,Status\n";
+                const rows = document.querySelectorAll('#adminBookingsBody tr');
+                rows.forEach(row => {
+                    const cols = row.querySelectorAll('td');
+                    if(cols.length >= 5) {
+                        const name = cols[0].childNodes[0].nodeValue;
+                        const id = cols[0].querySelector('small').innerText;
+                        const branchBatch = cols[1].innerText.split('/');
+                        const faculty = cols[2].innerText;
+                        const dt = cols[3].innerText.split('\n');
+                        const status = cols[4].innerText;
+                        // Note: Email/Phone won't show in Admin Table UI but they are saved in DB. 
+                        // For UI simplicity, we export what's visible. 
+                        csvContent += `"${name}","${id}","N/A","N/A","${branchBatch[0]}","${branchBatch[1]}","${faculty}","${dt[0]}","${dt[1]}","${status}"\n`;
+                    }
+                });
+            } else {
+                csvContent = "data:text/csv;charset=utf-8,Name,StudentID,Branch,Batch,TargetYear,PWNumber\n";
+                const rows = document.querySelectorAll('#studentsBody tr');
+                rows.forEach(row => {
+                    const cols = row.querySelectorAll('td');
+                    if(cols.length >= 5) {
+                        const name = cols[0].childNodes[0].nodeValue;
+                        const id = cols[0].querySelector('small').innerText;
+                        csvContent += `"${name}","${id}","${cols[1].innerText}","${cols[2].innerText}","${cols[3].innerText}","${cols[4].innerText}"\n`;
+                    }
+                });
+            }
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "bookings.csv");
+            link.setAttribute("download", type === 'bookings' ? "bookings.csv" : "students.csv");
             document.body.appendChild(link);
             link.click();
         }
@@ -563,7 +590,9 @@
                     
                     if(res.telegram) { 
                         document.getElementById('telegramLinkForm').href = res.telegram; 
+                        document.getElementById('telegramLinkQuery').href = res.telegram; 
                         document.getElementById('telegramBanner').style.display = 'block'; 
+                        document.getElementById('telegramQueryBanner').style.display = 'block'; 
                     }
                     if(res.pendingAction) document.getElementById('statusModal').style.display = 'flex';
                 }
@@ -615,9 +644,10 @@
             const data = {
                 studentId: currentUserId, name: localStorage.getItem('studentName'), branch: document.getElementById('branch').value,
                 faculty: document.getElementById('faculty').value, date: ddmmyyyy, time: document.getElementById('timeSlot').value,
-                query: document.getElementById('query').value, year: '', batch: '', category: document.getElementById('category').value
+                query: document.getElementById('query').value, year: '', batch: '', category: document.getElementById('category').value,
+                email: document.getElementById('bookEmail').value, phone: document.getElementById('bookPhone').value
             };
-            if(!data.branch || !data.faculty || !data.time || !data.category) { alert("Fill all fields"); return; }
+            if(!data.branch || !data.faculty || !data.time || !data.category || !data.email || !data.phone) { alert("Fill all fields"); return; }
 
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'book', data})}).then(r=>r.json()).then(res=>{
                 if(res.success) { alert("Booked!"); loadStudentData(); switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]); }
