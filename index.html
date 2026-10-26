@@ -259,7 +259,11 @@
                         <div class="input-group"><label>Branch</label><select id="branch" onchange="fetchFac()"></select></div>
                         <div class="input-group"><label>Category</label><select id="category" onchange="filterFacultyByCategory()"></select></div>
                         <div class="input-group"><label>Faculty</label><select id="faculty" onchange="fetchSlots()"></select></div>
-                        <div class="input-group"><label>Date (DD/MM/YYYY)</label><input type="date" id="bookDate"></div>
+                        <div class="input-group">
+                            <label>Date (DD/MM/YYYY)</label>
+                            <!-- Added min attribute for date to prevent past dates -->
+                            <input type="date" id="bookDate">
+                        </div>
                         <div class="input-group"><label>Time Slot</label><select id="timeSlot"></select></div>
                         
                         <div class="input-group"><label>Mail ID</label><input type="email" id="bookEmail" placeholder="student@example.com"></div>
@@ -308,6 +312,10 @@
             const saved = localStorage.getItem('studentId');
             isAdmin = localStorage.getItem('isAdmin') === 'true';
             if (saved) { currentUserId = saved; showDashboard(); }
+            
+            // Set min date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('bookDate').setAttribute('min', today);
         };
 
         function handleLogin() {
