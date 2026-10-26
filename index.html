@@ -70,7 +70,6 @@
 </head>
 <body>
 
-    <!-- Modals -->
     <div class="modal-overlay" id="profileModal">
         <div class="modal-box">
             <h2>Complete Your Profile</h2>
@@ -95,7 +94,6 @@
         </div>
     </div>
 
-    <!-- Login -->
     <div class="container" id="loginSection">
         <h2>GATE Pro Mentorship</h2>
         <div class="input-group"><label>User ID</label><input type="text" id="loginUserId"></div>
@@ -108,7 +106,6 @@
         <div class="msg error-msg" id="loginError"></div>
     </div>
 
-    <!-- Dashboard -->
     <div id="dashboardLayout">
         <div class="sidebar">
             <div class="sidebar-header">GATE Pro Mentorship</div>
@@ -116,8 +113,8 @@
                 <div id="adminMenus" style="display: none;">
                     <button onclick="switchView('viewAllBookings', this)" class="active">📊 All Bookings</button>
                     <button onclick="switchView('viewKnowStudents', this)">👨‍🎓 Know Your Students</button>
-                    <button onclick="switchView('viewAddMaster', this)">🗂️ Add Category & Branches</button>
-                    <button onclick="switchView('viewAddFaculty', this)">👨‍🏫 Add Faculty</button>
+                    <button onclick="switchView('viewAddMaster', this)">🗂️ Category & Branches</button>
+                    <button onclick="switchView('viewAddFaculty', this)">👨‍🏫 Faculty List</button>
                     <button onclick="switchView('viewSlots', this)">⏰ Upload Slots</button>
                     <button onclick="switchView('viewSettings', this)">⚙️ System Settings</button>
                 </div>
@@ -166,8 +163,6 @@
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Student Database</h3>
                         <div class="filters">
-                            <input type="date" id="stdDateFrom" onchange="renderStudentsTable()">
-                            <input type="date" id="stdDateTo" onchange="renderStudentsTable()">
                             <select id="searchStudentBranch" onchange="renderStudentsTable()"><option value="">All Branches</option></select>
                             <input type="text" id="searchStudentPhone" placeholder="Search Phone/Name..." onkeyup="renderStudentsTable()">
                         </div>
@@ -177,7 +172,7 @@
                     </div>
                 </div>
 
-                <!-- ADMIN: Add Master Data (Category, Branch, Faculty) -->
+                <!-- ADMIN: Manage Master Data -->
                 <div id="viewAddMaster" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Manage Categories & Branches</h3>
@@ -185,23 +180,30 @@
                             <div><label>Add Category</label><input type="text" id="newCatName" placeholder="e.g. GATE"></div>
                             <div style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="addCat()">Add</button></div>
                         </div>
+                        <div id="categoryList" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:30px;"></div>
+
                         <div class="input-row">
                             <div><label>Add Branch</label><input type="text" id="newBranchName" placeholder="e.g. CSE"></div>
                             <div style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="addBranch()">Add</button></div>
                         </div>
+                        <div id="branchList" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
                     </div>
                 </div>
 
-                <!-- ADMIN: Add Faculty -->
+                <!-- ADMIN: Faculty List -->
                 <div id="viewAddFaculty" class="view-section">
                     <div class="card">
-                        <h3 style="margin-bottom: 15px;">Add Faculty</h3>
+                        <h3 style="margin-bottom: 15px;">Add & Manage Faculties</h3>
                         <div class="input-row">
                             <div><label>Faculty Name</label><input type="text" id="facName"></div>
                             <div><label>Branch</label><select id="facBranch"></select></div>
                             <div><label>Category</label><select id="facCategory"></select></div>
                         </div>
-                        <button class="btn btn-success" style="width: 200px;" onclick="addFac()">Add Faculty</button>
+                        <button class="btn btn-success" style="width: 200px; margin-bottom: 20px;" onclick="addFac()">Add Faculty</button>
+
+                        <div class="table-container">
+                            <table><thead><tr><th>Faculty Name</th><th>Branch</th><th>Category</th><th>Action</th></tr></thead><tbody id="facultyListBody"></tbody></table>
+                        </div>
                     </div>
                 </div>
 
@@ -350,30 +352,7 @@
             document.getElementById('dashboardLayout').style.display = 'flex';
             document.getElementById('displayName').innerText = isAdmin ? 'Admin' : localStorage.getItem('studentName');
             
-            // Load Master Data for dropdowns
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{ 
-                allCategories = res.data; 
-                let fCat = document.getElementById('facCategory');
-                let sCat = document.getElementById('category');
-                if(fCat) { fCat.innerHTML = '<option value="">Select</option>'; res.data.forEach(c => fCat.innerHTML += `<option>${c}</option>`); }
-                if(sCat) { sCat.innerHTML = '<option value="">Select Category</option>'; res.data.forEach(c => sCat.innerHTML += `<option>${c}</option>`); }
-            });
-            
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getBranches'})}).then(r=>r.json()).then(res=>{ 
-                allBranches = res.data; 
-                let fBr = document.getElementById('facBranch');
-                let sBr = document.getElementById('branch');
-                let filterBr = document.getElementById('filterBranch');
-                if(fBr) { fBr.innerHTML = '<option value="">Select</option>'; res.data.forEach(b => fBr.innerHTML += `<option>${b}</option>`); }
-                if(sBr) { sBr.innerHTML = '<option value="">Select Branch</option>'; res.data.forEach(b => sBr.innerHTML += `<option>${b}</option>`); }
-                if(filterBr) { res.data.forEach(b => filterBr.innerHTML += `<option>${b}</option>`); }
-            });
-            
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getAllFaculties'})}).then(r=>r.json()).then(res=>{ 
-                allFaculties = res.data; 
-                let filterFac = document.getElementById('filterFaculty');
-                if(filterFac) { res.data.forEach(f => filterFac.innerHTML += `<option>${f.name}</option>`); }
-            });
+            loadMasterData();
 
             if(isAdmin) {
                 document.getElementById('adminMenus').style.display = 'block';
@@ -385,6 +364,54 @@
                 switchView('viewBook', document.querySelector('#studentMenus button'));
                 loadStudentData();
             }
+        }
+
+        function loadMasterData() {
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{ 
+                allCategories = res.data; 
+                
+                // Populate dropdowns
+                let fCat = document.getElementById('facCategory');
+                let sCat = document.getElementById('category');
+                if(fCat) { fCat.innerHTML = '<option value="">Select</option>'; res.data.forEach(c => fCat.innerHTML += `<option>${c}</option>`); }
+                if(sCat) { sCat.innerHTML = '<option value="">Select Category</option>'; res.data.forEach(c => sCat.innerHTML += `<option>${c}</option>`); }
+                
+                // Populate lists
+                let catList = document.getElementById('categoryList');
+                if(catList) {
+                    catList.innerHTML = '';
+                    res.data.forEach(c => catList.innerHTML += `<span style="background:#e2e8f0; padding:5px 10px; border-radius:5px; font-size:13px; display:flex; gap:10px; align-items:center;">${c} <button onclick="removeCat('${c}')" style="background:transparent; border:none; color:red; cursor:pointer; font-weight:bold;">✕</button></span>`);
+                }
+            });
+            
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getBranches'})}).then(r=>r.json()).then(res=>{ 
+                allBranches = res.data; 
+                let fBr = document.getElementById('facBranch');
+                let sBr = document.getElementById('branch');
+                let filterBr = document.getElementById('filterBranch');
+                
+                if(fBr) { fBr.innerHTML = '<option value="">Select</option>'; res.data.forEach(b => fBr.innerHTML += `<option>${b}</option>`); }
+                if(sBr) { sBr.innerHTML = '<option value="">Select Branch</option>'; res.data.forEach(b => sBr.innerHTML += `<option>${b}</option>`); }
+                if(filterBr) { filterBr.innerHTML = '<option value="">All Branches</option>'; res.data.forEach(b => filterBr.innerHTML += `<option>${b}</option>`); }
+
+                let brList = document.getElementById('branchList');
+                if(brList) {
+                    brList.innerHTML = '';
+                    res.data.forEach(b => brList.innerHTML += `<span style="background:#e2e8f0; padding:5px 10px; border-radius:5px; font-size:13px; display:flex; gap:10px; align-items:center;">${b} <button onclick="removeBr('${b}')" style="background:transparent; border:none; color:red; cursor:pointer; font-weight:bold;">✕</button></span>`);
+                }
+            });
+            
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getAllFaculties'})}).then(r=>r.json()).then(res=>{ 
+                allFaculties = res.data; 
+                let filterFac = document.getElementById('filterFaculty');
+                if(filterFac) { filterFac.innerHTML = '<option value="">All Faculties</option>'; res.data.forEach(f => filterFac.innerHTML += `<option>${f.name}</option>`); }
+
+                let facList = document.getElementById('facultyListBody');
+                if(facList) {
+                    facList.innerHTML = '';
+                    res.data.forEach(f => facList.innerHTML += `<tr><td>${f.name}</td><td>${f.branch}</td><td>${f.category}</td><td><button class="btn btn-danger" style="padding:2px 8px; width:auto;" onclick="removeFac('${f.name}')">Remove</button></td></tr>`);
+                }
+            });
         }
 
         function switchView(id, btn) {
@@ -402,6 +429,7 @@
             if(id==='viewMySchedule') loadSchedule();
             if(id==='viewCancel') loadCancelDropdown();
             if(id==='viewBook') loadStudentData();
+            if(id==='viewAddMaster' || id==='viewAddFaculty') loadMasterData();
         }
 
         // ================= ADMIN =================
@@ -433,7 +461,7 @@
             let html = '';
             filtered.forEach(b => {
                 let badge = b.status==='Booked' ? '<span class="badge bg-booked">Booked</span>' : '<span class="badge bg-cancelled">Cancelled</span>';
-                // Link input for Google Meet, Zoom, etc.
+                // Google Meet, Zoom links are supported
                 let link = b.status==='Booked' ? `<input type="text" id="l_${b.bookingId}" value="${b.meetingLink}" placeholder="Paste Link" style="width:80px;"> <button class="btn btn-success" style="width:auto; padding:2px 5px;" onclick="updLink('${b.bookingId}')">Set</button>` : '-';
                 let act = b.status==='Booked' ? `<button class="btn btn-danger" style="width:auto; padding:2px 5px;" onclick="admCancel('${b.bookingId}')">Cancel</button>` : '-';
                 html += `<tr><td><b>${b.name}</b><br><small>${b.studentId}</small></td><td>${b.branch}/${b.batchName}</td><td>${b.faculty}</td><td>${b.date}<br>${b.time}</td><td>${badge}</td><td>${link}</td><td>${act}</td></tr>`;
@@ -475,10 +503,6 @@
         function renderStudentsTable() {
             const br = document.getElementById('searchStudentBranch').value;
             const ph = document.getElementById('searchStudentPhone').value.toLowerCase();
-            const dFrom = document.getElementById('stdDateFrom').value;
-            const dTo = document.getElementById('stdDateTo').value;
-
-            // Since profile dates are not tracked, this filter is just a placeholder for now. 
             const filtered = allStudentsData.filter(s => (br?s.branch===br:true) && (s.name.toLowerCase().includes(ph) || s.phone.includes(ph)));
             let html = '';
             filtered.forEach(s => html += `<tr><td><b>${s.name}</b><br><small>${s.id}</small></td><td>${s.branch}</td><td>${s.batch}</td><td>${s.year}</td><td>${s.phone}</td></tr>`);
@@ -487,19 +511,25 @@
 
         function addCat() {
             const c = document.getElementById('newCatName').value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addCategory', data:{catName:c}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('newCatName').value=''; location.reload();});
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addCategory', data:{catName:c}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('newCatName').value=''; loadMasterData();});
         }
+        function removeCat(c) { if(!confirm("Remove Category?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'removeCategory', data:{catName:c}})}).then(r=>r.json()).then(res=>{alert(res.message); loadMasterData();}); }
+        
         function addBranch() {
             const b = document.getElementById('newBranchName').value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addBranch', data:{branchName:b}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('newBranchName').value=''; location.reload();});
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addBranch', data:{branchName:b}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('newBranchName').value=''; loadMasterData();});
         }
+        function removeBr(b) { if(!confirm("Remove Branch?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'removeBranch', data:{branchName:b}})}).then(r=>r.json()).then(res=>{alert(res.message); loadMasterData();}); }
+
         function addFac() {
             const n = document.getElementById('facName').value, b = document.getElementById('facBranch').value, c = document.getElementById('facCategory').value;
             if(!n || !b || !c) { alert("Fill all fields"); return; }
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addFaculty', data:{name:n, branch:b, category:c}})}).then(r=>r.json()).then(res=>{
-                alert(res.message); document.getElementById('facName').value=''; location.reload();
+                alert(res.message); document.getElementById('facName').value=''; loadMasterData();
             });
         }
+        function removeFac(f) { if(!confirm("Remove Faculty?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'removeFaculty', data:{facName:f}})}).then(r=>r.json()).then(res=>{alert(res.message); loadMasterData();}); }
+
         function uploadSlots() {
             const csv = document.getElementById('slotsCsv').value;
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'uploadSlots', data:{csv:csv}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('slotsCsv').value='';});
@@ -539,7 +569,6 @@
                 }
             });
             
-            // Reload categories and branches dynamically
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{
                 let sel = document.getElementById('category');
                 sel.innerHTML = '<option value="">Select Category</option>';
