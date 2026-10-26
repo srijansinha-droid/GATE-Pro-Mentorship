@@ -10,12 +10,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--bg-gradient); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
         
-        /* Modal Popup */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 999; }
         .modal-box { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 500px; text-align: center; animation: pop 0.3s ease; }
         @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
-        /* Login UI */
         .container { background: var(--card-bg); border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); width: 100%; padding: 40px; display: flex; flex-direction: column; animation: slideUp 0.5s ease-out; max-width: 450px;}
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
@@ -35,7 +33,6 @@
         .msg { padding: 10px; border-radius: 8px; margin-top: 15px; display: none; font-size: 13px; text-align: center; font-weight: 500; }
         .error-msg { background: #fee2e2; color: #991b1b; } .success-msg { background: #d1fae5; color: #065f46; }
 
-        /* Dashboard */
         #dashboardLayout { display: none; width: 100%; height: 95vh; background: #f1f5f9; border-radius: 15px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         .sidebar { width: 260px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; }
         .sidebar-header { padding: 25px 20px; border-bottom: 1px solid #334155; font-size: 18px; font-weight: 700; color: #fff; line-height: 1.2; }
@@ -64,18 +61,22 @@
         
         .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
         .input-row > div { flex: 1; }
-        .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
         .filters input, .filters select { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; }
+        
+        .notice-banner { background: #e0e7ff; color: #3730a3; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px; font-weight: 500; font-size: 14px; display: none; }
+        .notice-banner a { color: #4338ca; font-weight: 700; text-decoration: underline; }
     </style>
 </head>
 <body>
 
+    <!-- Modals -->
     <div class="modal-overlay" id="profileModal">
         <div class="modal-box">
             <h2>Complete Your Profile</h2>
             <p style="font-size:13px; margin-bottom:15px; color:#64748b;">Please fill these details to continue.</p>
             <div class="input-group"><input type="text" id="profName" placeholder="Full Name"></div>
-            <div class="input-group"><select id="profBranch"><option value="">Select Branch</option><option value="CSE">CSE</option><option value="ECE">ECE</option><option value="ME">ME</option><option value="CE">CE</option></select></div>
+            <div class="input-group"><select id="profBranch"><option value="">Select Branch</option></select></div>
             <div class="input-group"><input type="text" id="profBatch" placeholder="Batch (e.g. CSE-A)"></div>
             <div class="input-group"><select id="profYear"><option value="">Target Year</option><option>2025</option><option>2026</option><option>2027</option></select></div>
             <div class="input-group"><input type="text" id="profPhone" placeholder="Register PW Number"></div>
@@ -94,6 +95,7 @@
         </div>
     </div>
 
+    <!-- Login -->
     <div class="container" id="loginSection">
         <h2>GATE Pro Mentorship</h2>
         <div class="input-group"><label>User ID</label><input type="text" id="loginUserId"></div>
@@ -106,6 +108,7 @@
         <div class="msg error-msg" id="loginError"></div>
     </div>
 
+    <!-- Dashboard -->
     <div id="dashboardLayout">
         <div class="sidebar">
             <div class="sidebar-header">GATE Pro Mentorship</div>
@@ -113,7 +116,8 @@
                 <div id="adminMenus" style="display: none;">
                     <button onclick="switchView('viewAllBookings', this)" class="active">📊 All Bookings</button>
                     <button onclick="switchView('viewKnowStudents', this)">👨‍🎓 Know Your Students</button>
-                    <button onclick="switchView('viewAddFaculty', this)">👨‍🏫 Faculty & Category</button>
+                    <button onclick="switchView('viewAddMaster', this)">🗂️ Add Category & Branches</button>
+                    <button onclick="switchView('viewAddFaculty', this)">👨‍🏫 Add Faculty</button>
                     <button onclick="switchView('viewSlots', this)">⏰ Upload Slots</button>
                     <button onclick="switchView('viewSettings', this)">⚙️ System Settings</button>
                 </div>
@@ -133,14 +137,19 @@
             </div>
 
             <div class="content-area">
+                <!-- ADMIN: All Bookings -->
                 <div id="viewAllBookings" class="view-section active">
                     <div class="card">
-                        <h3 style="margin-bottom: 15px;">All Student Bookings</h3>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h3>All Student Bookings</h3>
+                            <button class="btn btn-primary" style="width:auto; padding:8px 15px;" onclick="downloadCSV()">Download CSV</button>
+                        </div>
                         <div class="filters">
                             <input type="date" id="filterFrom" onchange="filterAdminTable()">
                             <input type="date" id="filterTo" onchange="filterAdminTable()">
                             <select id="filterBranch" onchange="filterAdminTable()"><option value="">All Branches</option></select>
                             <select id="filterCategory" onchange="filterAdminTable()"><option value="">All Categories</option></select>
+                            <select id="filterFaculty" onchange="filterAdminTable()"><option value="">All Faculties</option></select>
                             <input type="text" id="filterSearch" placeholder="Search Name..." onkeyup="filterAdminTable()">
                         </div>
                         <div class="table-container">
@@ -152,10 +161,13 @@
                     </div>
                 </div>
 
+                <!-- ADMIN: Know Your Students -->
                 <div id="viewKnowStudents" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Student Database</h3>
                         <div class="filters">
+                            <input type="date" id="stdDateFrom" onchange="renderStudentsTable()">
+                            <input type="date" id="stdDateTo" onchange="renderStudentsTable()">
                             <select id="searchStudentBranch" onchange="renderStudentsTable()"><option value="">All Branches</option></select>
                             <input type="text" id="searchStudentPhone" placeholder="Search Phone/Name..." onkeyup="renderStudentsTable()">
                         </div>
@@ -165,22 +177,35 @@
                     </div>
                 </div>
 
-                <div id="viewAddFaculty" class="view-section">
+                <!-- ADMIN: Add Master Data (Category, Branch, Faculty) -->
+                <div id="viewAddMaster" class="view-section">
                     <div class="card">
-                        <h3 style="margin-bottom: 15px;">Add Faculty & Category</h3>
+                        <h3 style="margin-bottom: 15px;">Manage Categories & Branches</h3>
                         <div class="input-row" style="margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #ccc;">
-                            <div><label>Category Name</label><input type="text" id="newCatName" placeholder="e.g. GATE"></div>
-                            <div style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="addCat()">Add Category</button></div>
+                            <div><label>Add Category</label><input type="text" id="newCatName" placeholder="e.g. GATE"></div>
+                            <div style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="addCat()">Add</button></div>
                         </div>
                         <div class="input-row">
+                            <div><label>Add Branch</label><input type="text" id="newBranchName" placeholder="e.g. CSE"></div>
+                            <div style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="addBranch()">Add</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN: Add Faculty -->
+                <div id="viewAddFaculty" class="view-section">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">Add Faculty</h3>
+                        <div class="input-row">
                             <div><label>Faculty Name</label><input type="text" id="facName"></div>
-                            <div><label>Branch</label><input type="text" id="facBranch"></div>
-                            <div><label>Category</label><input type="text" id="facCategory" placeholder="Exact Name"></div>
+                            <div><label>Branch</label><select id="facBranch"></select></div>
+                            <div><label>Category</label><select id="facCategory"></select></div>
                         </div>
                         <button class="btn btn-success" style="width: 200px;" onclick="addFac()">Add Faculty</button>
                     </div>
                 </div>
 
+                <!-- ADMIN: Upload Slots -->
                 <div id="viewSlots" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Upload Slots CSV</h3>
@@ -190,20 +215,25 @@
                     </div>
                 </div>
 
+                <!-- ADMIN: Settings -->
                 <div id="viewSettings" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">System Settings</h3>
                         <div class="input-row"><div><label>Monthly Limit</label><input type="number" id="setLimit"></div>
-                        <div><label>Slot Capacity (Max 6)</label><input type="number" id="setCapacity"></div></div>
-                        <div class="input-row"><div><label>Telegram Link</label><input type="text" id="setTelegram"></div></div>
+                        <div><label>Slot Capacity</label><input type="number" id="setCapacity"></div></div>
+                        <div class="input-row"><div><label>Telegram Link</label><input type="text" id="setTelegram" placeholder="https://t.me/..."></div></div>
                         <div class="input-row"><div><label>Admin ID</label><input type="text" id="setAdminId"></div>
                         <div><label>Admin Phone</label><input type="text" id="setAdminPhone"></div></div>
                         <button class="btn btn-success" style="width: 200px;" onclick="saveSettings()">Save Settings</button>
                     </div>
                 </div>
 
+                <!-- STUDENT: Book -->
                 <div id="viewBook" class="view-section">
                     <div class="card">
+                        <div id="telegramBanner" class="notice-banner">
+                            To join this pro mentorship group for further updates: <a id="telegramLinkForm" href="#" target="_blank">Click Here</a>
+                        </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                             <h3>Book Mentorship</h3>
                             <span id="chancesBadge" class="badge bg-booked" style="font-size:14px;">3/3 Left</span>
@@ -219,18 +249,17 @@
                     </div>
                 </div>
 
+                <!-- STUDENT: Schedule -->
                 <div id="viewMySchedule" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">My Schedule</h3>
                         <div class="table-container">
                             <table><thead><tr><th>ID</th><th>Date/Time</th><th>Faculty</th><th>Status</th><th>Meeting Link</th></tr></thead><tbody id="scheduleBody"></tbody></table>
                         </div>
-                        <div style="margin-top:20px; text-align:center;">
-                            <a id="telegramLink" href="#" target="_blank" class="btn btn-primary" style="display:none; width:auto; padding:10px 20px;">Join Telegram Group</a>
-                        </div>
                     </div>
                 </div>
 
+                <!-- STUDENT: Cancel -->
                 <div id="viewCancel" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Cancel Booking</h3>
@@ -246,7 +275,7 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
-        let currentUserId = null, isAdmin = false, allAdminBookings = [], allStudentsData = [], allCategories = [], allFaculties = [];
+        let currentUserId = null, isAdmin = false, allAdminBookings = [], allStudentsData = [], allCategories = [], allFaculties = [], allBranches = [];
         
         window.onload = function() {
             const saved = localStorage.getItem('studentId');
@@ -273,6 +302,7 @@
                     
                     if(!isAdmin && (!data.profile || !data.profile.isComplete)) {
                         document.getElementById('profileModal').style.display = 'flex';
+                        loadBranchesForProfile();
                     } else {
                         if(!isAdmin) localStorage.setItem('studentName', data.profile.name);
                         showDashboard();
@@ -285,6 +315,14 @@
                 }
             })
             .catch(e => { btn.disabled = false; spinner.style.display = 'none'; btnText.innerText = "Login"; err.innerText = "Network error. Try again."; err.style.display = 'block'; });
+        }
+
+        function loadBranchesForProfile() {
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getBranches'})}).then(r=>r.json()).then(res=>{
+                let sel = document.getElementById('profBranch');
+                sel.innerHTML = '<option value="">Select Branch</option>';
+                res.data.forEach(b => sel.innerHTML += `<option>${b}</option>`);
+            });
         }
 
         function submitProfile() {
@@ -312,11 +350,35 @@
             document.getElementById('dashboardLayout').style.display = 'flex';
             document.getElementById('displayName').innerText = isAdmin ? 'Admin' : localStorage.getItem('studentName');
             
+            // Load Master Data for dropdowns
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{ 
+                allCategories = res.data; 
+                let fCat = document.getElementById('facCategory');
+                let sCat = document.getElementById('category');
+                if(fCat) { fCat.innerHTML = '<option value="">Select</option>'; res.data.forEach(c => fCat.innerHTML += `<option>${c}</option>`); }
+                if(sCat) { sCat.innerHTML = '<option value="">Select Category</option>'; res.data.forEach(c => sCat.innerHTML += `<option>${c}</option>`); }
+            });
+            
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getBranches'})}).then(r=>r.json()).then(res=>{ 
+                allBranches = res.data; 
+                let fBr = document.getElementById('facBranch');
+                let sBr = document.getElementById('branch');
+                let filterBr = document.getElementById('filterBranch');
+                if(fBr) { fBr.innerHTML = '<option value="">Select</option>'; res.data.forEach(b => fBr.innerHTML += `<option>${b}</option>`); }
+                if(sBr) { sBr.innerHTML = '<option value="">Select Branch</option>'; res.data.forEach(b => sBr.innerHTML += `<option>${b}</option>`); }
+                if(filterBr) { res.data.forEach(b => filterBr.innerHTML += `<option>${b}</option>`); }
+            });
+            
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getAllFaculties'})}).then(r=>r.json()).then(res=>{ 
+                allFaculties = res.data; 
+                let filterFac = document.getElementById('filterFaculty');
+                if(filterFac) { res.data.forEach(f => filterFac.innerHTML += `<option>${f.name}</option>`); }
+            });
+
             if(isAdmin) {
                 document.getElementById('adminMenus').style.display = 'block';
                 document.getElementById('studentMenus').style.display = 'none';
                 switchView('viewAllBookings', document.querySelector('#adminMenus button'));
-                fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{ allCategories = res.data; });
             } else {
                 document.getElementById('adminMenus').style.display = 'none';
                 document.getElementById('studentMenus').style.display = 'block';
@@ -342,6 +404,7 @@
             if(id==='viewBook') loadStudentData();
         }
 
+        // ================= ADMIN =================
         function loadAdminBookings() {
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getAdminData'})}).then(r=>r.json()).then(res=>{
                 if(res.success) { allAdminBookings = res.data.reverse(); renderAdminTable(); }
@@ -353,6 +416,7 @@
             const tDate = document.getElementById('filterTo').value;
             const fBranch = document.getElementById('filterBranch').value;
             const fCat = document.getElementById('filterCategory').value;
+            const fFac = document.getElementById('filterFaculty').value;
             const fSearch = document.getElementById('filterSearch').value.toLowerCase();
 
             const filtered = allAdminBookings.filter(b => {
@@ -363,17 +427,41 @@
                     if(fDate && bd < fDate) dMatch = false;
                     if(tDate && bd > tDate) dMatch = false;
                 }
-                return dMatch && (fBranch ? b.branch===fBranch : true) && (fCat ? b.category===fCat : true) && (b.name.toLowerCase().includes(fSearch) || b.studentId.includes(fSearch));
+                return dMatch && (fBranch ? b.branch===fBranch : true) && (fCat ? b.category===fCat : true) && (fFac ? b.faculty===fFac : true) && (b.name.toLowerCase().includes(fSearch) || b.studentId.includes(fSearch));
             });
 
             let html = '';
             filtered.forEach(b => {
                 let badge = b.status==='Booked' ? '<span class="badge bg-booked">Booked</span>' : '<span class="badge bg-cancelled">Cancelled</span>';
-                let link = b.status==='Booked' ? `<input type="text" id="l_${b.bookingId}" value="${b.meetingLink}" placeholder="Link" style="width:80px;"> <button class="btn btn-success" style="width:auto; padding:2px 5px;" onclick="updLink('${b.bookingId}')">Set</button>` : '-';
+                // Link input for Google Meet, Zoom, etc.
+                let link = b.status==='Booked' ? `<input type="text" id="l_${b.bookingId}" value="${b.meetingLink}" placeholder="Paste Link" style="width:80px;"> <button class="btn btn-success" style="width:auto; padding:2px 5px;" onclick="updLink('${b.bookingId}')">Set</button>` : '-';
                 let act = b.status==='Booked' ? `<button class="btn btn-danger" style="width:auto; padding:2px 5px;" onclick="admCancel('${b.bookingId}')">Cancel</button>` : '-';
                 html += `<tr><td><b>${b.name}</b><br><small>${b.studentId}</small></td><td>${b.branch}/${b.batchName}</td><td>${b.faculty}</td><td>${b.date}<br>${b.time}</td><td>${badge}</td><td>${link}</td><td>${act}</td></tr>`;
             });
             document.getElementById('adminBookingsBody').innerHTML = html;
+        }
+
+        function downloadCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,StudentName,StudentID,Branch,Batch,Faculty,Date,Time,Status\n";
+            const rows = document.querySelectorAll('#adminBookingsBody tr');
+            rows.forEach(row => {
+                const cols = row.querySelectorAll('td');
+                if(cols.length >= 5) {
+                    const name = cols[0].childNodes[0].nodeValue;
+                    const id = cols[0].querySelector('small').innerText;
+                    const branchBatch = cols[1].innerText.split('/');
+                    const faculty = cols[2].innerText;
+                    const dt = cols[3].innerText.split('\n');
+                    const status = cols[4].innerText;
+                    csvContent += `"${name}","${id}","${branchBatch[0]}","${branchBatch[1]}","${faculty}","${dt[0]}","${dt[1]}","${status}"\n`;
+                }
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "bookings.csv");
+            document.body.appendChild(link);
+            link.click();
         }
 
         function updLink(id) { fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateLink', data:{bookingId:id, meetingLink:document.getElementById('l_'+id).value}})}).then(r=>r.json()).then(res=>alert(res.message)); }
@@ -387,6 +475,10 @@
         function renderStudentsTable() {
             const br = document.getElementById('searchStudentBranch').value;
             const ph = document.getElementById('searchStudentPhone').value.toLowerCase();
+            const dFrom = document.getElementById('stdDateFrom').value;
+            const dTo = document.getElementById('stdDateTo').value;
+
+            // Since profile dates are not tracked, this filter is just a placeholder for now. 
             const filtered = allStudentsData.filter(s => (br?s.branch===br:true) && (s.name.toLowerCase().includes(ph) || s.phone.includes(ph)));
             let html = '';
             filtered.forEach(s => html += `<tr><td><b>${s.name}</b><br><small>${s.id}</small></td><td>${s.branch}</td><td>${s.batch}</td><td>${s.year}</td><td>${s.phone}</td></tr>`);
@@ -395,11 +487,18 @@
 
         function addCat() {
             const c = document.getElementById('newCatName').value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addCategory', data:{catName:c}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('newCatName').value='';});
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addCategory', data:{catName:c}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('newCatName').value=''; location.reload();});
+        }
+        function addBranch() {
+            const b = document.getElementById('newBranchName').value;
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addBranch', data:{branchName:b}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('newBranchName').value=''; location.reload();});
         }
         function addFac() {
             const n = document.getElementById('facName').value, b = document.getElementById('facBranch').value, c = document.getElementById('facCategory').value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addFaculty', data:{name:n, branch:b, category:c}})}).then(r=>r.json()).then(res=>alert(res.message));
+            if(!n || !b || !c) { alert("Fill all fields"); return; }
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addFaculty', data:{name:n, branch:b, category:c}})}).then(r=>r.json()).then(res=>{
+                alert(res.message); document.getElementById('facName').value=''; location.reload();
+            });
         }
         function uploadSlots() {
             const csv = document.getElementById('slotsCsv').value;
@@ -425,28 +524,38 @@
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateSettings', data})}).then(r=>r.json()).then(res=>alert(res.message));
         }
 
+        // ================= STUDENT =================
         function loadStudentData() {
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getDashboard', data:{studentId: currentUserId}})}).then(r=>r.json()).then(res=>{
                 if(res.success) {
                     document.getElementById('chancesBadge').innerText = res.chancesLeft + "/" + res.limit + " Left";
                     if(res.chancesLeft <= 0) document.getElementById('chancesBadge').className = 'badge bg-cancelled';
-                    if(res.telegram) { document.getElementById('telegramLink').href = res.telegram; document.getElementById('telegramLink').style.display = 'inline-flex'; }
+                    
+                    if(res.telegram) { 
+                        document.getElementById('telegramLinkForm').href = res.telegram; 
+                        document.getElementById('telegramBanner').style.display = 'block'; 
+                    }
                     if(res.pendingAction) document.getElementById('statusModal').style.display = 'flex';
                 }
             });
+            
+            // Reload categories and branches dynamically
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{
                 let sel = document.getElementById('category');
                 sel.innerHTML = '<option value="">Select Category</option>';
                 res.data.forEach(c => sel.innerHTML += `<option>${c}</option>`);
             });
-            
-            let selBr = document.getElementById('branch');
-            selBr.innerHTML = '<option value="">Select Branch</option><option>CSE</option><option>ECE</option><option>ME</option>';
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getBranches'})}).then(r=>r.json()).then(res=>{
+                let sel = document.getElementById('branch');
+                sel.innerHTML = '<option value="">Select Branch</option>';
+                res.data.forEach(b => sel.innerHTML += `<option>${b}</option>`);
+            });
         }
 
         function fetchFac() {
             const br = document.getElementById('branch').value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getFaculties', data:{branch:br}})}).then(r=>r.json()).then(res=>{
+            if(!br) return;
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getFacultiesByBranch', data:{branch:br}})}).then(r=>r.json()).then(res=>{
                 allFaculties = res.data;
                 filterFacultyByCategory();
             });
@@ -460,6 +569,7 @@
 
         function fetchSlots() {
             const f = document.getElementById('faculty').value;
+            if(!f) return;
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getSlots', data:{facName:f}})}).then(r=>r.json()).then(res=>{
                 let sel = document.getElementById('timeSlot');
                 sel.innerHTML = '<option value="">Select Time</option>';
