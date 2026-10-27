@@ -285,7 +285,7 @@
                             Join this GATE Pro Mentorship telegram group link for further mentorship update - <a id="telegramLinkQuery" href="#" target="_blank" style="color: #6366f1; font-weight: 600;">Click Here</a>
                         </div>
 
-                        <button class="btn btn-success" id="bookBtn" onclick="handleBooking()">Book Now</button>
+                        <button class="btn btn-success" id="bookBtn" onclick="handleBooking()"><span class="spinner" id="bookSpinner"></span><span id="bookBtnText">Book Now</span></button>
                         <div class="msg error-msg" id="bookError"></div>
                     </div>
                 </div>
@@ -316,10 +316,20 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
         let currentUserId = null, isAdmin = false, allAdminBookings = [], allStudentsData = [], allCategories = [], allFaculties = [], allBranches = [], allSlotsAdmin = [], allUsersAdmin = [];
         
+        // FIX: Authentication check on refresh
         window.onload = function() {
-            const saved = localStorage.getItem('studentId');
-            isAdmin = localStorage.getItem('isAdmin') === 'true';
-            if (saved) { currentUserId = saved; showDashboard(); }
+            const savedId = localStorage.getItem('studentId');
+            const savedAdmin = localStorage.getItem('isAdmin') === 'true';
+            
+            if (savedId) {
+                currentUserId = savedId;
+                isAdmin = savedAdmin;
+                showDashboard(); // This will correctly route to student or admin
+            } else {
+                // Stay on login page
+                document.getElementById('loginSection').style.display = 'flex';
+                document.getElementById('dashboardLayout').style.display = 'none';
+            }
             
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('bookDate').setAttribute('min', today);
@@ -751,8 +761,11 @@
             });
         }
 
+        // FIX: Prevent double booking with button disable
         function handleBooking() {
             const btn = document.getElementById('bookBtn');
+            const spinner = document.getElementById('bookSpinner');
+            const btnText = document.getElementById('bookBtnText');
             const d = document.getElementById('bookDate').value;
             
             if(!d) { alert("Select Date"); return; }
@@ -767,13 +780,13 @@
             };
             if(!data.branch || !data.faculty || !data.time || !data.category || !data.email || !data.phone) { alert("Fill all fields"); return; }
 
-            btn.disabled = true; btn.innerText = "Booking...";
+            btn.disabled = true; spinner.style.display = 'inline-block'; btnText.innerText = "Booking...";
 
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'book', data})}).then(r=>r.json()).then(res=>{
-                btn.disabled = false; btn.innerText = "Book Now";
-                if(res.success) { alert("Booked!"); loadStudentData(); switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]); }
-                else alert(res.message);
-            }).catch(e => { btn.disabled = false; btn.innerText = "Book Now"; alert("Network error."); });
+                btn.disabled = false; spinner.style.display = 'none'; btnText.innerText = "Book Now";
+                if(res.success) { alert("Booked Successfully!\nYour Booking ID: " + res.bookingId); loadStudentData(); switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]); }
+                else alert("Booking Failed!\n" + res.message);
+            }).catch(e => { btn.disabled = false; spinner.style.display = 'none'; btnText.innerText = "Book Now"; alert("Network error."); });
         }
 
         function loadSchedule() {
@@ -783,17 +796,38 @@
                     let color = b.status==='Booked' ? '#10b981' : '#ef4444';
                     
                     let isEnabled = false;
+                    let isExpired = false;
+                    
                     if(b.meetingLink) {
                          const now = new Date();
-                         now.setHours(0,0,0,0);
                          const pts = b.date.split('/');
-                         const bDate = new Date(pts[2], pts[1]-1, pts[0]);
-                         if(bDate <= now) isEnabled = true;
+                         let bDate = new Date(pts[2], pts[1]-1, pts[0]);
+                         
+                         const tParts = b.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                         if(tParts) {
+                           let hrs = parseInt(tParts[1]);
+                           if(tParts[3].toUpperCase() === 'PM' && hrs < 12) hrs += 12;
+                           if(tParts[3].toUpperCase() === 'AM' && hrs === 12) hrs = 0;
+                           bDate.setHours(hrs, parseInt(tParts[2]), 0, 0);
+                         }
+                         
+                         const diffMins = (now.getTime() - bDate.getTime()) / 60000;
+                         
+                         // 15 mins before to 30 mins after
+                         if (diffMins >= -15 && diffMins <= 30) isEnabled = true;
+                         if (diffMins > 30) isExpired = true;
                     }
                     
-                    let lnk = (b.meetingLink && isEnabled) 
-                        ? `<a href="${b.meetingLink}" target="_blank" onclick="setTimeout(()=>{ if(document.getElementById('statusModal').style.display!=='none'){ document.getElementById('statusModal').style.display='flex'; } }, 2000)">Join</a>` 
-                        : (b.meetingLink ? 'Available on Booking Date' : '-');
+                    let lnk = '-';
+                    if (b.meetingLink) {
+                        if (isEnabled) {
+                            lnk = `<a href="${b.meetingLink}" target="_blank" onclick="setTimeout(()=>{ if(document.getElementById('statusModal').style.display!=='none'){ document.getElementById('statusModal').style.display='flex'; } }, 2000)">Join</a>`;
+                        } else if (isExpired) {
+                            lnk = 'Expired';
+                        } else {
+                            lnk = 'Available 15m before';
+                        }
+                    }
 
                     html += `<tr><td>${b.bookingId}</td><td>${b.date} ${b.time}</td><td>${b.faculty}</td><td style="color:${color}">${b.status}</td><td>${lnk}</td></tr>`;
                 });
