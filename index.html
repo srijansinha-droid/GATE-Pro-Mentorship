@@ -213,7 +213,15 @@
                         <p style="font-size: 13px; margin-bottom: 10px; color: #64748b;">Format: <b>Faculty Name, Branch, Date, Slot1, Slot2, Slot3...</b></p>
                         
                         <input type="file" id="slotsFile" accept=".csv" style="margin-bottom: 15px; padding: 10px; border: 1px dashed #6366f1; border-radius: 8px; width: 100%;">
-                        <button class="btn btn-primary" style="width: 200px;" onclick="uploadSlots()">Upload File</button>
+                        <button class="btn btn-primary" style="width: 200px; margin-bottom: 30px;" onclick="uploadSlots()">Upload File</button>
+
+                        <h4 style="margin-bottom: 15px;">Existing Slots (You can Edit/Delete)</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Faculty</th><th>Branch</th><th>Date</th><th>Slot 1</th><th>Slot 2</th><th>Slot 3</th><th>Action</th></tr></thead>
+                                <tbody id="adminSlotsBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -223,7 +231,18 @@
                         <p style="font-size: 13px; margin-bottom: 10px; color: #64748b;">Yahan se student login kar payenge. Format: <b>User ID, Phone Number, Branch</b></p>
                         
                         <input type="file" id="usersFile" accept=".csv" style="margin-bottom: 15px; padding: 10px; border: 1px dashed #10b981; border-radius: 8px; width: 100%;">
-                        <button class="btn btn-success" style="width: 200px;" onclick="uploadUsersCSV()">Upload Users</button>
+                        <button class="btn btn-success" style="width: 200px; margin-bottom: 30px;" onclick="uploadUsersCSV()">Upload Users</button>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h4>Registered Users</h4>
+                            <input type="text" id="searchUserAdmin" placeholder="Search User ID..." onkeyup="renderUsersAdminTable()" style="padding:8px; border:1px solid #ccc; border-radius:5px;">
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>User ID</th><th>Phone</th><th>Branch</th><th>Name</th><th>Action</th></tr></thead>
+                                <tbody id="adminUsersBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -295,7 +314,7 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
-        let currentUserId = null, isAdmin = false, allAdminBookings = [], allStudentsData = [], allCategories = [], allFaculties = [], allBranches = [];
+        let currentUserId = null, isAdmin = false, allAdminBookings = [], allStudentsData = [], allCategories = [], allFaculties = [], allBranches = [], allSlotsAdmin = [], allUsersAdmin = [];
         
         window.onload = function() {
             const saved = localStorage.getItem('studentId');
@@ -324,7 +343,6 @@
                     localStorage.setItem('studentId', u); localStorage.setItem('isAdmin', isAdmin);
                     
                     if(!isAdmin && (!data.profile || !data.profile.isComplete)) {
-                        // Show profile modal
                         document.getElementById('profileModal').style.display = 'flex';
                         loadBranchesForProfile();
                     } else {
@@ -450,6 +468,8 @@
             if(id==='viewCancel') loadCancelDropdown();
             if(id==='viewBook') loadStudentData();
             if(id==='viewAddMaster' || id==='viewAddFaculty') loadMasterData();
+            if(id==='viewSlots') loadSlotsAdmin();
+            if(id==='viewUsersCSV') loadUsersAdmin();
         }
 
         // ================= ADMIN =================
@@ -563,6 +583,36 @@
         }
         function removeFac(f) { if(!confirm("Remove Faculty?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'removeFaculty', data:{facName:f}})}).then(r=>r.json()).then(res=>{alert(res.message); loadMasterData();}); }
 
+        // ================= SLOTS ADMIN =================
+        function loadSlotsAdmin() {
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getSlotsAdmin'})}).then(r=>r.json()).then(res=>{
+                if(res.success) { allSlotsAdmin = res.data; renderSlotsAdminTable(); }
+            });
+        }
+        function renderSlotsAdminTable() {
+            let html = '';
+            allSlotsAdmin.forEach(s => {
+                html += `<tr>
+                    <td>${s.faculty}</td><td>${s.branch}</td><td>${s.date}</td>
+                    <td><input type="text" id="s1_${s.rowIndex}" value="${s.s1}" style="width:80px;"></td>
+                    <td><input type="text" id="s2_${s.rowIndex}" value="${s.s2}" style="width:80px;"></td>
+                    <td><input type="text" id="s3_${s.rowIndex}" value="${s.s3}" style="width:80px;"></td>
+                    <td>
+                        <button class="btn btn-success" style="padding:2px 5px; width:auto;" onclick="editSlot(${s.rowIndex})">Save</button>
+                        <button class="btn btn-danger" style="padding:2px 5px; width:auto;" onclick="delSlot(${s.rowIndex})">Del</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('adminSlotsBody').innerHTML = html;
+        }
+        function editSlot(idx) {
+            const s1 = document.getElementById(`s1_${idx}`).value;
+            const s2 = document.getElementById(`s2_${idx}`).value;
+            const s3 = document.getElementById(`s3_${idx}`).value;
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateSlot', data:{rowIndex:idx, s1:s1, s2:s2, s3:s3}})}).then(r=>r.json()).then(res=>{alert(res.message); loadSlotsAdmin();});
+        }
+        function delSlot(idx) { if(!confirm("Delete this slot?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'deleteSlot', data:{rowIndex:idx}})}).then(r=>r.json()).then(res=>{alert(res.message); loadSlotsAdmin();}); }
+
         function uploadSlots() {
             const fileInput = document.getElementById('slotsFile');
             if (!fileInput.files.length) { alert("Please select a CSV file first."); return; }
@@ -573,14 +623,41 @@
             reader.onload = function(e) {
                 const csv = e.target.result;
                 fetch(API_URL, {method:'POST', body:JSON.stringify({action:'uploadSlots', data:{csv:csv}})})
-                .then(r=>r.json())
-                .then(res=>{
-                    alert(res.message); 
-                    fileInput.value = ''; 
-                });
+                .then(r=>r.json()).then(res=>{ alert(res.message); fileInput.value = ''; loadSlotsAdmin(); });
             };
             reader.readAsText(file);
         }
+
+        // ================= USERS ADMIN =================
+        function loadUsersAdmin() {
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getUsersAdmin'})}).then(r=>r.json()).then(res=>{
+                if(res.success) { allUsersAdmin = res.data; renderUsersAdminTable(); }
+            });
+        }
+        function renderUsersAdminTable() {
+            const q = document.getElementById('searchUserAdmin').value.toLowerCase();
+            let html = '';
+            allUsersAdmin.filter(u => u.id.toLowerCase().includes(q)).forEach(u => {
+                html += `<tr>
+                    <td>${u.id}</td>
+                    <td><input type="text" id="u_ph_${u.rowIndex}" value="${u.phone}" style="width:100px;"></td>
+                    <td><input type="text" id="u_br_${u.rowIndex}" value="${u.branch}" style="width:80px;"></td>
+                    <td><input type="text" id="u_nm_${u.rowIndex}" value="${u.name}" style="width:120px;"></td>
+                    <td>
+                        <button class="btn btn-success" style="padding:2px 5px; width:auto;" onclick="editUser(${u.rowIndex})">Save</button>
+                        <button class="btn btn-danger" style="padding:2px 5px; width:auto;" onclick="delUser(${u.rowIndex})">Del</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('adminUsersBody').innerHTML = html;
+        }
+        function editUser(idx) {
+            const ph = document.getElementById(`u_ph_${idx}`).value;
+            const br = document.getElementById(`u_br_${idx}`).value;
+            const nm = document.getElementById(`u_nm_${idx}`).value;
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateUser', data:{rowIndex:idx, phone:ph, branch:br, name:nm}})}).then(r=>r.json()).then(res=>{alert(res.message); loadUsersAdmin();});
+        }
+        function delUser(idx) { if(!confirm("Remove this user?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'deleteUser', data:{rowIndex:idx}})}).then(r=>r.json()).then(res=>{alert(res.message); loadUsersAdmin();}); }
 
         function uploadUsersCSV() {
             const fileInput = document.getElementById('usersFile');
@@ -592,11 +669,7 @@
             reader.onload = function(e) {
                 const csv = e.target.result;
                 fetch(API_URL, {method:'POST', body:JSON.stringify({action:'uploadUsers', data:{csv:csv}})})
-                .then(r=>r.json())
-                .then(res=>{
-                    alert(res.message); 
-                    fileInput.value = ''; 
-                });
+                .then(r=>r.json()).then(res=>{ alert(res.message); fileInput.value = ''; loadUsersAdmin(); });
             };
             reader.readAsText(file);
         }
