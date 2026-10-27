@@ -58,6 +58,8 @@
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
         .bg-booked { background: #d1fae5; color: #065f46; }
         .bg-cancelled { background: #fee2e2; color: #991b1b; }
+        .bg-pending { background: #fef3c7; color: #92400e; }
+        .bg-done { background: #dbeafe; color: #1e40af; }
         
         .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
         .input-row > div { flex: 1; }
@@ -151,7 +153,7 @@
                         </div>
                         <div class="table-container">
                             <table>
-                                <thead><tr><th>Student</th><th>Branch/Batch</th><th>Faculty</th><th>Date & Time</th><th>Status</th><th>Link</th><th>Action</th></tr></thead>
+                                <thead><tr><th>Student</th><th>Branch/Batch</th><th>Faculty</th><th>Date & Time</th><th>Booking Status</th><th>Session Status</th><th>Link</th><th>Action</th></tr></thead>
                                 <tbody id="adminBookingsBody"></tbody>
                             </table>
                         </div>
@@ -294,7 +296,7 @@
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">My Schedule</h3>
                         <div class="table-container">
-                            <table><thead><tr><th>ID</th><th>Date/Time</th><th>Faculty</th><th>Status</th><th>Meeting Link</th></tr></thead><tbody id="scheduleBody"></tbody></table>
+                            <table><thead><tr><th>ID</th><th>Date/Time</th><th>Faculty</th><th>Status</th><th>Session Status</th><th>Meeting Link</th></tr></thead><tbody id="scheduleBody"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -316,7 +318,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
         let currentUserId = null, isAdmin = false, allAdminBookings = [], allStudentsData = [], allCategories = [], allFaculties = [], allBranches = [], allSlotsAdmin = [], allUsersAdmin = [];
         
-        // FIX: Authentication check on refresh
+        // FIX: Strict Session Handling on Refresh
         window.onload = function() {
             const savedId = localStorage.getItem('studentId');
             const savedAdmin = localStorage.getItem('isAdmin') === 'true';
@@ -324,9 +326,8 @@
             if (savedId) {
                 currentUserId = savedId;
                 isAdmin = savedAdmin;
-                showDashboard(); // This will correctly route to student or admin
+                showDashboard(); 
             } else {
-                // Stay on login page
                 document.getElementById('loginSection').style.display = 'flex';
                 document.getElementById('dashboardLayout').style.display = 'none';
             }
@@ -510,10 +511,30 @@
 
             let html = '';
             filtered.forEach(b => {
-                let badge = b.status==='Booked' ? '<span class="badge bg-booked">Booked</span>' : '<span class="badge bg-cancelled">Cancelled</span>';
+                let statusBadge = b.status==='Booked' ? '<span class="badge bg-booked">Booked</span>' : '<span class="badge bg-cancelled">Cancelled</span>';
+                let sessionBadge = '';
+                if(b.status === 'Booked') {
+                     if(b.isDone === 'Done') sessionBadge = '<span class="badge bg-done">Done</span>';
+                     else if(b.isDone === 'Not Done') sessionBadge = '<span class="badge bg-cancelled">Not Done</span>';
+                     else if(b.isDone === 'Not Joined') sessionBadge = '<span class="badge bg-cancelled">Not Joined</span>';
+                     else sessionBadge = '<span class="badge bg-pending">Pending</span>';
+                } else {
+                     sessionBadge = '-';
+                }
+
                 let link = b.status==='Booked' ? `<input type="text" id="l_${b.bookingId}" value="${b.meetingLink}" placeholder="Paste Link" style="width:80px;"> <button class="btn btn-success" style="width:auto; padding:2px 5px;" onclick="updLink('${b.bookingId}')">Set</button>` : '-';
                 let act = b.status==='Booked' ? `<button class="btn btn-danger" style="width:auto; padding:2px 5px;" onclick="admCancel('${b.bookingId}')">Cancel</button>` : '-';
-                html += `<tr><td><b>${b.name}</b><br><small>${b.studentId}</small></td><td>${b.branch}/${b.batchName}</td><td>${b.faculty}</td><td>${b.date}<br>${b.time}</td><td>${badge}</td><td>${link}</td><td>${act}</td></tr>`;
+                
+                html += `<tr>
+                    <td><b>${b.name}</b><br><small>${b.studentId}</small></td>
+                    <td>${b.branch}/${b.batchName}</td>
+                    <td>${b.faculty}</td>
+                    <td>${b.date}<br>${b.time}</td>
+                    <td>${statusBadge}</td>
+                    <td>${sessionBadge}</td>
+                    <td>${link}</td>
+                    <td>${act}</td>
+                </tr>`;
             });
             document.getElementById('adminBookingsBody').innerHTML = html;
         }
@@ -521,7 +542,7 @@
         function downloadCSV(type) {
             let csvContent = "";
             if(type === 'bookings') {
-                csvContent = "data:text/csv;charset=utf-8,StudentName,StudentID,Email,Phone,Branch,Batch,Faculty,Date,Time,Status\n";
+                csvContent = "data:text/csv;charset=utf-8,StudentName,StudentID,Email,Phone,Branch,Batch,Faculty,Date,Time,BookingStatus,SessionStatus\n";
                 const rows = document.querySelectorAll('#adminBookingsBody tr');
                 rows.forEach(row => {
                     const cols = row.querySelectorAll('td');
@@ -531,8 +552,9 @@
                         const branchBatch = cols[1].innerText.split('/');
                         const faculty = cols[2].innerText;
                         const dt = cols[3].innerText.split('\n');
-                        const status = cols[4].innerText;
-                        csvContent += `"${name}","${id}","N/A","N/A","${branchBatch[0]}","${branchBatch[1]}","${faculty}","${dt[0]}","${dt[1]}","${status}"\n`;
+                        const bStatus = cols[4].innerText;
+                        const sStatus = cols[5].innerText;
+                        csvContent += `"${name}","${id}","N/A","N/A","${branchBatch[0]}","${branchBatch[1]}","${faculty}","${dt[0]}","${dt[1]}","${bStatus}","${sStatus}"\n`;
                     }
                 });
             } else {
@@ -761,7 +783,6 @@
             });
         }
 
-        // FIX: Prevent double booking with button disable
         function handleBooking() {
             const btn = document.getElementById('bookBtn');
             const spinner = document.getElementById('bookSpinner');
@@ -794,6 +815,15 @@
                 let html = '';
                 res.data.forEach(b => {
                     let color = b.status==='Booked' ? '#10b981' : '#ef4444';
+                    let sessionBadge = '';
+                    if(b.status === 'Booked') {
+                         if(b.isDone === 'Done') sessionBadge = '<span class="badge bg-done">Done</span>';
+                         else if(b.isDone === 'Not Done') sessionBadge = '<span class="badge bg-cancelled">Not Done</span>';
+                         else if(b.isDone === 'Not Joined') sessionBadge = '<span class="badge bg-cancelled">Not Joined</span>';
+                         else sessionBadge = '<span class="badge bg-pending">Pending</span>';
+                    } else {
+                         sessionBadge = '-';
+                    }
                     
                     let isEnabled = false;
                     let isExpired = false;
@@ -813,7 +843,6 @@
                          
                          const diffMins = (now.getTime() - bDate.getTime()) / 60000;
                          
-                         // 15 mins before to 30 mins after
                          if (diffMins >= -15 && diffMins <= 30) isEnabled = true;
                          if (diffMins > 30) isExpired = true;
                     }
@@ -829,7 +858,7 @@
                         }
                     }
 
-                    html += `<tr><td>${b.bookingId}</td><td>${b.date} ${b.time}</td><td>${b.faculty}</td><td style="color:${color}">${b.status}</td><td>${lnk}</td></tr>`;
+                    html += `<tr><td>${b.bookingId}</td><td>${b.date} ${b.time}</td><td>${b.faculty}</td><td style="color:${color}">${b.status}</td><td>${sessionBadge}</td><td>${lnk}</td></tr>`;
                 });
                 document.getElementById('scheduleBody').innerHTML = html;
             });
