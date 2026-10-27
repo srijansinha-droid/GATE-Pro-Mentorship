@@ -135,7 +135,6 @@
             </div>
 
             <div class="content-area">
-                <!-- ADMIN: All Bookings -->
                 <div id="viewAllBookings" class="view-section active">
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -159,7 +158,6 @@
                     </div>
                 </div>
 
-                <!-- ADMIN: Know Your Students -->
                 <div id="viewKnowStudents" class="view-section">
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -176,7 +174,6 @@
                     </div>
                 </div>
 
-                <!-- ADMIN: Manage Master Data -->
                 <div id="viewAddMaster" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Manage Categories & Branches</h3>
@@ -194,7 +191,6 @@
                     </div>
                 </div>
 
-                <!-- ADMIN: Faculty List -->
                 <div id="viewAddFaculty" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Add & Manage Faculties</h3>
@@ -211,7 +207,6 @@
                     </div>
                 </div>
 
-                <!-- ADMIN: Upload Slots -->
                 <div id="viewSlots" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Upload Slots CSV</h3>
@@ -222,7 +217,6 @@
                     </div>
                 </div>
 
-                <!-- ADMIN: Add Users CSV -->
                 <div id="viewUsersCSV" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Add Students to System</h3>
@@ -233,7 +227,6 @@
                     </div>
                 </div>
 
-                <!-- ADMIN: Settings -->
                 <div id="viewSettings" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">System Settings</h3>
@@ -246,7 +239,6 @@
                     </div>
                 </div>
 
-                <!-- STUDENT: Book -->
                 <div id="viewBook" class="view-section">
                     <div class="card">
                         <div id="telegramBanner" class="notice-banner">
@@ -279,7 +271,6 @@
                     </div>
                 </div>
 
-                <!-- STUDENT: Schedule -->
                 <div id="viewMySchedule" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">My Schedule</h3>
@@ -289,7 +280,6 @@
                     </div>
                 </div>
 
-                <!-- STUDENT: Cancel -->
                 <div id="viewCancel" class="view-section">
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">Cancel Booking</h3>
@@ -334,10 +324,11 @@
                     localStorage.setItem('studentId', u); localStorage.setItem('isAdmin', isAdmin);
                     
                     if(!isAdmin && (!data.profile || !data.profile.isComplete)) {
+                        // Show profile modal
                         document.getElementById('profileModal').style.display = 'flex';
                         loadBranchesForProfile();
                     } else {
-                        if(!isAdmin) localStorage.setItem('studentName', data.profile.name);
+                        if(!isAdmin && data.profile) localStorage.setItem('studentName', data.profile.name);
                         showDashboard();
                     }
                 } else if (data.requireCode) {
@@ -645,7 +636,6 @@
                     }
                     
                     if(res.pendingAction) {
-                        // Only show if not already marked
                         document.getElementById('statusModal').style.display = 'flex';
                     }
                 }
@@ -688,7 +678,6 @@
             });
         }
 
-        // FIX: Prevent double booking with button disable
         function handleBooking() {
             const btn = document.getElementById('bookBtn');
             const d = document.getElementById('bookDate').value;
@@ -720,21 +709,13 @@
                 res.data.forEach(b => {
                     let color = b.status==='Booked' ? '#10b981' : '#ef4444';
                     
-                    // FIX: Only enable link if date/time has passed or is today
                     let isEnabled = false;
                     if(b.meetingLink) {
-                         const dtStr = `${b.date} ${b.time}`; // Not strict parsing needed as backend already parsed time
-                         // Simple check: If the date is in the past, enable. Or if date is today, enable.
                          const now = new Date();
                          now.setHours(0,0,0,0);
                          const pts = b.date.split('/');
                          const bDate = new Date(pts[2], pts[1]-1, pts[0]);
-                         
-                         // Enabled if booking date is today or in past
                          if(bDate <= now) isEnabled = true;
-                         
-                         // To be precise, we could compare hours too, but enabling on the same day is safer. 
-                         // Admin can update the link anytime.
                     }
                     
                     let lnk = (b.meetingLink && isEnabled) 
