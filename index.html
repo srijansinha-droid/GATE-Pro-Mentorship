@@ -68,6 +68,12 @@
         
         .notice-banner { background: #e0e7ff; color: #3730a3; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px; font-weight: 500; font-size: 14px; display: none; }
         .notice-banner a { color: #4338ca; font-weight: 700; text-decoration: underline; }
+
+        /* New Slots UI */
+        .slot-stat-badge { padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .stat-full { background: #fee2e2; color: #991b1b; }
+        .stat-available { background: #d1fae5; color: #065f46; }
+        .cap-input { width: 60px; padding: 5px; text-align: center; border: 1px solid #cbd5e1; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -117,7 +123,7 @@
                     <button onclick="switchView('viewKnowStudents', this)">👨‍🎓 Know Your Students</button>
                     <button onclick="switchView('viewAddMaster', this)">🗂️ Category & Branches</button>
                     <button onclick="switchView('viewAddFaculty', this)">👨‍🏫 Faculty List</button>
-                    <button onclick="switchView('viewSlots', this)">⏰ Upload Slots</button>
+                    <button onclick="switchView('viewSlots', this)">⏰ Manage Slots</button>
                     <button onclick="switchView('viewUsersCSV', this)">👥 Add Users</button>
                     <button onclick="switchView('viewSettings', this)">⚙️ System Settings</button>
                 </div>
@@ -217,10 +223,10 @@
                         <input type="file" id="slotsFile" accept=".csv" style="margin-bottom: 15px; padding: 10px; border: 1px dashed #6366f1; border-radius: 8px; width: 100%;">
                         <button class="btn btn-primary" style="width: 200px; margin-bottom: 30px;" onclick="uploadSlots()">Upload File</button>
 
-                        <h4 style="margin-bottom: 15px;">Existing Slots (You can Edit/Delete)</h4>
+                        <h4 style="margin-bottom: 15px;">Existing Slots & Bookings</h4>
                         <div class="table-container">
                             <table>
-                                <thead><tr><th>Faculty</th><th>Branch</th><th>Date</th><th>Slot 1</th><th>Slot 2</th><th>Slot 3</th><th>Action</th></tr></thead>
+                                <thead><tr><th>Faculty</th><th>Date</th><th>Time Slot</th><th>Booked</th><th>Capacity (Editable)</th><th>Action</th></tr></thead>
                                 <tbody id="adminSlotsBody"></tbody>
                             </table>
                         </div>
@@ -252,7 +258,7 @@
                     <div class="card">
                         <h3 style="margin-bottom: 15px;">System Settings</h3>
                         <div class="input-row"><div><label>Monthly Limit</label><input type="number" id="setLimit"></div>
-                        <div><label>Slot Capacity</label><input type="number" id="setCapacity"></div></div>
+                        <div><label>Default Slot Capacity</label><input type="number" id="setCapacity"></div></div>
                         <div class="input-row"><div><label>Telegram Link</label><input type="text" id="setTelegram" placeholder="https://t.me/..."></div></div>
                         <div class="input-row"><div><label>Admin ID</label><input type="text" id="setAdminId"></div>
                         <div><label>Admin Phone</label><input type="text" id="setAdminPhone"></div></div>
@@ -318,7 +324,6 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
         let currentUserId = null, isAdmin = false, allAdminBookings = [], allStudentsData = [], allCategories = [], allFaculties = [], allBranches = [], allSlotsAdmin = [], allUsersAdmin = [];
         
-        // FIX: Strict Session Handling on Refresh
         window.onload = function() {
             const savedId = localStorage.getItem('studentId');
             const savedAdmin = localStorage.getItem('isAdmin') === 'true';
@@ -615,7 +620,7 @@
         }
         function removeFac(f) { if(!confirm("Remove Faculty?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'removeFaculty', data:{facName:f}})}).then(r=>r.json()).then(res=>{alert(res.message); loadMasterData();}); }
 
-        // ================= SLOTS ADMIN =================
+        // ================= SLOTS ADMIN (NEW UI) =================
         function loadSlotsAdmin() {
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getSlotsAdmin'})}).then(r=>r.json()).then(res=>{
                 if(res.success) { allSlotsAdmin = res.data; renderSlotsAdminTable(); }
@@ -624,24 +629,27 @@
         function renderSlotsAdminTable() {
             let html = '';
             allSlotsAdmin.forEach(s => {
+                let statClass = s.booked >= s.capacity ? 'stat-full' : 'stat-available';
                 html += `<tr>
-                    <td>${s.faculty}</td><td>${s.branch}</td><td>${s.date}</td>
-                    <td><input type="text" id="s1_${s.rowIndex}" value="${s.s1}" style="width:80px;"></td>
-                    <td><input type="text" id="s2_${s.rowIndex}" value="${s.s2}" style="width:80px;"></td>
-                    <td><input type="text" id="s3_${s.rowIndex}" value="${s.s3}" style="width:80px;"></td>
+                    <td>${s.faculty}<br><small>${s.branch}</small></td>
+                    <td>${s.date}</td>
+                    <td>${s.time}</td>
+                    <td><span class="slot-stat-badge ${statClass}">${s.booked} Booked</span></td>
                     <td>
-                        <button class="btn btn-success" style="padding:2px 5px; width:auto;" onclick="editSlot(${s.rowIndex})">Save</button>
-                        <button class="btn btn-danger" style="padding:2px 5px; width:auto;" onclick="delSlot(${s.rowIndex})">Del</button>
+                        <input type="number" id="cap_${s.rowIndex}_${s.colIndex}" value="${s.capacity}" class="cap-input">
+                        <button class="btn btn-success" style="padding:2px 5px; width:auto; margin-left:5px;" onclick="saveSlotCap(${s.rowIndex}, ${s.colIndex})">Save</button>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" style="padding:2px 8px; width:auto;" onclick="delSlot(${s.rowIndex})">Del Slot</button>
                     </td>
                 </tr>`;
             });
             document.getElementById('adminSlotsBody').innerHTML = html;
         }
-        function editSlot(idx) {
-            const s1 = document.getElementById(`s1_${idx}`).value;
-            const s2 = document.getElementById(`s2_${idx}`).value;
-            const s3 = document.getElementById(`s3_${idx}`).value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateSlot', data:{rowIndex:idx, s1:s1, s2:s2, s3:s3}})}).then(r=>r.json()).then(res=>{alert(res.message); loadSlotsAdmin();});
+        function saveSlotCap(rowIdx, colIdx) {
+            const newCap = document.getElementById(`cap_${rowIdx}_${colIdx}`).value;
+            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateSlotCapacity', data:{rowIndex:rowIdx, newCap:newCap}})})
+            .then(r=>r.json()).then(res=>{alert(res.message); loadSlotsAdmin();});
         }
         function delSlot(idx) { if(!confirm("Delete this slot?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'deleteSlot', data:{rowIndex:idx}})}).then(r=>r.json()).then(res=>{alert(res.message); loadSlotsAdmin();}); }
 
@@ -779,7 +787,13 @@
             fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getSlots', data:{facName:f}})}).then(r=>r.json()).then(res=>{
                 let sel = document.getElementById('timeSlot');
                 sel.innerHTML = '<option value="">Select Time</option>';
-                res.data.forEach(s => sel.innerHTML += `<option>${s}</option>`);
+                res.data.forEach(s => {
+                    if (s.includes('Full Booked')) {
+                        sel.innerHTML += `<option value="${s.split(' (')[0]}" disabled>${s}</option>`;
+                    } else {
+                        sel.innerHTML += `<option value="${s.split(' (')[0]}">${s}</option>`;
+                    }
+                });
             });
         }
 
