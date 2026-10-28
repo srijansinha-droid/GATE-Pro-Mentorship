@@ -1,968 +1,555 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GATE Pro Mentorship</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root { 
-            --primary: #6366f1; 
-            --primary-hover: #4f46e5; 
-            --success: #10b981; 
-            --success-hover: #059669; 
-            --card-bg: rgba(255, 255, 255, 0.95); 
-            --text-main: #1e293b; 
-            --text-muted: #64748b; 
-            --sidebar-bg: #1e293b; 
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        
-        /* Background Image Setup */
-        body { 
-            background-image: url('bg.jpg.png'); /* Image ka naam yahan fix kar diya hai */
-            background-size: cover; 
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            padding: 20px; 
-        }
-        
-        /* Overlay for better readability */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.7); /* Dark overlay */
-            z-index: -1;
-        }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 999; }
-        .modal-box { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 500px; text-align: center; animation: pop 0.3s ease; }
-        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        
-        /* Glassmorphism Container */
-        .container { 
-            background: var(--card-bg); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 20px; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
-            width: 100%; 
-            padding: 40px; 
-            display: flex; 
-            flex-direction: column; 
-            animation: slideUp 0.5s ease-out; 
-            max-width: 450px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        h2 { color: var(--text-main); font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 20px; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; }
-        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; background: rgba(255,255,255,0.9); }
-        .input-group input:focus, .input-group select:focus { border-color: var(--primary); background: #fff; }
-
-        .btn { padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; color: white; cursor: pointer; transition: 0.3s; display: inline-flex; justify-content: center; align-items: center; width: 100%;}
-        .btn-primary { background: var(--primary); } .btn-primary:hover { background: var(--primary-hover); }
-        .btn-success { background: var(--success); } .btn-success:hover { background: var(--success-hover); }
-        .btn-danger { background: #ef4444; } .btn-danger:hover { background: #dc2626; }
-
-        .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-right: 10px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .msg { padding: 10px; border-radius: 8px; margin-top: 15px; display: none; font-size: 13px; text-align: center; font-weight: 500; }
-        .error-msg { background: #fee2e2; color: #991b1b; } .success-msg { background: #d1fae5; color: #065f46; }
-
-        #dashboardLayout { display: none; width: 100%; height: 95vh; background: #f1f5f9; border-radius: 15px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); }
-        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid #334155; font-size: 18px; font-weight: 700; color: #fff; line-height: 1.2; }
-        .sidebar-menu { flex: 1; padding: 20px 0; overflow-y: auto; }
-        .sidebar-menu button { width: 100%; padding: 15px 25px; text-align: left; background: none; border: none; color: #cbd5e1; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
-        .sidebar-menu button:hover, .sidebar-menu button.active { background: #334155; color: white; border-left: 4px solid var(--primary); }
-        .sidebar-footer { padding: 20px; border-top: 1px solid #334155; }
-
-        .main-content { flex: 1; display: flex; flex-direction: column; background: #f8fafc; overflow: hidden; }
-        .topbar { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
-        .topbar h2 { margin: 0; font-size: 20px; text-align: left; }
-        
-        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
-        .view-section { display: none; }
-        .view-section.active { display: block; }
-
-        .card { background: white; padding: 25px; border-radius: 15px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; white-space: nowrap; }
-        th { background: #f8fafc; color: #64748b; font-weight: 600; }
-        
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .bg-booked { background: #d1fae5; color: #065f46; }
-        .bg-cancelled { background: #fee2e2; color: #991b1b; }
-        .bg-pending { background: #fef3c7; color: #92400e; }
-        .bg-done { background: #dbeafe; color: #1e40af; }
-        
-        .input-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .input-row > div { flex: 1; }
-        .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-        .filters input, .filters select { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; }
-        
-        .notice-banner { background: #e0e7ff; color: #3730a3; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px; font-weight: 500; font-size: 14px; display: none; }
-        .notice-banner a { color: #4338ca; font-weight: 700; text-decoration: underline; }
-
-        /* New Slots UI */
-        .slot-stat-badge { padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-        .stat-full { background: #fee2e2; color: #991b1b; }
-        .stat-available { background: #d1fae5; color: #065f46; }
-        .cap-input { width: 60px; padding: 5px; text-align: center; border: 1px solid #cbd5e1; border-radius: 5px; }
-
-        /* Responsive Mobile adjustments */
-        @media (max-width: 768px) {
-            .container { padding: 25px; }
-            #dashboardLayout { flex-direction: column; height: auto; min-height: 95vh; }
-            .sidebar { width: 100%; border-bottom: 1px solid #334155; }
-            .sidebar-menu { display: flex; flex-wrap: wrap; padding: 10px; }
-            .sidebar-menu button { width: auto; padding: 10px 15px; border-radius: 5px; }
-            .main-content { overflow: visible; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GATE Pro Mentorship</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#6366f1;--primary-hover:#4f46e5;--success:#10b981;--success-hover:#059669;--card-bg:rgba(255,255,255,.95);--text-main:#1e293b;--text-muted:#64748b;--sidebar-bg:#1e293b}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{background-image:url('bg.jpg.png');background-color:#0f172a;background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+body::before{content:"";position:fixed;inset:0;background:rgba(15,23,42,.7);z-index:-1}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:15px}
+.modal-box{background:#fff;padding:30px;border-radius:15px;width:100%;max-width:500px;text-align:center;animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.container{background:var(--card-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);width:100%;padding:40px;display:flex;flex-direction:column;animation:slideUp .5s ease-out;max-width:450px;border:1px solid rgba(255,255,255,.2)}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+h2{color:var(--text-main);font-size:22px;font-weight:700;text-align:center;margin-bottom:20px}
+.input-group{margin-bottom:15px}
+.input-group label,.input-row label{display:block;margin-bottom:5px;color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase}
+.input-group input,.input-group select,.input-group textarea,.input-row input,.input-row select{width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;background:rgba(255,255,255,.9)}
+.input-group input:focus,.input-group select:focus,.input-row input:focus{border-color:var(--primary);background:#fff}
+.btn{padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;transition:.3s;display:inline-flex;justify-content:center;align-items:center;width:100%}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-primary{background:var(--primary)}.btn-primary:hover{background:var(--primary-hover)}
+.btn-success{background:var(--success)}.btn-success:hover{background:var(--success-hover)}
+.btn-danger{background:#ef4444}.btn-danger:hover{background:#dc2626}
+.sm{width:auto;padding:4px 10px;font-size:12px}
+.spinner{display:none;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s linear infinite;margin-right:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.msg{padding:10px;border-radius:8px;margin-top:15px;display:none;font-size:13px;text-align:center;font-weight:500}
+.error-msg{background:#fee2e2;color:#991b1b}
+#dashboardLayout{display:none;width:100%;height:95vh;background:#f1f5f9;border-radius:15px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2)}
+.sidebar{width:260px;background:var(--sidebar-bg);color:#fff;display:flex;flex-direction:column}
+.sidebar-header{padding:25px 20px;border-bottom:1px solid #334155;font-size:18px;font-weight:700;line-height:1.2}
+.sidebar-menu{flex:1;padding:20px 0;overflow-y:auto}
+.sidebar-menu button{width:100%;padding:15px 25px;text-align:left;background:none;border:none;color:#cbd5e1;font-size:14px;font-weight:500;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:10px;border-left:4px solid transparent}
+.sidebar-menu button:hover,.sidebar-menu button.active{background:#334155;color:#fff;border-left-color:var(--primary)}
+.sidebar-footer{padding:20px;border-top:1px solid #334155}
+.main-content{flex:1;display:flex;flex-direction:column;background:#f8fafc;overflow:hidden}
+.topbar{background:#fff;padding:15px 30px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0}
+.topbar h2{margin:0;font-size:20px;text-align:left}
+.content-area{flex:1;padding:30px;overflow-y:auto}
+.view-section{display:none}.view-section.active{display:block}
+.card{background:#fff;padding:25px;border-radius:15px;border:1px solid #e2e8f0;margin-bottom:20px}
+.table-container{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 15px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:13px;white-space:nowrap}
+th{background:#f8fafc;color:#64748b;font-weight:600}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.bg-booked{background:#d1fae5;color:#065f46}.bg-cancelled{background:#fee2e2;color:#991b1b}.bg-pending{background:#fef3c7;color:#92400e}.bg-done{background:#dbeafe;color:#1e40af}
+.input-row{display:flex;gap:15px;margin-bottom:15px}.input-row>div{flex:1}
+.filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filters input,.filters select{padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;outline:none}
+.notice-banner{background:#e0e7ff;color:#3730a3;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;font-weight:500;font-size:14px;display:none}
+.notice-banner a{color:#4338ca;font-weight:700;text-decoration:underline}
+.chip{background:#e2e8f0;padding:5px 10px;border-radius:5px;font-size:13px;display:flex;gap:10px;align-items:center}
+.chip button{background:transparent;border:none;color:red;cursor:pointer;font-weight:700}
+.slot-stat-badge{padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700}
+.stat-full{background:#fee2e2;color:#991b1b}.stat-available{background:#d1fae5;color:#065f46}
+.cap-input{width:60px;padding:5px;text-align:center;border:1px solid #cbd5e1;border-radius:5px}
+.cell-in{padding:4px 6px;border:1px solid #cbd5e1;border-radius:5px}
+small{color:#64748b}
+@media(max-width:768px){.container{padding:25px}#dashboardLayout{flex-direction:column;height:auto;min-height:95vh}.sidebar{width:100%;border-bottom:1px solid #334155}.sidebar-menu{display:flex;flex-wrap:wrap;padding:10px}.sidebar-menu>div{display:flex;flex-wrap:wrap}.sidebar-menu button{width:auto;padding:10px 15px;border-radius:5px}.main-content{overflow:visible}.input-row{flex-direction:column}}
+</style>
 </head>
 <body>
 
-    <div class="modal-overlay" id="profileModal">
-        <div class="modal-box">
-            <h2>Complete Your Profile</h2>
-            <p style="font-size:13px; margin-bottom:15px; color:#64748b;">Please fill these details to continue.</p>
-            <div class="input-group"><input type="text" id="profName" placeholder="Full Name"></div>
-            <div class="input-group"><select id="profBranch"><option value="">Select Branch</option></select></div>
-            <div class="input-group"><input type="text" id="profBatch" placeholder="Batch (e.g. CSE-A)"></div>
-            <div class="input-group"><select id="profYear"><option value="">Target Year</option><option>2025</option><option>2026</option><option>2027</option></select></div>
-            <div class="input-group"><input type="text" id="profPhone" placeholder="Register PW Number"></div>
-            <button class="btn btn-primary" onclick="submitProfile()">Save Profile</button>
-        </div>
+<div class="modal-overlay" id="profileModal"><div class="modal-box">
+  <h2>Complete Your Profile</h2>
+  <p style="font-size:13px;margin-bottom:15px;color:#64748b">Please fill these details to continue. They cannot be changed later.</p>
+  <div class="input-group"><input type="text" id="profName" placeholder="Full Name"></div>
+  <div class="input-group"><select id="profBranch"><option value="">Select Branch</option></select></div>
+  <div class="input-group"><input type="text" id="profBatch" placeholder="Batch (e.g. CSE-A)"></div>
+  <div class="input-group"><select id="profYear"><option value="">Target Year</option><option>2026</option><option>2027</option><option>2028</option></select></div>
+  <div class="input-group"><input type="text" id="profPhone" placeholder="Register PW Number"></div>
+  <button class="btn btn-primary" id="profBtn" onclick="submitProfile()">Save Profile</button>
+</div></div>
+
+<div class="modal-overlay" id="statusModal"><div class="modal-box">
+  <h2>Mentorship Status</h2>
+  <p style="font-size:14px;margin-bottom:20px">Did you attend your mentorship session? (This can be marked only once.)</p>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-success" onclick="submitStatus('Done')">Done</button>
+    <button class="btn btn-danger" onclick="submitStatus('Not Done')">Not Done</button>
+  </div>
+</div></div>
+
+<div class="container" id="bootLoader" style="align-items:center"><h2 style="margin:0">Loading…</h2></div>
+
+<div class="container" id="loginSection" style="display:none">
+  <h2>GATE Pro Mentorship</h2>
+  <div class="input-group"><label>User ID</label><input type="text" id="loginUserId" autocomplete="username"></div>
+  <div class="input-group"><label>Phone Number</label><input type="tel" id="loginPhone"></div>
+  <div class="input-group" id="adminCodeGroup" style="display:none"><label style="color:#ef4444">Security Code (Admin)</label><input type="password" id="loginAdminCode"></div>
+  <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()"><span class="spinner" id="loginSpinner"></span><span id="loginBtnText">Login</span></button>
+  <div class="msg error-msg" id="loginError"></div>
+</div>
+
+<div id="dashboardLayout">
+  <div class="sidebar">
+    <div class="sidebar-header">GATE Pro Mentorship</div>
+    <div class="sidebar-menu">
+      <div id="adminMenus" style="display:none">
+        <button onclick="switchView('viewAllBookings',this)" class="active">📊 All Bookings</button>
+        <button onclick="switchView('viewKnowStudents',this)">👨‍🎓 Know Your Students</button>
+        <button onclick="switchView('viewAddMaster',this)">🗂️ Category &amp; Branches</button>
+        <button onclick="switchView('viewAddFaculty',this)">👨‍🏫 Faculty List</button>
+        <button onclick="switchView('viewSlots',this)">⏰ Manage Slots</button>
+        <button onclick="switchView('viewUsersCSV',this)">👥 Add Users</button>
+        <button onclick="switchView('viewSettings',this)">⚙️ System Settings</button>
+      </div>
+      <div id="studentMenus" style="display:none">
+        <button onclick="switchView('viewBook',this)" class="active">📝 Book Mentorship</button>
+        <button onclick="switchView('viewMySchedule',this)">📅 My Schedule</button>
+        <button onclick="switchView('viewCancel',this)">❌ Cancel Session</button>
+      </div>
     </div>
+    <div class="sidebar-footer"><button class="btn btn-danger" onclick="logout()">Logout</button></div>
+  </div>
 
-    <div class="modal-overlay" id="statusModal">
-        <div class="modal-box">
-            <h2>Mentorship Status</h2>
-            <p style="font-size:14px; margin-bottom:20px;">Did you attend the previous mentorship session?</p>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-success" onclick="submitStatus('Done')">Done</button>
-                <button class="btn btn-danger" onclick="submitStatus('Not Done')">Not Done</button>
-            </div>
+  <div class="main-content">
+    <div class="topbar"><h2 id="pageTitle">Dashboard</h2><div style="font-weight:600;color:#64748b;font-size:14px">Welcome, <span id="displayName" style="color:var(--primary)">User</span></div></div>
+    <div class="content-area">
+
+      <div id="viewAllBookings" class="view-section active"><div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px">
+          <h3>All Student Bookings</h3>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-primary sm" style="padding:8px 15px" onclick="downloadCSV('bookings')">Download CSV</button>
+            <button class="btn btn-danger sm" style="padding:8px 15px" onclick="clearAllBookings()">🗑 Clear All Bookings</button>
+          </div>
         </div>
+        <div class="filters">
+          <input type="date" id="filterFrom" onchange="filterAdminTable()">
+          <input type="date" id="filterTo" onchange="filterAdminTable()">
+          <select id="filterBranch" onchange="filterAdminTable()"><option value="">All Branches</option></select>
+          <select id="filterCategory" onchange="filterAdminTable()"><option value="">All Categories</option></select>
+          <select id="filterFaculty" onchange="filterAdminTable()"><option value="">All Faculties</option></select>
+          <input type="text" id="filterSearch" placeholder="Search Name / ID..." oninput="filterAdminTable()">
+        </div>
+        <div class="table-container"><table>
+          <thead><tr><th>Student</th><th>Branch/Batch</th><th>Faculty</th><th>Date &amp; Time</th><th>Booking Status</th><th>Session Status</th><th>Link</th><th>Action</th></tr></thead>
+          <tbody id="adminBookingsBody"></tbody></table></div>
+      </div></div>
+
+      <div id="viewKnowStudents" class="view-section"><div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+          <h3>Student Database</h3><button class="btn btn-primary sm" style="padding:8px 15px" onclick="downloadCSV('students')">Download CSV</button></div>
+        <div class="filters">
+          <select id="searchStudentBranch" onchange="renderStudentsTable()"><option value="">All Branches</option></select>
+          <input type="text" id="searchStudentPhone" placeholder="Search Name / ID / PW..." oninput="renderStudentsTable()">
+        </div>
+        <div class="table-container"><table><thead><tr><th>Name</th><th>Branch</th><th>Batch</th><th>Target Year</th><th>PW Number</th></tr></thead><tbody id="studentsBody"></tbody></table></div>
+      </div></div>
+
+      <div id="viewAddMaster" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">Manage Categories &amp; Branches</h3>
+        <div class="input-row" style="padding-bottom:20px;border-bottom:1px solid #ccc">
+          <div><label>Add Category</label><input type="text" id="newCatName" placeholder="e.g. GATE"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addCat()">Add</button></div></div>
+        <div id="categoryList" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px"></div>
+        <div class="input-row">
+          <div><label>Add Branch</label><input type="text" id="newBranchName" placeholder="e.g. CSE"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addBranch()">Add</button></div></div>
+        <div id="branchList" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+      </div></div>
+
+      <div id="viewAddFaculty" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">Add &amp; Manage Faculties</h3>
+        <div class="input-row">
+          <div><label>Faculty Name</label><input type="text" id="facName"></div>
+          <div><label>Branch</label><select id="facBranch"></select></div>
+          <div><label>Category</label><select id="facCategory"></select></div></div>
+        <button class="btn btn-success" style="width:200px;margin-bottom:20px" onclick="addFac()">Add Faculty</button>
+        <div class="table-container"><table><thead><tr><th>Faculty Name</th><th>Branch</th><th>Category</th><th>Action</th></tr></thead><tbody id="facultyListBody"></tbody></table></div>
+      </div></div>
+
+      <div id="viewSlots" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">Upload Slots CSV</h3>
+        <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>Faculty Name, Branch, Date (DD/MM/YYYY), Slot1, Slot2, Slot3...</b> — each slot becomes its own row with its own capacity.</p>
+        <input type="file" id="slotsFile" accept=".csv" style="margin-bottom:15px;padding:10px;border:1px dashed #6366f1;border-radius:8px;width:100%">
+        <button class="btn btn-primary" style="width:200px;margin-bottom:30px" onclick="uploadCSV('slotsFile','uploadSlots',loadSlotsAdmin)">Upload File</button>
+        <h4 style="margin-bottom:15px">Existing Slots &amp; Bookings</h4>
+        <div class="table-container"><table><thead><tr><th>Faculty</th><th>Date</th><th>Time Slot</th><th>Booked</th><th>Capacity (Editable)</th><th>Action</th></tr></thead><tbody id="adminSlotsBody"></tbody></table></div>
+      </div></div>
+
+      <div id="viewUsersCSV" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">Add Students to System</h3>
+        <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>User ID, Phone Number, Branch</b></p>
+        <input type="file" id="usersFile" accept=".csv" style="margin-bottom:15px;padding:10px;border:1px dashed #10b981;border-radius:8px;width:100%">
+        <button class="btn btn-success" style="width:200px;margin-bottom:30px" onclick="uploadCSV('usersFile','uploadUsers',loadUsersAdmin)">Upload Users</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><h4>Registered Users</h4>
+          <input type="text" id="searchUserAdmin" placeholder="Search User ID..." oninput="renderUsersAdminTable()" style="padding:8px;border:1px solid #ccc;border-radius:5px"></div>
+        <div class="table-container"><table><thead><tr><th>User ID</th><th>Phone</th><th>Branch</th><th>Name</th><th>Action</th></tr></thead><tbody id="adminUsersBody"></tbody></table></div>
+      </div></div>
+
+      <div id="viewSettings" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">System Settings</h3>
+        <div class="input-row"><div><label>Monthly Limit</label><input type="number" id="setLimit" min="0"></div><div><label>Default Slot Capacity</label><input type="number" id="setCapacity" min="1"></div></div>
+        <div class="input-row"><div><label>Telegram Link</label><input type="text" id="setTelegram" placeholder="https://t.me/..."></div></div>
+        <div class="input-row"><div><label>Admin ID</label><input type="text" id="setAdminId"></div><div><label>Admin Phone</label><input type="text" id="setAdminPhone"></div><div><label>Admin Security Code</label><input type="text" id="setAdminCode"></div></div>
+        <button class="btn btn-success" style="width:200px" onclick="saveSettings()">Save Settings</button>
+      </div></div>
+
+      <div id="viewBook" class="view-section"><div class="card">
+        <div id="telegramBanner" class="notice-banner">Join this GATE Pro Mentorship Telegram group link for further mentorship update: <a id="telegramLinkForm" href="#" target="_blank" rel="noopener">Click Here</a></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><h3>Book Mentorship</h3><span id="chancesBadge" class="badge bg-booked" style="font-size:14px">… Left</span></div>
+        <div class="input-group"><label>Branch</label><select id="branch" onchange="filterFaculty()"></select></div>
+        <div class="input-group"><label>Category</label><select id="category" onchange="filterFaculty()"></select></div>
+        <div class="input-group"><label>Faculty</label><select id="faculty" onchange="fetchSlots()"><option value="">Select Faculty</option></select></div>
+        <div class="input-group"><label>Date (DD/MM/YYYY)</label><select id="bookDate" onchange="fillTimes()"><option value="">Select Faculty first</option></select></div>
+        <div class="input-group"><label>Time Slot</label><select id="timeSlot"><option value="">Select Date first</option></select></div>
+        <div class="input-group"><label>Mail ID</label><input type="email" id="bookEmail" placeholder="student@example.com"></div>
+        <div class="input-group"><label>Registered Phone Number</label><input type="tel" id="bookPhone" placeholder="10-digit number"></div>
+        <div class="input-group"><label>Query</label><textarea id="query" maxlength="1000"></textarea></div>
+        <div id="telegramQueryBanner" style="background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px;display:none">Join this GATE Pro Mentorship telegram group link for further mentorship update - <a id="telegramLinkQuery" href="#" target="_blank" rel="noopener" style="color:#6366f1;font-weight:600">Click Here</a></div>
+        <button class="btn btn-success" id="bookBtn" onclick="handleBooking()"><span class="spinner" id="bookSpinner"></span><span id="bookBtnText">Book Now</span></button>
+      </div></div>
+
+      <div id="viewMySchedule" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">My Schedule</h3>
+        <div class="table-container"><table><thead><tr><th>ID</th><th>Date/Time</th><th>Faculty</th><th>Status</th><th>Session Status</th><th>Meeting Link</th></tr></thead><tbody id="scheduleBody"></tbody></table></div>
+      </div></div>
+
+      <div id="viewCancel" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">Cancel Booking</h3>
+        <div class="input-group"><label>Select Booking</label><select id="cancelBookingId"></select></div>
+        <div class="input-group"><label>Reason</label><input type="text" id="cancelReason" placeholder="Why cancel?"></div>
+        <button class="btn btn-danger" onclick="handleCancel()">Cancel Session</button>
+      </div></div>
+
     </div>
+  </div>
+</div>
 
-    <div class="container" id="loginSection">
-        <h2>GATE Pro Mentorship</h2>
-        <div class="input-group"><label>User ID</label><input type="text" id="loginUserId"></div>
-        <div class="input-group"><label>Phone Number</label><input type="tel" id="loginPhone"></div>
-        <div class="input-group" id="adminCodeGroup" style="display: none;">
-            <label style="color: #ef4444;">Security Code (Admin)</label>
-            <input type="password" id="loginAdminCode">
-        </div>
-        <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()"><span class="spinner" id="loginSpinner"></span><span id="loginBtnText">Login</span></button>
-        <div class="msg error-msg" id="loginError"></div>
-    </div>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec";
+const TOKEN_KEY = 'gpm_token';
+let token = null, role = null, master = null, dash = null, dashAt = 0, pendingId = '';
+let adminBookings = [], students = [], slotsAdmin = [], usersAdmin = [], facSlots = [];
 
-    <div id="dashboardLayout">
-        <div class="sidebar">
-            <div class="sidebar-header">GATE Pro Mentorship</div>
-            <div class="sidebar-menu">
-                <div id="adminMenus" style="display: none;">
-                    <button onclick="switchView('viewAllBookings', this)" class="active">📊 All Bookings</button>
-                    <button onclick="switchView('viewKnowStudents', this)">👨‍🎓 Know Your Students</button>
-                    <button onclick="switchView('viewAddMaster', this)">🗂️ Category & Branches</button>
-                    <button onclick="switchView('viewAddFaculty', this)">👨‍🏫 Faculty List</button>
-                    <button onclick="switchView('viewSlots', this)">⏰ Manage Slots</button>
-                    <button onclick="switchView('viewUsersCSV', this)">👥 Add Users</button>
-                    <button onclick="switchView('viewSettings', this)">⚙️ System Settings</button>
-                </div>
-                <div id="studentMenus" style="display: none;">
-                    <button onclick="switchView('viewBook', this)" class="active">📝 Book Mentorship</button>
-                    <button onclick="switchView('viewMySchedule', this)">📅 My Schedule</button>
-                    <button onclick="switchView('viewCancel', this)">❌ Cancel Session</button>
-                </div>
-            </div>
-            <div class="sidebar-footer"><button class="btn btn-danger" onclick="logout()">Logout</button></div>
-        </div>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-        <div class="main-content">
-            <div class="topbar">
-                <h2 id="pageTitle">Dashboard</h2>
-                <div style="font-weight: 600; color: #64748b; font-size:14px;">Welcome, <span id="displayName" style="color: var(--primary);">User</span></div>
-            </div>
+// ---------- API ----------
+function api(action, data) {
+  return fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, token, data: data || {} }) })
+    .then(r => r.json())
+    .then(res => { if (res.authError && token) forceLogout(res.message); return res; })
+    .catch(() => ({ success: false, message: 'Network error. Please try again.' }));
+}
+function clearSession() { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem('studentId'); localStorage.removeItem('isAdmin'); localStorage.removeItem('studentName'); token = null; }
+function forceLogout(msg) { clearSession(); alert(msg || 'Session expired.'); location.reload(); }
+function logout() { if (token) api('logout'); clearSession(); setTimeout(() => location.reload(), 150); }
 
-            <div class="content-area">
-                <div id="viewAllBookings" class="view-section active">
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <h3>All Student Bookings</h3>
-                            <button class="btn btn-primary" style="width:auto; padding:8px 15px;" onclick="downloadCSV('bookings')">Download CSV</button>
-                        </div>
-                        <div class="filters">
-                            <input type="date" id="filterFrom" onchange="filterAdminTable()">
-                            <input type="date" id="filterTo" onchange="filterAdminTable()">
-                            <select id="filterBranch" onchange="filterAdminTable()"><option value="">All Branches</option></select>
-                            <select id="filterCategory" onchange="filterAdminTable()"><option value="">All Categories</option></select>
-                            <select id="filterFaculty" onchange="filterAdminTable()"><option value="">All Faculties</option></select>
-                            <input type="text" id="filterSearch" placeholder="Search Name..." onkeyup="filterAdminTable()">
-                        </div>
-                        <div class="table-container">
-                            <table>
-                                <thead><tr><th>Student</th><th>Branch/Batch</th><th>Faculty</th><th>Date & Time</th><th>Booking Status</th><th>Session Status</th><th>Link</th><th>Action</th></tr></thead>
-                                <tbody id="adminBookingsBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+// ---------- boot ----------
+window.onload = async function () {
+  localStorage.removeItem('studentId'); localStorage.removeItem('isAdmin'); // legacy, never trusted
+  token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return showLogin();
+  const res = await api('session');
+  if (res.success) afterAuth(res); else { clearSession(); showLogin(); }
+};
+function showLogin() { $('bootLoader').style.display = 'none'; $('loginSection').style.display = 'flex'; }
 
-                <div id="viewKnowStudents" class="view-section">
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <h3>Student Database</h3>
-                            <button class="btn btn-primary" style="width:auto; padding:8px 15px;" onclick="downloadCSV('students')">Download CSV</button>
-                        </div>
-                        <div class="filters">
-                            <select id="searchStudentBranch" onchange="renderStudentsTable()"><option value="">All Branches</option></select>
-                            <input type="text" id="searchStudentPhone" placeholder="Search Phone/Name..." onkeyup="renderStudentsTable()">
-                        </div>
-                        <div class="table-container">
-                            <table><thead><tr><th>Name</th><th>Branch</th><th>Batch</th><th>Target Year</th><th>PW Number</th></tr></thead><tbody id="studentsBody"></tbody></table>
-                        </div>
-                    </div>
-                </div>
+async function afterAuth(res) {
+  role = res.role;
+  $('bootLoader').style.display = 'none'; $('loginSection').style.display = 'none';
+  if (role === 'student' && !(res.profile && res.profile.isComplete)) {
+    await loadMaster(); $('profileModal').style.display = 'flex'; return;
+  }
+  $('displayName').innerText = role === 'admin' ? 'Admin' : (res.name || (res.profile && res.profile.name) || 'Student');
+  $('dashboardLayout').style.display = 'flex';
+  const admin = role === 'admin';
+  $('adminMenus').style.display = admin ? 'block' : 'none';
+  $('studentMenus').style.display = admin ? 'none' : 'block';
+  loadMaster();
+  switchView(admin ? 'viewAllBookings' : 'viewBook', document.querySelector(admin ? '#adminMenus button' : '#studentMenus button'));
+}
 
-                <div id="viewAddMaster" class="view-section">
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px;">Manage Categories & Branches</h3>
-                        <div class="input-row" style="margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #ccc;">
-                            <div><label>Add Category</label><input type="text" id="newCatName" placeholder="e.g. GATE"></div>
-                            <div style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="addCat()">Add</button></div>
-                        </div>
-                        <div id="categoryList" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:30px;"></div>
+// ---------- login ----------
+function showErr(m) { const e = $('loginError'); e.innerText = m; e.style.display = 'block'; }
+async function handleLogin() {
+  const u = $('loginUserId').value.trim(), p = $('loginPhone').value.trim(), c = $('loginAdminCode').value.trim();
+  if (!u || !p) return showErr('Please fill all details');
+  $('loginError').style.display = 'none';
+  $('loginBtn').disabled = true; $('loginSpinner').style.display = 'inline-block'; $('loginBtnText').innerText = 'Loading...';
+  const res = await api('login', { userId: u, phone: p, adminCode: c });
+  $('loginBtn').disabled = false; $('loginSpinner').style.display = 'none'; $('loginBtnText').innerText = 'Login';
+  if (res.success && res.token) { token = res.token; localStorage.setItem(TOKEN_KEY, token); afterAuth(res); }
+  else if (res.requireCode) { $('adminCodeGroup').style.display = 'block'; showErr('Admin verified. Enter security code.'); }
+  else showErr(res.message || 'Login failed');
+}
+['loginUserId', 'loginPhone', 'loginAdminCode'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); }));
 
-                        <div class="input-row">
-                            <div><label>Add Branch</label><input type="text" id="newBranchName" placeholder="e.g. CSE"></div>
-                            <div style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="addBranch()">Add</button></div>
-                        </div>
-                        <div id="branchList" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
-                    </div>
-                </div>
+async function submitProfile() {
+  const data = { name: $('profName').value, branch: $('profBranch').value, batch: $('profBatch').value, year: $('profYear').value, phone: $('profPhone').value };
+  if (Object.values(data).some(v => !String(v).trim())) return alert('Fill all fields');
+  $('profBtn').disabled = true;
+  const res = await api('saveProfile', data);
+  $('profBtn').disabled = false;
+  if (res.success) { $('profileModal').style.display = 'none'; const s = await api('session'); if (s.success) afterAuth(s); }
+  else alert(res.message);
+}
 
-                <div id="viewAddFaculty" class="view-section">
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px;">Add & Manage Faculties</h3>
-                        <div class="input-row">
-                            <div><label>Faculty Name</label><input type="text" id="facName"></div>
-                            <div><label>Branch</label><select id="facBranch"></select></div>
-                            <div><label>Category</label><select id="facCategory"></select></div>
-                        </div>
-                        <button class="btn btn-success" style="width: 200px; margin-bottom: 20px;" onclick="addFac()">Add Faculty</button>
+// ---------- master data (loaded once, cached) ----------
+async function loadMaster(force) {
+  if (master && !force) return master;
+  const r = await api('getMaster');
+  if (r.success) { master = r.data; fillMasterUI(); }
+  return master;
+}
+function opts(id, arr, ph) {
+  const el = $(id); if (!el) return; const keep = el.value;
+  el.innerHTML = `<option value="">${esc(ph)}</option>` + arr.map(x => `<option>${esc(x)}</option>`).join('');
+  if (keep && arr.includes(keep)) el.value = keep;
+}
+function fillMasterUI() {
+  const cats = master.categories, brs = master.branches, facs = master.faculties;
+  opts('facCategory', cats, 'Select'); opts('category', cats, 'Select Category'); opts('filterCategory', cats, 'All Categories');
+  opts('facBranch', brs, 'Select'); opts('branch', brs, 'Select Branch'); opts('filterBranch', brs, 'All Branches');
+  opts('searchStudentBranch', brs, 'All Branches'); opts('profBranch', brs, 'Select Branch');
+  opts('filterFaculty', [...new Set(facs.map(f => f.name))], 'All Faculties');
+  $('categoryList').innerHTML = cats.map(c => `<span class="chip">${esc(c)} <button data-act="delCat" data-id="${esc(c)}">✕</button></span>`).join('');
+  $('branchList').innerHTML = brs.map(b => `<span class="chip">${esc(b)} <button data-act="delBr" data-id="${esc(b)}">✕</button></span>`).join('');
+  $('facultyListBody').innerHTML = facs.map(f => `<tr><td>${esc(f.name)}</td><td>${esc(f.branch)}</td><td>${esc(f.category)}</td><td><button class="btn btn-danger sm" data-act="delFac" data-id="${esc(f.name)}">Remove</button></td></tr>`).join('');
+  if (role === 'student') filterFaculty();
+}
 
-                        <div class="table-container">
-                            <table><thead><tr><th>Faculty Name</th><th>Branch</th><th>Category</th><th>Action</th></tr></thead><tbody id="facultyListBody"></tbody></table>
-                        </div>
-                    </div>
-                </div>
+// ---------- navigation ----------
+function switchView(id, btn) {
+  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+  $(id).classList.add('active');
+  if (btn) {
+    document.querySelectorAll('.sidebar-menu button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    $('pageTitle').innerText = btn.innerText.replace(/^[^A-Za-z]+/, '').trim();
+  }
+  const L = { viewAllBookings: loadAdminBookings, viewKnowStudents: loadStudents, viewSettings: loadSettings, viewMySchedule: loadSchedule,
+              viewCancel: loadCancelDropdown, viewBook: loadStudentData, viewSlots: loadSlotsAdmin, viewUsersCSV: loadUsersAdmin };
+  if (L[id]) L[id]();
+}
 
-                <div id="viewSlots" class="view-section">
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px;">Upload Slots CSV</h3>
-                        <p style="font-size: 13px; margin-bottom: 10px; color: #64748b;">Format: <b>Faculty Name, Branch, Date, Slot1, Slot2, Slot3...</b></p>
-                        
-                        <input type="file" id="slotsFile" accept=".csv" style="margin-bottom: 15px; padding: 10px; border: 1px dashed #6366f1; border-radius: 8px; width: 100%;">
-                        <button class="btn btn-primary" style="width: 200px; margin-bottom: 30px;" onclick="uploadSlots()">Upload File</button>
+// ---------- event delegation for all row buttons ----------
+const ACTIONS = {
+  delCat: async (b, id) => { if (confirm('Remove Category?')) { const r = await api('removeCategory', { catName: id }); alert(r.message); loadMaster(true); } },
+  delBr: async (b, id) => { if (confirm('Remove Branch?')) { const r = await api('removeBranch', { branchName: id }); alert(r.message); loadMaster(true); } },
+  delFac: async (b, id) => { if (confirm('Remove Faculty?')) { const r = await api('removeFaculty', { facName: id }); alert(r.message); loadMaster(true); } },
+  setLink: async (b, id, tr) => { const r = await api('updateLink', { bookingId: id, meetingLink: tr.querySelector('.lnk').value.trim() }); alert(r.message); if (r.success) loadAdminBookings(); },
+  admCancel: async (b, id) => { if (!confirm('Cancel this booking?')) return; const r = await api('cancel', { bookingId: id, reason: 'Cancelled by Admin' }); alert(r.message); loadAdminBookings(); },
+  saveCap: async (b, id, tr) => { const r = await api('updateSlotCapacity', { row: b.dataset.row, sig: b.dataset.sig, newCap: tr.querySelector('.cap-input').value }); alert(r.message); loadSlotsAdmin(); },
+  delSlot: async (b) => { if (!confirm('Delete this slot?')) return; const r = await api('deleteSlot', { row: b.dataset.row, sig: b.dataset.sig }); alert(r.message); loadSlotsAdmin(); },
+  saveUser: async (b, id, tr) => { const r = await api('updateUser', { id, phone: tr.querySelector('.ph').value, branch: tr.querySelector('.br').value, name: tr.querySelector('.nm').value }); alert(r.message); loadUsersAdmin(); },
+  delUser: async (b, id) => { if (!confirm('Remove this user?')) return; const r = await api('deleteUser', { id }); alert(r.message); loadUsersAdmin(); }
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const h = ACTIONS[b.dataset.act]; if (h) h(b, b.dataset.id, b.closest('tr'));
+});
 
-                        <h4 style="margin-bottom: 15px;">Existing Slots & Bookings</h4>
-                        <div class="table-container">
-                            <table>
-                                <thead><tr><th>Faculty</th><th>Date</th><th>Time Slot</th><th>Booked</th><th>Capacity (Editable)</th><th>Action</th></tr></thead>
-                                <tbody id="adminSlotsBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+// ---------- admin: bookings ----------
+const sessionBadge = b => {
+  if (b.status !== 'Booked') return '-';
+  if (b.isDone === 'Done') return '<span class="badge bg-done">Done</span>';
+  if (b.isDone === 'Not Done' || b.isDone === 'Not Joined') return `<span class="badge bg-cancelled">${esc(b.isDone)}</span>`;
+  return '<span class="badge bg-pending">Pending</span>';
+};
+async function loadAdminBookings() { const r = await api('getAdminData'); if (r.success) { adminBookings = r.data; renderAdminTable(); } }
+function filteredBookings() {
+  const fD = $('filterFrom').value, tD = $('filterTo').value, fB = $('filterBranch').value, fC = $('filterCategory').value, fF = $('filterFaculty').value, q = $('filterSearch').value.toLowerCase();
+  return adminBookings.filter(b => {
+    if (fD || tD) { const p = b.date.split('/'), bd = `${p[2]}-${p[1]}-${p[0]}`; if (fD && bd < fD) return false; if (tD && bd > tD) return false; }
+    return (!fB || b.branch === fB) && (!fC || b.category === fC) && (!fF || b.faculty === fF) && (b.name.toLowerCase().includes(q) || b.studentId.toLowerCase().includes(q));
+  });
+}
+function filterAdminTable() { renderAdminTable(); }
+function renderAdminTable() {
+  $('adminBookingsBody').innerHTML = filteredBookings().map(b => {
+    const booked = b.status === 'Booked';
+    const link = booked ? `<input class="lnk cell-in" value="${esc(b.meetingLink)}" placeholder="Paste Link" style="width:100px"> <button class="btn btn-success sm" data-act="setLink" data-id="${esc(b.bookingId)}">Set</button>` : '-';
+    const act = booked ? `<button class="btn btn-danger sm" data-act="admCancel" data-id="${esc(b.bookingId)}">Cancel</button>` : '-';
+    const q = b.query ? `<br><small title="${esc(b.query)}">💬 ${esc(b.query.slice(0, 30))}${b.query.length > 30 ? '…' : ''}</small>` : '';
+    return `<tr><td><b>${esc(b.name)}</b><br><small>${esc(b.studentId)}</small><br><small>${esc(b.email)} ${esc(b.phone)}</small>${q}</td>
+      <td>${esc(b.branch)}/${esc(b.batchName)}</td><td>${esc(b.faculty)}</td><td>${esc(b.date)}<br>${esc(b.time)}</td>
+      <td><span class="badge ${booked ? 'bg-booked' : 'bg-cancelled'}">${esc(b.status)}</span></td><td>${sessionBadge(b)}</td><td>${link}</td><td>${act}</td></tr>`;
+  }).join('');
+}
+async function clearAllBookings() {
+  if (!confirm('This will remove ALL bookings (a backup is saved in the "Bookings_Archive" sheet). Continue?')) return;
+  if (prompt('Type CLEAR to confirm') !== 'CLEAR') return alert('Cancelled. Nothing was deleted.');
+  const r = await api('clearAllBookings'); alert(r.message); loadAdminBookings();
+}
 
-                <div id="viewUsersCSV" class="view-section">
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px;">Add Students to System</h3>
-                        <p style="font-size: 13px; margin-bottom: 10px; color: #64748b;">Yahan se student login kar payenge. Format: <b>User ID, Phone Number, Branch</b></p>
-                        
-                        <input type="file" id="usersFile" accept=".csv" style="margin-bottom: 15px; padding: 10px; border: 1px dashed #10b981; border-radius: 8px; width: 100%;">
-                        <button class="btn btn-success" style="width: 200px; margin-bottom: 30px;" onclick="uploadUsersCSV()">Upload Users</button>
+function csvCell(v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }
+function downloadCSV(type) {
+  let head, rows;
+  if (type === 'bookings') {
+    head = ['StudentName', 'StudentID', 'Email', 'Phone', 'Branch', 'Batch', 'Faculty', 'Date', 'Time', 'BookingStatus', 'SessionStatus', 'Query'];
+    rows = filteredBookings().map(b => [b.name, b.studentId, b.email, b.phone, b.branch, b.batchName, b.faculty, b.date, b.time, b.status, b.status === 'Booked' ? b.isDone : '-', b.query]);
+  } else {
+    head = ['Name', 'StudentID', 'Branch', 'Batch', 'TargetYear', 'PWNumber']; rows = filteredStudents().map(s => [s.name, s.id, s.branch, s.batch, s.year, s.phone]);
+  }
+  const csv = '\ufeff' + [head, ...rows].map(r => r.map(csvCell).join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = type + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
 
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <h4>Registered Users</h4>
-                            <input type="text" id="searchUserAdmin" placeholder="Search User ID..." onkeyup="renderUsersAdminTable()" style="padding:8px; border:1px solid #ccc; border-radius:5px;">
-                        </div>
-                        <div class="table-container">
-                            <table>
-                                <thead><tr><th>User ID</th><th>Phone</th><th>Branch</th><th>Name</th><th>Action</th></tr></thead>
-                                <tbody id="adminUsersBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+// ---------- admin: students ----------
+async function loadStudents() { const r = await api('getKnowYourStudents'); if (r.success) { students = r.data; renderStudentsTable(); } }
+function filteredStudents() {
+  const br = $('searchStudentBranch').value, q = $('searchStudentPhone').value.toLowerCase();
+  return students.filter(s => (!br || s.branch === br) && (s.name.toLowerCase().includes(q) || s.phone.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)));
+}
+function renderStudentsTable() {
+  $('studentsBody').innerHTML = filteredStudents().map(s => `<tr><td><b>${esc(s.name)}</b><br><small>${esc(s.id)}</small></td><td>${esc(s.branch)}</td><td>${esc(s.batch)}</td><td>${esc(s.year)}</td><td>${esc(s.phone)}</td></tr>`).join('');
+}
 
-                <div id="viewSettings" class="view-section">
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px;">System Settings</h3>
-                        <div class="input-row"><div><label>Monthly Limit</label><input type="number" id="setLimit"></div>
-                        <div><label>Default Slot Capacity</label><input type="number" id="setCapacity"></div></div>
-                        <div class="input-row"><div><label>Telegram Link</label><input type="text" id="setTelegram" placeholder="https://t.me/..."></div></div>
-                        <div class="input-row"><div><label>Admin ID</label><input type="text" id="setAdminId"></div>
-                        <div><label>Admin Phone</label><input type="text" id="setAdminPhone"></div></div>
-                        <button class="btn btn-success" style="width: 200px;" onclick="saveSettings()">Save Settings</button>
-                    </div>
-                </div>
+// ---------- admin: master / faculty ----------
+async function addCat() { const v = $('newCatName').value.trim(); if (!v) return; const r = await api('addCategory', { catName: v }); alert(r.message); $('newCatName').value = ''; loadMaster(true); }
+async function addBranch() { const v = $('newBranchName').value.trim(); if (!v) return; const r = await api('addBranch', { branchName: v }); alert(r.message); $('newBranchName').value = ''; loadMaster(true); }
+async function addFac() {
+  const n = $('facName').value.trim(), b = $('facBranch').value, c = $('facCategory').value;
+  if (!n || !b || !c) return alert('Fill all fields');
+  const r = await api('addFaculty', { name: n, branch: b, category: c }); alert(r.message); $('facName').value = ''; loadMaster(true);
+}
 
-                <div id="viewBook" class="view-section">
-                    <div class="card">
-                        <div id="telegramBanner" class="notice-banner">
-                            Join this GATE Pro Mentorship Telegram group link for further mentorship update: <a id="telegramLinkForm" href="#" target="_blank">Click Here</a>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <h3>Book Mentorship</h3>
-                            <span id="chancesBadge" class="badge bg-booked" style="font-size:14px;">3/3 Left</span>
-                        </div>
-                        <div class="input-group"><label>Branch</label><select id="branch" onchange="fetchFac()"></select></div>
-                        <div class="input-group"><label>Category</label><select id="category" onchange="filterFacultyByCategory()"></select></div>
-                        <div class="input-group"><label>Faculty</label><select id="faculty" onchange="fetchSlots()"></select></div>
-                        <div class="input-group">
-                            <label>Date (DD/MM/YYYY)</label>
-                            <input type="date" id="bookDate">
-                        </div>
-                        <div class="input-group"><label>Time Slot</label><select id="timeSlot"></select></div>
-                        
-                        <div class="input-group"><label>Mail ID</label><input type="email" id="bookEmail" placeholder="student@example.com"></div>
-                        <div class="input-group"><label>Registered Phone Number</label><input type="tel" id="bookPhone" placeholder="10-digit number"></div>
+// ---------- admin: slots ----------
+async function loadSlotsAdmin() { const r = await api('getSlotsAdmin'); if (r.success) { slotsAdmin = r.data; renderSlotsAdminTable(); } }
+function renderSlotsAdminTable() {
+  $('adminSlotsBody').innerHTML = slotsAdmin.map(s => {
+    const sig = esc(`${s.faculty}|${s.date}|${s.time}`), full = s.booked >= s.capacity;
+    return `<tr><td>${esc(s.faculty)}<br><small>${esc(s.branch)}</small></td><td>${esc(s.date)}</td><td>${esc(s.time)}</td>
+      <td><span class="slot-stat-badge ${full ? 'stat-full' : 'stat-available'}">${s.booked} Booked</span></td>
+      <td><input type="number" min="0" value="${s.capacity}" class="cap-input"> <button class="btn btn-success sm" data-act="saveCap" data-row="${s.row}" data-sig="${sig}">Save</button></td>
+      <td><button class="btn btn-danger sm" data-act="delSlot" data-row="${s.row}" data-sig="${sig}">Del Slot</button></td></tr>`;
+  }).join('');
+}
+function uploadCSV(inputId, action, after) {
+  const f = $(inputId); if (!f.files.length) return alert('Please select a CSV file first.');
+  const reader = new FileReader();
+  reader.onload = async e => { const r = await api(action, { csv: e.target.result }); alert(r.message); f.value = ''; after(); };
+  reader.readAsText(f.files[0]);
+}
 
-                        <div class="input-group"><label>Query</label><textarea id="query"></textarea></div>
-                        
-                        <div id="telegramQueryBanner" style="background: #f1f5f9; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; display: none;">
-                            Join this GATE Pro Mentorship telegram group link for further mentorship update - <a id="telegramLinkQuery" href="#" target="_blank" style="color: #6366f1; font-weight: 600;">Click Here</a>
-                        </div>
+// ---------- admin: users ----------
+async function loadUsersAdmin() { const r = await api('getUsersAdmin'); if (r.success) { usersAdmin = r.data; renderUsersAdminTable(); } }
+function renderUsersAdminTable() {
+  const q = $('searchUserAdmin').value.toLowerCase();
+  $('adminUsersBody').innerHTML = usersAdmin.filter(u => u.id.toLowerCase().includes(q)).map(u => `<tr><td>${esc(u.id)}</td>
+    <td><input class="ph cell-in" value="${esc(u.phone)}" style="width:110px"></td><td><input class="br cell-in" value="${esc(u.branch)}" style="width:80px"></td><td><input class="nm cell-in" value="${esc(u.name)}" style="width:130px"></td>
+    <td><button class="btn btn-success sm" data-act="saveUser" data-id="${esc(u.id)}">Save</button> <button class="btn btn-danger sm" data-act="delUser" data-id="${esc(u.id)}">Del</button></td></tr>`).join('');
+}
 
-                        <button class="btn btn-success" id="bookBtn" onclick="handleBooking()"><span class="spinner" id="bookSpinner"></span><span id="bookBtnText">Book Now</span></button>
-                        <div class="msg error-msg" id="bookError"></div>
-                    </div>
-                </div>
+// ---------- admin: settings ----------
+async function loadSettings() {
+  const r = await api('getSettings'); if (!r.success) return;
+  $('setLimit').value = r.data.limit; $('setCapacity').value = r.data.capacity; $('setTelegram').value = r.data.telegram;
+  $('setAdminId').value = r.data.adminId; $('setAdminPhone').value = r.data.adminPhone; $('setAdminCode').value = r.data.adminCode;
+}
+async function saveSettings() {
+  const r = await api('updateSettings', { limit: $('setLimit').value, capacity: $('setCapacity').value, telegram: $('setTelegram').value.trim(), adminId: $('setAdminId').value.trim(), adminPhone: $('setAdminPhone').value.trim(), adminCode: $('setAdminCode').value.trim() });
+  alert(r.message);
+}
 
-                <div id="viewMySchedule" class="view-section">
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px;">My Schedule</h3>
-                        <div class="table-container">
-                            <table><thead><tr><th>ID</th><th>Date/Time</th><th>Faculty</th><th>Status</th><th>Session Status</th><th>Meeting Link</th></tr></thead><tbody id="scheduleBody"></tbody></table>
-                        </div>
-                    </div>
-                </div>
+// ---------- student ----------
+async function getDash(force) {
+  if (!force && dash && Date.now() - dashAt < 20000) return dash;
+  const r = await api('getDashboard'); if (r.success) { dash = r; dashAt = Date.now(); } return dash;
+}
+async function loadStudentData() {
+  const d = await getDash(true); if (!d) return;
+  $('chancesBadge').innerText = d.chancesLeft + '/' + d.limit + ' Left';
+  $('chancesBadge').className = 'badge ' + (d.chancesLeft <= 0 ? 'bg-cancelled' : 'bg-booked');
+  if (d.telegram && /^https?:\/\//i.test(d.telegram)) {
+    $('telegramLinkForm').href = d.telegram; $('telegramLinkQuery').href = d.telegram;
+    $('telegramBanner').style.display = 'block'; $('telegramQueryBanner').style.display = 'block';
+  }
+  pendingId = d.pendingBookingId || '';
+  if (pendingId) $('statusModal').style.display = 'flex';
+  if (master) filterFaculty();
+}
 
-                <div id="viewCancel" class="view-section">
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px;">Cancel Booking</h3>
-                        <div class="input-group"><label>Select Booking</label><select id="cancelBookingId"></select></div>
-                        <div class="input-group"><label>Reason</label><input type="text" id="cancelReason" placeholder="Why cancel?"></div>
-                        <button class="btn btn-danger" onclick="handleCancel()">Cancel Session</button>
-                    </div>
-                </div>
+function filterFaculty() {
+  if (!master) return;
+  const br = $('branch').value, cat = $('category').value, cur = $('faculty').value;
+  const list = master.faculties.filter(f => (!br || f.branch === br) && (!cat || f.category === cat));
+  $('faculty').innerHTML = '<option value="">Select Faculty</option>' + list.map(f => `<option value="${esc(f.name)}">${esc(f.name)}</option>`).join('');
+  if (cur && list.some(f => f.name === cur)) $('faculty').value = cur; else resetSlots();
+}
+function resetSlots() { facSlots = []; $('bookDate').innerHTML = '<option value="">Select Faculty first</option>'; $('timeSlot').innerHTML = '<option value="">Select Date first</option>'; }
 
-            </div>
-        </div>
-    </div>
+async function fetchSlots() {
+  const f = $('faculty').value; if (!f) return resetSlots();
+  $('bookDate').innerHTML = '<option value="">Loading…</option>';
+  const r = await api('getSlots', { facName: f });
+  if ($('faculty').value !== f) return;
+  facSlots = r.success ? r.data : [];
+  const dates = [...new Set(facSlots.map(s => s.date))];
+  $('bookDate').innerHTML = dates.length
+    ? '<option value="">Select Date</option>' + dates.map(d => { const p = d.split('/'), day = new Date(p[2], p[1] - 1, p[0]).toLocaleDateString('en-IN', { weekday: 'short' }); return `<option value="${esc(d)}">${esc(d)} (${day})</option>`; }).join('')
+    : '<option value="">No upcoming slots</option>';
+  $('timeSlot').innerHTML = '<option value="">Select Date first</option>';
+}
+function fillTimes() {
+  const d = $('bookDate').value;
+  $('timeSlot').innerHTML = '<option value="">Select Time</option>' + facSlots.filter(s => s.date === d)
+    .map(s => `<option value="${esc(s.time)}" ${s.full ? 'disabled' : ''}>${esc(s.time)} (${s.full ? 'Full Booked' : s.left + ' Seats Left'})</option>`).join('');
+}
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbynme6uRDu_phDJ8AW5B3wN5fX_JsW-voHBoiUntEG3CYQIoOieKS-KsmNfeBqekTZRsA/exec"; 
-        let currentUserId = null, isAdmin = false, allAdminBookings = [], allStudentsData = [], allCategories = [], allFaculties = [], allBranches = [], allSlotsAdmin = [], allUsersAdmin = [];
-        
-        window.onload = function() {
-            const savedId = localStorage.getItem('studentId');
-            const savedAdmin = localStorage.getItem('isAdmin') === 'true';
-            
-            if (savedId) {
-                currentUserId = savedId;
-                isAdmin = savedAdmin;
-                showDashboard(); 
-            } else {
-                document.getElementById('loginSection').style.display = 'flex';
-                document.getElementById('dashboardLayout').style.display = 'none';
-            }
-            
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('bookDate').setAttribute('min', today);
-        };
+async function handleBooking() {
+  const data = { branch: $('branch').value, category: $('category').value, faculty: $('faculty').value, date: $('bookDate').value, time: $('timeSlot').value,
+                 email: $('bookEmail').value.trim(), phone: $('bookPhone').value.trim(), query: $('query').value.trim() };
+  if (!data.branch || !data.category || !data.faculty || !data.date || !data.time || !data.email || !data.phone) return alert('Fill all fields');
+  $('bookBtn').disabled = true; $('bookSpinner').style.display = 'inline-block'; $('bookBtnText').innerText = 'Booking...';
+  const r = await api('book', data);
+  $('bookBtn').disabled = false; $('bookSpinner').style.display = 'none'; $('bookBtnText').innerText = 'Book Now';
+  if (r.success) {
+    alert('Booked Successfully!\nYour Booking ID: ' + r.bookingId);
+    $('query').value = ''; resetSlots(); $('faculty').value = ''; dash = null;
+    switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]);
+  } else { alert('Booking Failed!\n' + r.message); if (data.faculty) fetchSlots(); }
+}
 
-        function handleLogin() {
-            const u = document.getElementById('loginUserId').value.trim();
-            const p = document.getElementById('loginPhone').value.trim();
-            const c = document.getElementById('loginAdminCode').value.trim();
-            const btn = document.getElementById('loginBtn'), spinner = document.getElementById('loginSpinner'), err = document.getElementById('loginError'), btnText = document.getElementById('loginBtnText');
-            
-            if(!u || !p) { err.innerText = "Please fill all details"; err.style.display = 'block'; return; }
-            btn.disabled = true; spinner.style.display = 'inline-block'; btnText.innerText = "Loading..."; err.style.display = 'none';
+async function loadSchedule() {
+  const d = await getDash(true); if (!d) return;
+  $('scheduleBody').innerHTML = d.data.map(b => {
+    let lnk = '-';
+    if (b.linkState === 'open' && /^https?:\/\//i.test(b.meetingLink)) lnk = `<a href="${esc(b.meetingLink)}" target="_blank" rel="noopener">Join</a>`;
+    else if (b.linkState === 'expired') lnk = 'Expired'; else if (b.linkState === 'soon') lnk = 'Available 15m before';
+    return `<tr><td>${esc(b.bookingId)}</td><td>${esc(b.date)} ${esc(b.time)}</td><td>${esc(b.faculty)}</td><td style="color:${b.status === 'Booked' ? '#10b981' : '#ef4444'}">${esc(b.status)}</td><td>${sessionBadge(b)}</td><td>${lnk}</td></tr>`;
+  }).join('');
+}
 
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", data: { userId: u, phone: p, adminCode: c } }) })
-            .then(res => res.json())
-            .then(data => {
-                btn.disabled = false; spinner.style.display = 'none'; btnText.innerText = "Login";
-                if (data.success) {
-                    currentUserId = u; isAdmin = data.isAdmin || false;
-                    localStorage.setItem('studentId', u); localStorage.setItem('isAdmin', isAdmin);
-                    
-                    if(!isAdmin && (!data.profile || !data.profile.isComplete)) {
-                        document.getElementById('profileModal').style.display = 'flex';
-                        loadBranchesForProfile();
-                    } else {
-                        if(!isAdmin && data.profile) localStorage.setItem('studentName', data.profile.name);
-                        showDashboard();
-                    }
-                } else if (data.requireCode) {
-                    document.getElementById('adminCodeGroup').style.display = 'block';
-                    err.innerText = "Admin verified. Enter security code."; err.style.display = 'block';
-                } else {
-                    err.innerText = data.message; err.style.display = 'block';
-                }
-            })
-            .catch(e => { btn.disabled = false; spinner.style.display = 'none'; btnText.innerText = "Login"; err.innerText = "Network error. Try again."; err.style.display = 'block'; });
-        }
+async function submitStatus(s) {
+  if (!pendingId) { $('statusModal').style.display = 'none'; return; }
+  const r = await api('markStatus', { bookingId: pendingId, status: s });
+  $('statusModal').style.display = 'none'; pendingId = ''; dash = null;
+  alert(r.message);
+}
 
-        function loadBranchesForProfile() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getBranches'})}).then(r=>r.json()).then(res=>{
-                let sel = document.getElementById('profBranch');
-                sel.innerHTML = '<option value="">Select Branch</option>';
-                res.data.forEach(b => sel.innerHTML += `<option>${b}</option>`);
-            });
-        }
-
-        function submitProfile() {
-            const data = {
-                studentId: currentUserId, name: document.getElementById('profName').value,
-                branch: document.getElementById('profBranch').value, batch: document.getElementById('profBatch').value,
-                year: document.getElementById('profYear').value, phone: document.getElementById('profPhone').value
-            };
-            if(!data.name || !data.branch || !data.batch || !data.year || !data.phone) { alert("Fill all fields"); return; }
-            
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "saveProfile", data }) })
-            .then(res=>res.json()).then(res=>{
-                if(res.success) {
-                    localStorage.setItem('studentName', data.name);
-                    document.getElementById('profileModal').style.display = 'none';
-                    showDashboard();
-                } else alert(res.message);
-            });
-        }
-
-        function logout() { localStorage.clear(); location.reload(); }
-
-        function showDashboard() {
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('dashboardLayout').style.display = 'flex';
-            document.getElementById('displayName').innerText = isAdmin ? 'Admin' : localStorage.getItem('studentName');
-            
-            loadMasterData();
-
-            if(isAdmin) {
-                document.getElementById('adminMenus').style.display = 'block';
-                document.getElementById('studentMenus').style.display = 'none';
-                switchView('viewAllBookings', document.querySelector('#adminMenus button'));
-            } else {
-                document.getElementById('adminMenus').style.display = 'none';
-                document.getElementById('studentMenus').style.display = 'block';
-                switchView('viewBook', document.querySelector('#studentMenus button'));
-                loadStudentData();
-            }
-        }
-
-        function loadMasterData() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{ 
-                allCategories = res.data; 
-                
-                let fCat = document.getElementById('facCategory');
-                let sCat = document.getElementById('category');
-                if(fCat) { fCat.innerHTML = '<option value="">Select</option>'; res.data.forEach(c => fCat.innerHTML += `<option>${c}</option>`); }
-                if(sCat) { sCat.innerHTML = '<option value="">Select Category</option>'; res.data.forEach(c => sCat.innerHTML += `<option>${c}</option>`); }
-                
-                let catList = document.getElementById('categoryList');
-                if(catList) {
-                    catList.innerHTML = '';
-                    res.data.forEach(c => catList.innerHTML += `<span style="background:#e2e8f0; padding:5px 10px; border-radius:5px; font-size:13px; display:flex; gap:10px; align-items:center;">${c} <button onclick="removeCat('${c}')" style="background:transparent; border:none; color:red; cursor:pointer; font-weight:bold;">✕</button></span>`);
-                }
-            });
-            
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getBranches'})}).then(r=>r.json()).then(res=>{ 
-                allBranches = res.data; 
-                let fBr = document.getElementById('facBranch');
-                let sBr = document.getElementById('branch');
-                let filterBr = document.getElementById('filterBranch');
-                
-                if(fBr) { fBr.innerHTML = '<option value="">Select</option>'; res.data.forEach(b => fBr.innerHTML += `<option>${b}</option>`); }
-                if(sBr) { sBr.innerHTML = '<option value="">Select Branch</option>'; res.data.forEach(b => sBr.innerHTML += `<option>${b}</option>`); }
-                if(filterBr) { filterBr.innerHTML = '<option value="">All Branches</option>'; res.data.forEach(b => filterBr.innerHTML += `<option>${b}</option>`); }
-
-                let brList = document.getElementById('branchList');
-                if(brList) {
-                    brList.innerHTML = '';
-                    res.data.forEach(b => brList.innerHTML += `<span style="background:#e2e8f0; padding:5px 10px; border-radius:5px; font-size:13px; display:flex; gap:10px; align-items:center;">${b} <button onclick="removeBr('${b}')" style="background:transparent; border:none; color:red; cursor:pointer; font-weight:bold;">✕</button></span>`);
-                }
-            });
-            
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getAllFaculties'})}).then(r=>r.json()).then(res=>{ 
-                allFaculties = res.data; 
-                let filterFac = document.getElementById('filterFaculty');
-                if(filterFac) { filterFac.innerHTML = '<option value="">All Faculties</option>'; res.data.forEach(f => filterFac.innerHTML += `<option>${f.name}</option>`); }
-
-                let facList = document.getElementById('facultyListBody');
-                if(facList) {
-                    facList.innerHTML = '';
-                    res.data.forEach(f => facList.innerHTML += `<tr><td>${f.name}</td><td>${f.branch}</td><td>${f.category}</td><td><button class="btn btn-danger" style="padding:2px 8px; width:auto;" onclick="removeFac('${f.name}')">Remove</button></td></tr>`);
-                }
-            });
-        }
-
-        function switchView(id, btn) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(btn) {
-                document.querySelectorAll('.sidebar-menu button').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById('pageTitle').innerText = btn.innerText.replace(/[^\w\s]/gi, ''); 
-            }
-            
-            if(id==='viewAllBookings') loadAdminBookings();
-            if(id==='viewKnowStudents') loadStudents();
-            if(id==='viewSettings') loadSettings();
-            if(id==='viewMySchedule') loadSchedule();
-            if(id==='viewCancel') loadCancelDropdown();
-            if(id==='viewBook') loadStudentData();
-            if(id==='viewAddMaster' || id==='viewAddFaculty') loadMasterData();
-            if(id==='viewSlots') loadSlotsAdmin();
-            if(id==='viewUsersCSV') loadUsersAdmin();
-        }
-
-        // ================= ADMIN =================
-        function loadAdminBookings() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getAdminData'})}).then(r=>r.json()).then(res=>{
-                if(res.success) { allAdminBookings = res.data.reverse(); renderAdminTable(); }
-            });
-        }
-        
-        function renderAdminTable() {
-            const fDate = document.getElementById('filterFrom').value;
-            const tDate = document.getElementById('filterTo').value;
-            const fBranch = document.getElementById('filterBranch').value;
-            const fCat = document.getElementById('filterCategory').value;
-            const fFac = document.getElementById('filterFaculty').value;
-            const fSearch = document.getElementById('filterSearch').value.toLowerCase();
-
-            const filtered = allAdminBookings.filter(b => {
-                let dMatch = true;
-                if(fDate || tDate) {
-                    const pts = b.date.split('/');
-                    const bd = `${pts[2]}-${pts[1]}-${pts[0]}`;
-                    if(fDate && bd < fDate) dMatch = false;
-                    if(tDate && bd > tDate) dMatch = false;
-                }
-                return dMatch && (fBranch ? b.branch===fBranch : true) && (fCat ? b.category===fCat : true) && (fFac ? b.faculty===fFac : true) && (b.name.toLowerCase().includes(fSearch) || b.studentId.includes(fSearch));
-            });
-
-            let html = '';
-            filtered.forEach(b => {
-                let statusBadge = b.status==='Booked' ? '<span class="badge bg-booked">Booked</span>' : '<span class="badge bg-cancelled">Cancelled</span>';
-                let sessionBadge = '';
-                if(b.status === 'Booked') {
-                     if(b.isDone === 'Done') sessionBadge = '<span class="badge bg-done">Done</span>';
-                     else if(b.isDone === 'Not Done') sessionBadge = '<span class="badge bg-cancelled">Not Done</span>';
-                     else if(b.isDone === 'Not Joined') sessionBadge = '<span class="badge bg-cancelled">Not Joined</span>';
-                     else sessionBadge = '<span class="badge bg-pending">Pending</span>';
-                } else {
-                     sessionBadge = '-';
-                }
-
-                let link = b.status==='Booked' ? `<input type="text" id="l_${b.bookingId}" value="${b.meetingLink}" placeholder="Paste Link" style="width:80px;"> <button class="btn btn-success" style="width:auto; padding:2px 5px;" onclick="updLink('${b.bookingId}')">Set</button>` : '-';
-                let act = b.status==='Booked' ? `<button class="btn btn-danger" style="width:auto; padding:2px 5px;" onclick="admCancel('${b.bookingId}')">Cancel</button>` : '-';
-                
-                html += `<tr>
-                    <td><b>${b.name}</b><br><small>${b.studentId}</small></td>
-                    <td>${b.branch}/${b.batchName}</td>
-                    <td>${b.faculty}</td>
-                    <td>${b.date}<br>${b.time}</td>
-                    <td>${statusBadge}</td>
-                    <td>${sessionBadge}</td>
-                    <td>${link}</td>
-                    <td>${act}</td>
-                </tr>`;
-            });
-            document.getElementById('adminBookingsBody').innerHTML = html;
-        }
-
-        function downloadCSV(type) {
-            let csvContent = "";
-            if(type === 'bookings') {
-                csvContent = "data:text/csv;charset=utf-8,StudentName,StudentID,Email,Phone,Branch,Batch,Faculty,Date,Time,BookingStatus,SessionStatus\n";
-                const rows = document.querySelectorAll('#adminBookingsBody tr');
-                rows.forEach(row => {
-                    const cols = row.querySelectorAll('td');
-                    if(cols.length >= 5) {
-                        const name = cols[0].childNodes[0].nodeValue;
-                        const id = cols[0].querySelector('small').innerText;
-                        const branchBatch = cols[1].innerText.split('/');
-                        const faculty = cols[2].innerText;
-                        const dt = cols[3].innerText.split('\n');
-                        const bStatus = cols[4].innerText;
-                        const sStatus = cols[5].innerText;
-                        csvContent += `"${name}","${id}","N/A","N/A","${branchBatch[0]}","${branchBatch[1]}","${faculty}","${dt[0]}","${dt[1]}","${bStatus}","${sStatus}"\n`;
-                    }
-                });
-            } else {
-                csvContent = "data:text/csv;charset=utf-8,Name,StudentID,Branch,Batch,TargetYear,PWNumber\n";
-                const rows = document.querySelectorAll('#studentsBody tr');
-                rows.forEach(row => {
-                    const cols = row.querySelectorAll('td');
-                    if(cols.length >= 5) {
-                        const name = cols[0].childNodes[0].nodeValue;
-                        const id = cols[0].querySelector('small').innerText;
-                        csvContent += `"${name}","${id}","${cols[1].innerText}","${cols[2].innerText}","${cols[3].innerText}","${cols[4].innerText}"\n`;
-                    }
-                });
-            }
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", type === 'bookings' ? "bookings.csv" : "students.csv");
-            document.body.appendChild(link);
-            link.click();
-        }
-
-        function updLink(id) { fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateLink', data:{bookingId:id, meetingLink:document.getElementById('l_'+id).value}})}).then(r=>r.json()).then(res=>alert(res.message)); }
-        function admCancel(id) { if(!confirm("Cancel this?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'cancel', data:{studentId:'', bookingId:id, reason:'By Admin', isAdmin:true}})}).then(r=>r.json()).then(res=>{alert(res.message); loadAdminBookings();}); }
-
-        function loadStudents() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getKnowYourStudents'})}).then(r=>r.json()).then(res=>{
-                if(res.success) { allStudentsData = res.data; renderStudentsTable(); }
-            });
-        }
-        function renderStudentsTable() {
-            const br = document.getElementById('searchStudentBranch').value;
-            const ph = document.getElementById('searchStudentPhone').value.toLowerCase();
-            const filtered = allStudentsData.filter(s => (br?s.branch===br:true) && (s.name.toLowerCase().includes(ph) || s.phone.includes(ph)));
-            let html = '';
-            filtered.forEach(s => html += `<tr><td><b>${s.name}</b><br><small>${s.id}</small></td><td>${s.branch}</td><td>${s.batch}</td><td>${s.year}</td><td>${s.phone}</td></tr>`);
-            document.getElementById('studentsBody').innerHTML = html;
-        }
-
-        function addCat() {
-            const c = document.getElementById('newCatName').value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addCategory', data:{catName:c}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('newCatName').value=''; loadMasterData();});
-        }
-        function removeCat(c) { if(!confirm("Remove Category?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'removeCategory', data:{catName:c}})}).then(r=>r.json()).then(res=>{alert(res.message); loadMasterData();}); }
-        
-        function addBranch() {
-            const b = document.getElementById('newBranchName').value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addBranch', data:{branchName:b}})}).then(r=>r.json()).then(res=>{alert(res.message); document.getElementById('newBranchName').value=''; loadMasterData();});
-        }
-        function removeBr(b) { if(!confirm("Remove Branch?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'removeBranch', data:{branchName:b}})}).then(r=>r.json()).then(res=>{alert(res.message); loadMasterData();}); }
-
-        function addFac() {
-            const n = document.getElementById('facName').value, b = document.getElementById('facBranch').value, c = document.getElementById('facCategory').value;
-            if(!n || !b || !c) { alert("Fill all fields"); return; }
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'addFaculty', data:{name:n, branch:b, category:c}})}).then(r=>r.json()).then(res=>{
-                alert(res.message); document.getElementById('facName').value=''; loadMasterData();
-            });
-        }
-        function removeFac(f) { if(!confirm("Remove Faculty?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'removeFaculty', data:{facName:f}})}).then(r=>r.json()).then(res=>{alert(res.message); loadMasterData();}); }
-
-        // ================= SLOTS ADMIN (NEW UI) =================
-        function loadSlotsAdmin() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getSlotsAdmin'})}).then(r=>r.json()).then(res=>{
-                if(res.success) { allSlotsAdmin = res.data; renderSlotsAdminTable(); }
-            });
-        }
-        function renderSlotsAdminTable() {
-            let html = '';
-            allSlotsAdmin.forEach(s => {
-                let statClass = s.booked >= s.capacity ? 'stat-full' : 'stat-available';
-                html += `<tr>
-                    <td>${s.faculty}<br><small>${s.branch}</small></td>
-                    <td>${s.date}</td>
-                    <td>${s.time}</td>
-                    <td><span class="slot-stat-badge ${statClass}">${s.booked} Booked</span></td>
-                    <td>
-                        <input type="number" id="cap_${s.rowIndex}_${s.colIndex}" value="${s.capacity}" class="cap-input">
-                        <button class="btn btn-success" style="padding:2px 5px; width:auto; margin-left:5px;" onclick="saveSlotCap(${s.rowIndex}, ${s.colIndex})">Save</button>
-                    </td>
-                    <td>
-                        <button class="btn btn-danger" style="padding:2px 8px; width:auto;" onclick="delSlot(${s.rowIndex})">Del Slot</button>
-                    </td>
-                </tr>`;
-            });
-            document.getElementById('adminSlotsBody').innerHTML = html;
-        }
-        function saveSlotCap(rowIdx, colIdx) {
-            const newCap = document.getElementById(`cap_${rowIdx}_${colIdx}`).value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateSlotCapacity', data:{rowIndex:rowIdx, newCap:newCap}})})
-            .then(r=>r.json()).then(res=>{alert(res.message); loadSlotsAdmin();});
-        }
-        function delSlot(idx) { if(!confirm("Delete this slot?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'deleteSlot', data:{rowIndex:idx}})}).then(r=>r.json()).then(res=>{alert(res.message); loadSlotsAdmin();}); }
-
-        function uploadSlots() {
-            const fileInput = document.getElementById('slotsFile');
-            if (!fileInput.files.length) { alert("Please select a CSV file first."); return; }
-            
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const csv = e.target.result;
-                fetch(API_URL, {method:'POST', body:JSON.stringify({action:'uploadSlots', data:{csv:csv}})})
-                .then(r=>r.json()).then(res=>{ alert(res.message); fileInput.value = ''; loadSlotsAdmin(); });
-            };
-            reader.readAsText(file);
-        }
-
-        // ================= USERS ADMIN =================
-        function loadUsersAdmin() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getUsersAdmin'})}).then(r=>r.json()).then(res=>{
-                if(res.success) { allUsersAdmin = res.data; renderUsersAdminTable(); }
-            });
-        }
-        function renderUsersAdminTable() {
-            const q = document.getElementById('searchUserAdmin').value.toLowerCase();
-            let html = '';
-            allUsersAdmin.filter(u => u.id.toLowerCase().includes(q)).forEach(u => {
-                html += `<tr>
-                    <td>${u.id}</td>
-                    <td><input type="text" id="u_ph_${u.rowIndex}" value="${u.phone}" style="width:100px;"></td>
-                    <td><input type="text" id="u_br_${u.rowIndex}" value="${u.branch}" style="width:80px;"></td>
-                    <td><input type="text" id="u_nm_${u.rowIndex}" value="${u.name}" style="width:120px;"></td>
-                    <td>
-                        <button class="btn btn-success" style="padding:2px 5px; width:auto;" onclick="editUser(${u.rowIndex})">Save</button>
-                        <button class="btn btn-danger" style="padding:2px 5px; width:auto;" onclick="delUser(${u.rowIndex})">Del</button>
-                    </td>
-                </tr>`;
-            });
-            document.getElementById('adminUsersBody').innerHTML = html;
-        }
-        function editUser(idx) {
-            const ph = document.getElementById(`u_ph_${idx}`).value;
-            const br = document.getElementById(`u_br_${idx}`).value;
-            const nm = document.getElementById(`u_nm_${idx}`).value;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateUser', data:{rowIndex:idx, phone:ph, branch:br, name:nm}})}).then(r=>r.json()).then(res=>{alert(res.message); loadUsersAdmin();});
-        }
-        function delUser(idx) { if(!confirm("Remove this user?")) return; fetch(API_URL, {method:'POST', body:JSON.stringify({action:'deleteUser', data:{rowIndex:idx}})}).then(r=>r.json()).then(res=>{alert(res.message); loadUsersAdmin();}); }
-
-        function uploadUsersCSV() {
-            const fileInput = document.getElementById('usersFile');
-            if (!fileInput.files.length) { alert("Please select a CSV file first."); return; }
-            
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const csv = e.target.result;
-                fetch(API_URL, {method:'POST', body:JSON.stringify({action:'uploadUsers', data:{csv:csv}})})
-                .then(r=>r.json()).then(res=>{ alert(res.message); fileInput.value = ''; loadUsersAdmin(); });
-            };
-            reader.readAsText(file);
-        }
-
-        function loadSettings() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getSettings'})}).then(r=>r.json()).then(res=>{
-                if(res.success) {
-                    document.getElementById('setLimit').value = res.data.limit;
-                    document.getElementById('setCapacity').value = res.data.capacity;
-                    document.getElementById('setTelegram').value = res.data.telegram;
-                    document.getElementById('setAdminId').value = res.data.adminId;
-                    document.getElementById('setAdminPhone').value = res.data.adminPhone;
-                }
-            });
-        }
-        function saveSettings() {
-            const data = {
-                limit: document.getElementById('setLimit').value, capacity: document.getElementById('setCapacity').value,
-                telegram: document.getElementById('setTelegram').value, adminId: document.getElementById('setAdminId').value,
-                adminPhone: document.getElementById('setAdminPhone').value
-            };
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'updateSettings', data})}).then(r=>r.json()).then(res=>alert(res.message));
-        }
-
-        // ================= STUDENT =================
-        function loadStudentData() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getDashboard', data:{studentId: currentUserId}})}).then(r=>r.json()).then(res=>{
-                if(res.success) {
-                    document.getElementById('chancesBadge').innerText = res.chancesLeft + "/" + res.limit + " Left";
-                    if(res.chancesLeft <= 0) document.getElementById('chancesBadge').className = 'badge bg-cancelled';
-                    
-                    if(res.telegram) { 
-                        document.getElementById('telegramLinkForm').href = res.telegram; 
-                        document.getElementById('telegramLinkQuery').href = res.telegram; 
-                        document.getElementById('telegramBanner').style.display = 'block'; 
-                        document.getElementById('telegramQueryBanner').style.display = 'block'; 
-                    }
-                    
-                    if(res.pendingAction) {
-                        document.getElementById('statusModal').style.display = 'flex';
-                    }
-                }
-            });
-            
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getCategories'})}).then(r=>r.json()).then(res=>{
-                let sel = document.getElementById('category');
-                sel.innerHTML = '<option value="">Select Category</option>';
-                res.data.forEach(c => sel.innerHTML += `<option>${c}</option>`);
-            });
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getBranches'})}).then(r=>r.json()).then(res=>{
-                let sel = document.getElementById('branch');
-                sel.innerHTML = '<option value="">Select Branch</option>';
-                res.data.forEach(b => sel.innerHTML += `<option>${b}</option>`);
-            });
-        }
-
-        function fetchFac() {
-            const br = document.getElementById('branch').value;
-            if(!br) return;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getFacultiesByBranch', data:{branch:br}})}).then(r=>r.json()).then(res=>{
-                allFaculties = res.data;
-                filterFacultyByCategory();
-            });
-        }
-        function filterFacultyByCategory() {
-            const cat = document.getElementById('category').value;
-            let sel = document.getElementById('faculty');
-            sel.innerHTML = '<option value="">Select Faculty</option>';
-            allFaculties.filter(f => cat ? f.category===cat : true).forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
-        }
-
-        function fetchSlots() {
-            const f = document.getElementById('faculty').value;
-            if(!f) return;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getSlots', data:{facName:f}})}).then(r=>r.json()).then(res=>{
-                let sel = document.getElementById('timeSlot');
-                sel.innerHTML = '<option value="">Select Time</option>';
-                res.data.forEach(s => {
-                    if (s.includes('Full Booked')) {
-                        sel.innerHTML += `<option value="${s.split(' (')[0]}" disabled>${s}</option>`;
-                    } else {
-                        sel.innerHTML += `<option value="${s.split(' (')[0]}">${s}</option>`;
-                    }
-                });
-            });
-        }
-
-        function handleBooking() {
-            const btn = document.getElementById('bookBtn');
-            const spinner = document.getElementById('bookSpinner');
-            const btnText = document.getElementById('bookBtnText');
-            const d = document.getElementById('bookDate').value;
-            
-            if(!d) { alert("Select Date"); return; }
-            const p = d.split('-');
-            const ddmmyyyy = `${p[2]}/${p[1]}/${p[0]}`;
-
-            const data = {
-                studentId: currentUserId, name: localStorage.getItem('studentName'), branch: document.getElementById('branch').value,
-                faculty: document.getElementById('faculty').value, date: ddmmyyyy, time: document.getElementById('timeSlot').value,
-                query: document.getElementById('query').value, year: '', batch: '', category: document.getElementById('category').value,
-                email: document.getElementById('bookEmail').value, phone: document.getElementById('bookPhone').value
-            };
-            if(!data.branch || !data.faculty || !data.time || !data.category || !data.email || !data.phone) { alert("Fill all fields"); return; }
-
-            btn.disabled = true; spinner.style.display = 'inline-block'; btnText.innerText = "Booking...";
-
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'book', data})}).then(r=>r.json()).then(res=>{
-                btn.disabled = false; spinner.style.display = 'none'; btnText.innerText = "Book Now";
-                if(res.success) { alert("Booked Successfully!\nYour Booking ID: " + res.bookingId); loadStudentData(); switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]); }
-                else alert("Booking Failed!\n" + res.message);
-            }).catch(e => { btn.disabled = false; spinner.style.display = 'none'; btnText.innerText = "Book Now"; alert("Network error."); });
-        }
-
-        function loadSchedule() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getDashboard', data:{studentId: currentUserId}})}).then(r=>r.json()).then(res=>{
-                let html = '';
-                res.data.forEach(b => {
-                    let color = b.status==='Booked' ? '#10b981' : '#ef4444';
-                    let sessionBadge = '';
-                    if(b.status === 'Booked') {
-                         if(b.isDone === 'Done') sessionBadge = '<span class="badge bg-done">Done</span>';
-                         else if(b.isDone === 'Not Done') sessionBadge = '<span class="badge bg-cancelled">Not Done</span>';
-                         else if(b.isDone === 'Not Joined') sessionBadge = '<span class="badge bg-cancelled">Not Joined</span>';
-                         else sessionBadge = '<span class="badge bg-pending">Pending</span>';
-                    } else {
-                         sessionBadge = '-';
-                    }
-                    
-                    let isEnabled = false;
-                    let isExpired = false;
-                    
-                    if(b.meetingLink) {
-                         const now = new Date();
-                         const pts = b.date.split('/');
-                         let bDate = new Date(pts[2], pts[1]-1, pts[0]);
-                         
-                         const tParts = b.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
-                         if(tParts) {
-                           let hrs = parseInt(tParts[1]);
-                           if(tParts[3].toUpperCase() === 'PM' && hrs < 12) hrs += 12;
-                           if(tParts[3].toUpperCase() === 'AM' && hrs === 12) hrs = 0;
-                           bDate.setHours(hrs, parseInt(tParts[2]), 0, 0);
-                         }
-                         
-                         const diffMins = (now.getTime() - bDate.getTime()) / 60000;
-                         
-                         if (diffMins >= -15 && diffMins <= 30) isEnabled = true;
-                         if (diffMins > 30) isExpired = true;
-                    }
-                    
-                    let lnk = '-';
-                    if (b.meetingLink) {
-                        if (isEnabled) {
-                            lnk = `<a href="${b.meetingLink}" target="_blank" onclick="setTimeout(()=>{ if(document.getElementById('statusModal').style.display!=='none'){ document.getElementById('statusModal').style.display='flex'; } }, 2000)">Join</a>`;
-                        } else if (isExpired) {
-                            lnk = 'Expired';
-                        } else {
-                            lnk = 'Available 15m before';
-                        }
-                    }
-
-                    html += `<tr><td>${b.bookingId}</td><td>${b.date} ${b.time}</td><td>${b.faculty}</td><td style="color:${color}">${b.status}</td><td>${sessionBadge}</td><td>${lnk}</td></tr>`;
-                });
-                document.getElementById('scheduleBody').innerHTML = html;
-            });
-        }
-
-        function submitStatus(s) {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getDashboard', data:{studentId: currentUserId}})}).then(r=>r.json()).then(res=>{
-                const pending = res.data.find(x => x.status==='Booked' && x.isDone === 'Pending');
-                if(pending) {
-                    fetch(API_URL, {method:'POST', body:JSON.stringify({action:'markStatus', data:{bookingId: pending.bookingId, status: s}})}).then(r=>r.json()).then(()=>{
-                        document.getElementById('statusModal').style.display = 'none';
-                        alert("Marked!");
-                    });
-                } else {
-                    document.getElementById('statusModal').style.display = 'none';
-                }
-            });
-        }
-
-        function loadCancelDropdown() {
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'getDashboard', data:{studentId: currentUserId}})}).then(r=>r.json()).then(res=>{
-                let sel = document.getElementById('cancelBookingId');
-                sel.innerHTML = '<option value="">Select Booking</option>';
-                res.data.filter(b => b.status==='Booked').forEach(b => sel.innerHTML += `<option value="${b.bookingId}">${b.date} - ${b.faculty}</option>`);
-            });
-        }
-
-        function handleCancel() {
-            const id = document.getElementById('cancelBookingId').value;
-            const rs = document.getElementById('cancelReason').value;
-            if(!id) return;
-            fetch(API_URL, {method:'POST', body:JSON.stringify({action:'cancel', data:{studentId: currentUserId, bookingId: id, reason: rs, isAdmin: false}})}).then(r=>r.json()).then(res=>{
-                alert(res.message); loadStudentData();
-            });
-        }
-    </script>
+async function loadCancelDropdown() {
+  const d = await getDash(true); if (!d) return;
+  $('cancelBookingId').innerHTML = '<option value="">Select Booking</option>' + d.data.filter(b => b.status === 'Booked')
+    .map(b => `<option value="${esc(b.bookingId)}">${esc(b.date)} ${esc(b.time)} - ${esc(b.faculty)}</option>`).join('');
+}
+async function handleCancel() {
+  const id = $('cancelBookingId').value; if (!id) return alert('Select a booking.');
+  if (!confirm('Cancel this session?')) return;
+  const r = await api('cancel', { bookingId: id, reason: $('cancelReason').value.trim() });
+  alert(r.message); $('cancelReason').value = ''; dash = null; loadCancelDropdown(); loadStudentData();
+}
+</script>
 </body>
 </html>
