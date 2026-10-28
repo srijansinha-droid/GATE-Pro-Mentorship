@@ -6,22 +6,67 @@
     <title>GATE Pro Mentorship</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #6366f1; --primary-hover: #4f46e5; --success: #10b981; --success-hover: #059669; --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --sidebar-bg: #1e293b; }
+        :root { 
+            --primary: #6366f1; 
+            --primary-hover: #4f46e5; 
+            --success: #10b981; 
+            --success-hover: #059669; 
+            --card-bg: rgba(255, 255, 255, 0.95); 
+            --text-main: #1e293b; 
+            --text-muted: #64748b; 
+            --sidebar-bg: #1e293b; 
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: var(--bg-gradient); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        /* Background Image Setup */
+        body { 
+            background-image: url('background.jpg'); /* Image ka naam yahan hai */
+            background-size: cover; 
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        
+        /* Overlay for better readability */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.7); /* Dark overlay */
+            z-index: -1;
+        }
         
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 999; }
         .modal-box { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 500px; text-align: center; animation: pop 0.3s ease; }
         @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
-        .container { background: var(--card-bg); border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); width: 100%; padding: 40px; display: flex; flex-direction: column; animation: slideUp 0.5s ease-out; max-width: 450px;}
+        /* Glassmorphism Container */
+        .container { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+            width: 100%; 
+            padding: 40px; 
+            display: flex; 
+            flex-direction: column; 
+            animation: slideUp 0.5s ease-out; 
+            max-width: 450px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
         h2 { color: var(--text-main); font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 20px; }
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; }
-        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; }
-        .input-group input:focus, .input-group select:focus { border-color: var(--primary); }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; background: rgba(255,255,255,0.9); }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary); background: #fff; }
 
         .btn { padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; color: white; cursor: pointer; transition: 0.3s; display: inline-flex; justify-content: center; align-items: center; width: 100%;}
         .btn-primary { background: var(--primary); } .btn-primary:hover { background: var(--primary-hover); }
@@ -33,7 +78,7 @@
         .msg { padding: 10px; border-radius: 8px; margin-top: 15px; display: none; font-size: 13px; text-align: center; font-weight: 500; }
         .error-msg { background: #fee2e2; color: #991b1b; } .success-msg { background: #d1fae5; color: #065f46; }
 
-        #dashboardLayout { display: none; width: 100%; height: 95vh; background: #f1f5f9; border-radius: 15px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        #dashboardLayout { display: none; width: 100%; height: 95vh; background: #f1f5f9; border-radius: 15px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); }
         .sidebar { width: 260px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; }
         .sidebar-header { padding: 25px 20px; border-bottom: 1px solid #334155; font-size: 18px; font-weight: 700; color: #fff; line-height: 1.2; }
         .sidebar-menu { flex: 1; padding: 20px 0; overflow-y: auto; }
@@ -74,6 +119,16 @@
         .stat-full { background: #fee2e2; color: #991b1b; }
         .stat-available { background: #d1fae5; color: #065f46; }
         .cap-input { width: 60px; padding: 5px; text-align: center; border: 1px solid #cbd5e1; border-radius: 5px; }
+
+        /* Responsive Mobile adjustments */
+        @media (max-width: 768px) {
+            .container { padding: 25px; }
+            #dashboardLayout { flex-direction: column; height: auto; min-height: 95vh; }
+            .sidebar { width: 100%; border-bottom: 1px solid #334155; }
+            .sidebar-menu { display: flex; flex-wrap: wrap; padding: 10px; }
+            .sidebar-menu button { width: auto; padding: 10px 15px; border-radius: 5px; }
+            .main-content { overflow: visible; }
+        }
     </style>
 </head>
 <body>
