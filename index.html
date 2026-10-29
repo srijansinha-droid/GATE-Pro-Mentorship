@@ -131,7 +131,7 @@ small{color:#64748b}
 <div class="container" id="loginSection" style="display:none">
   <h2>GATE Pro Mentorship</h2>
   <div class="input-group"><label>Phone Number</label><input type="tel" id="loginPhone" placeholder="10-digit registered number" autocomplete="tel"></div>
-  <div class="input-group" id="adminCodeGroup" style="display:none"><label style="color:#ef4444">Security Code (Admin)</label><input type="password" id="loginAdminCode"></div>
+  <div class="input-group" id="adminCodeGroup" style="display:none"><label style="color:#ef4444">Security Code (Admin)</label><input type="password" id="loginAdminCode" placeholder="Enter Admin Code"></div>
   <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()"><span class="spinner" id="loginSpinner"></span><span id="loginBtnText">Login</span></button>
   <div class="msg error-msg" id="loginError"></div>
 </div>
@@ -342,11 +342,25 @@ async function handleLogin() {
   if (!p) return showErr('Please enter your phone number');
   $('loginError').style.display = 'none';
   $('loginBtn').disabled = true; $('loginSpinner').style.display = 'inline-block'; $('loginBtnText').innerText = 'Loading...';
+  
   const res = await api('login', { phone: p, adminCode: c });
+  
   $('loginBtn').disabled = false; $('loginSpinner').style.display = 'none'; $('loginBtnText').innerText = 'Login';
-  if (res.success && res.token) { token = res.token; localStorage.setItem(TOKEN_KEY, token); afterAuth(res); }
-  else if (res.requireCode) { $('adminCodeGroup').style.display = 'block'; showErr('Admin verified. Enter security code.'); }
-  else showErr(res.message || 'Login failed');
+  
+  if (res.success && res.token) { 
+    token = res.token; 
+    localStorage.setItem(TOKEN_KEY, token); 
+    afterAuth(res); 
+  }
+  else if (res.requireCode) { 
+    // Admin phone detected: reveal code box and focus
+    $('adminCodeGroup').style.display = 'block'; 
+    $('loginAdminCode').focus();
+    showErr('Admin detected. Please enter your Security Code.'); 
+  }
+  else {
+    showErr(res.message || 'Login failed');
+  }
 }
 ['loginPhone', 'loginAdminCode'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); }));
 
