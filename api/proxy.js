@@ -15,7 +15,9 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {});
-    const targetUrl = GAS_URL + '?apiKey=' + encodeURIComponent(GAS_API_KEY);
+    // API key ko URL param ke through bhej rahe hain taaki 100% pakka lage
+    const targetUrl = `${GAS_URL}?apiKey=${encodeURIComponent(GAS_API_KEY)}`;
+    
     const gasResp = await fetch(targetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
