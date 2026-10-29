@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // CORS setup
   const origin = process.env.ALLOWED_ORIGIN || '*';
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -17,10 +16,7 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {});
-    
-    // Check karo ki URL mein pehle se '?' toh nahi hai
-    const separator = GAS_URL.includes('?') ? '&' : '?';
-    const targetUrl = `${GAS_URL}${separator}apiKey=${encodeURIComponent(GAS_API_KEY)}`;
+    const targetUrl = GAS_URL + '?apiKey=' + encodeURIComponent(GAS_API_KEY);
     
     const gasResp = await fetch(targetUrl, {
       method: 'POST',
