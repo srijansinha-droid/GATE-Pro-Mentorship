@@ -8,9 +8,15 @@
 <style>
 :root{--primary:#6366f1;--primary-hover:#4f46e5;--success:#10b981;--success-hover:#059669;--card-bg:rgba(255,255,255,.95);--text-main:#1e293b;--text-muted:#64748b;--sidebar-bg:#1e293b}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
-body{background-image:url('bg.jpg.png');background-color:#0f172a;background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
-body::before{content:"";position:fixed;inset:0;background:rgba(15,23,42,.7);z-index:-1}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:15px}
+body{background-color:#0f172a;display:flex;justify-content:center;align-items:center;min-height:100vh;min-height:100dvh;padding:20px}
+
+/* Background: full image always visible (contain) over a blurred cover copy -> nothing is cut on any screen */
+.bg-layer{position:fixed;inset:0;pointer-events:none}
+.bg-blur{z-index:-3;background:url('bg.jpg.png') center/cover no-repeat;filter:blur(18px) brightness(.85);transform:scale(1.08)}
+.bg-main{z-index:-2;background:url('bg.jpg.png') center/contain no-repeat}
+body::before{content:"";position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:-1;pointer-events:none}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:15px;overflow-y:auto}
 .modal-box{background:#fff;padding:30px;border-radius:15px;width:100%;max-width:500px;text-align:center;animation:pop .3s ease}
 @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
 .container{background:var(--card-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);width:100%;padding:40px;display:flex;flex-direction:column;animation:slideUp .5s ease-out;max-width:450px;border:1px solid rgba(255,255,255,.2)}
@@ -21,24 +27,33 @@ h2{color:var(--text-main);font-size:22px;font-weight:700;text-align:center;margi
 .input-group input,.input-group select,.input-group textarea,.input-row input,.input-row select{width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;background:rgba(255,255,255,.9)}
 .input-group input:focus,.input-group select:focus,.input-row input:focus{border-color:var(--primary);background:#fff}
 .btn{padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;transition:.3s;display:inline-flex;justify-content:center;align-items:center;width:100%}
-.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn:disabled{opacity:.7;cursor:not-allowed}
 .btn-primary{background:var(--primary)}.btn-primary:hover{background:var(--primary-hover)}
 .btn-success{background:var(--success)}.btn-success:hover{background:var(--success-hover)}
 .btn-danger{background:#ef4444}.btn-danger:hover{background:#dc2626}
 .btn-warn{background:#f59e0b}.btn-warn:hover{background:#d97706}
+.btn-gray{background:#64748b}.btn-gray:hover{background:#475569}
 .sm{width:auto;padding:4px 10px;font-size:12px}
-.spinner{display:none;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s linear infinite;margin-right:10px}
+
+/* spinners */
+.btn-spin{display:inline-block;flex:none;width:15px;height:15px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:8px}
+.sm .btn-spin{width:11px;height:11px;border-width:2px;margin-right:5px}
+.big-spin{width:46px;height:46px;border:5px solid rgba(99,102,241,.2);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+#viewLoader{position:absolute;inset:0;background:rgba(248,250,252,.65);display:none;justify-content:center;align-items:center;z-index:50}
+#netBadge{position:fixed;right:16px;bottom:16px;background:#1e293b;color:#fff;padding:8px 14px;border-radius:25px;font-size:12px;display:none;align-items:center;gap:8px;z-index:1200;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+#netBadge .btn-spin{margin:0}
+
 .msg{padding:10px;border-radius:8px;margin-top:15px;display:none;font-size:13px;text-align:center;font-weight:500}
 .error-msg{background:#fee2e2;color:#991b1b}
-#dashboardLayout{display:none;width:100%;height:95vh;background:#f1f5f9;border-radius:15px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2)}
+#dashboardLayout{display:none;width:100%;height:calc(100vh - 40px);height:calc(100dvh - 40px);background:#f1f5f9;border-radius:15px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2)}
 .sidebar{width:260px;background:var(--sidebar-bg);color:#fff;display:flex;flex-direction:column}
 .sidebar-header{padding:25px 20px;border-bottom:1px solid #334155;font-size:18px;font-weight:700;line-height:1.2}
 .sidebar-menu{flex:1;padding:20px 0;overflow-y:auto}
 .sidebar-menu button{width:100%;padding:15px 25px;text-align:left;background:none;border:none;color:#cbd5e1;font-size:14px;font-weight:500;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:10px;border-left:4px solid transparent}
 .sidebar-menu button:hover,.sidebar-menu button.active{background:#334155;color:#fff;border-left-color:var(--primary)}
 .sidebar-footer{padding:20px;border-top:1px solid #334155}
-.main-content{flex:1;display:flex;flex-direction:column;background:#f8fafc;overflow:hidden}
+.main-content{flex:1;display:flex;flex-direction:column;background:#f8fafc;overflow:hidden;position:relative}
 .topbar{background:#fff;padding:15px 30px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0}
 .topbar h2{margin:0;font-size:20px;text-align:left}
 .content-area{flex:1;padding:30px;overflow-y:auto}
@@ -71,10 +86,25 @@ small{color:#64748b}
 .util-card h4{font-size:13px;opacity:.85;margin-bottom:8px;font-weight:500}
 .util-card .big{font-size:28px;font-weight:700}
 .util-card .row{display:flex;justify-content:space-between;margin-top:10px;font-size:12px;opacity:.95}
-@media(max-width:768px){.container{padding:25px}#dashboardLayout{flex-direction:column;height:auto;min-height:95vh}.sidebar{width:100%;border-bottom:1px solid #334155}.sidebar-menu{display:flex;flex-wrap:wrap;padding:10px}.sidebar-menu>div{display:flex;flex-wrap:wrap}.sidebar-menu button{width:auto;padding:10px 15px;border-radius:5px}.main-content{overflow:visible}.input-row{flex-direction:column}}
+@media(max-width:768px){
+  body{padding:10px;align-items:flex-start}
+  .container{padding:25px;margin:auto}
+  #dashboardLayout{flex-direction:column;height:auto;min-height:calc(100dvh - 20px)}
+  .sidebar{width:100%;border-bottom:1px solid #334155}
+  .sidebar-menu{display:flex;flex-wrap:wrap;padding:10px}
+  .sidebar-menu>div{display:flex;flex-wrap:wrap}
+  .sidebar-menu button{width:auto;padding:10px 15px;border-radius:5px;border-left:none}
+  .main-content{overflow:visible;min-height:60vh}
+  .content-area{padding:15px}
+  .topbar{padding:12px 15px}
+  .input-row{flex-direction:column}
+}
 </style>
 </head>
 <body>
+<div class="bg-layer bg-blur"></div>
+<div class="bg-layer bg-main"></div>
+<div id="netBadge"><span class="btn-spin"></span>Working…</div>
 
 <div class="modal-overlay" id="profileModal"><div class="modal-box">
   <h2>Complete Your Profile</h2>
@@ -84,15 +114,15 @@ small{color:#64748b}
   <div class="input-group"><input type="text" id="profBatch" placeholder="Batch (e.g. CSE-A)"></div>
   <div class="input-group"><select id="profYear"><option value="">Target Year</option><option>2026</option><option>2027</option><option>2028</option></select></div>
   <div class="input-group"><input type="text" id="profPhone" placeholder="Register PW Number"></div>
-  <button class="btn btn-primary" id="profBtn" onclick="submitProfile()">Save Profile</button>
+  <button class="btn btn-primary" onclick="run(this,submitProfile)">Save Profile</button>
 </div></div>
 
 <div class="modal-overlay" id="statusModal"><div class="modal-box">
   <h2>Mentorship Status</h2>
   <p style="font-size:14px;margin-bottom:20px">Did you attend your mentorship session? (This can be marked only once.)</p>
   <div style="display:flex;gap:10px">
-    <button class="btn btn-success" onclick="submitStatus('Done')">Done</button>
-    <button class="btn btn-danger" onclick="submitStatus('Not Done')">Not Done</button>
+    <button class="btn btn-success" onclick="run(this,()=>submitStatus('Done'))">Done</button>
+    <button class="btn btn-danger" onclick="run(this,()=>submitStatus('Not Done'))">Not Done</button>
   </div>
 </div></div>
 
@@ -107,32 +137,32 @@ small{color:#64748b}
 <div class="modal-overlay" id="rescheduleModal"><div class="modal-box" style="text-align:left">
   <h2 style="text-align:left">Reschedule Booking</h2>
   <p style="font-size:13px;color:#64748b;margin-bottom:15px" id="rescheduleInfo"></p>
-  <div class="input-group"><label>New Date (DD/MM/YYYY)</label><input type="text" id="reschDate" placeholder="dd/mm/yyyy"></div>
-  <div class="input-group"><label>New Time (e.g. 10:00 AM)</label><input type="text" id="reschTime" placeholder="10:00 AM"></div>
+  <div class="input-group"><label>New Date</label><input type="date" id="reschDate"></div>
+  <div class="input-group"><label>New Time</label><input type="time" id="reschTime"></div>
   <div style="display:flex;gap:10px">
-    <button class="btn btn-primary" onclick="confirmReschedule()">Save</button>
-    <button class="btn btn-danger" onclick="document.getElementById('rescheduleModal').style.display='none'">Cancel</button>
+    <button class="btn btn-primary" onclick="run(this,confirmReschedule)">Save</button>
+    <button class="btn btn-gray" onclick="document.getElementById('rescheduleModal').style.display='none'">Cancel</button>
   </div>
 </div></div>
 
 <div class="modal-overlay" id="bulkRescheduleModal"><div class="modal-box" style="text-align:left">
   <h2 style="text-align:left">Bulk Reschedule</h2>
   <p style="font-size:13px;color:#64748b;margin-bottom:15px" id="bulkInfo"></p>
-  <div class="input-group"><label>New Date (DD/MM/YYYY)</label><input type="text" id="bulkDate" placeholder="dd/mm/yyyy"></div>
-  <div class="input-group"><label>New Time (e.g. 10:00 AM)</label><input type="text" id="bulkTime" placeholder="10:00 AM"></div>
+  <div class="input-group"><label>New Date</label><input type="date" id="bulkDate"></div>
+  <div class="input-group"><label>New Time</label><input type="time" id="bulkTime"></div>
   <div style="display:flex;gap:10px">
-    <button class="btn btn-primary" onclick="confirmBulkReschedule()">Update All</button>
-    <button class="btn btn-danger" onclick="document.getElementById('bulkRescheduleModal').style.display='none'">Cancel</button>
+    <button class="btn btn-primary" onclick="run(this,confirmBulkReschedule)">Update All</button>
+    <button class="btn btn-gray" onclick="document.getElementById('bulkRescheduleModal').style.display='none'">Cancel</button>
   </div>
 </div></div>
 
-<div class="container" id="bootLoader" style="align-items:center"><h2 style="margin:0">Loading…</h2></div>
+<div class="container" id="bootLoader" style="align-items:center"><h2 style="margin:0 0 15px">Loading…</h2><div class="big-spin"></div></div>
 
 <div class="container" id="loginSection" style="display:none">
   <h2>GATE Pro Mentorship</h2>
   <div class="input-group"><label>Phone Number</label><input type="tel" id="loginPhone" placeholder="10-digit registered number" autocomplete="tel"></div>
-  <div class="input-group" id="adminCodeGroup" style="display:none"><label style="color:#ef4444">Security Code (Admin)</label><input type="password" id="loginAdminCode" placeholder="Enter Admin Code"></div>
-  <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()"><span class="spinner" id="loginSpinner"></span><span id="loginBtnText">Login</span></button>
+  <div class="input-group" id="adminCodeGroup" style="display:none"><label style="color:#ef4444">Security Code (Admin)</label><input type="password" id="loginAdminCode" placeholder="Enter Admin Code" autocomplete="off"></div>
+  <button class="btn btn-primary" id="loginBtn" onclick="run(this,handleLogin)">Login</button>
   <div class="msg error-msg" id="loginError"></div>
 </div>
 
@@ -156,10 +186,11 @@ small{color:#64748b}
         <button onclick="switchView('viewCancel',this)">❌ Cancel Session</button>
       </div>
     </div>
-    <div class="sidebar-footer"><button class="btn btn-danger" onclick="logout()">Logout</button></div>
+    <div class="sidebar-footer"><button class="btn btn-danger" onclick="run(this,logout)">Logout</button></div>
   </div>
 
   <div class="main-content">
+    <div id="viewLoader"><div class="big-spin"></div></div>
     <div class="topbar"><h2 id="pageTitle">Dashboard</h2><div style="font-weight:600;color:#64748b;font-size:14px">Welcome, <span id="displayName" style="color:var(--primary)">User</span></div></div>
     <div class="content-area">
 
@@ -167,18 +198,20 @@ small{color:#64748b}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px">
           <h3>All Student Bookings</h3>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary sm" style="padding:8px 15px" onclick="downloadCSV('bookings')">Download CSV</button>
-            <button class="btn btn-warn sm" style="padding:8px 15px" onclick="openBulkReschedule()">📅 Bulk Reschedule</button>
-            <button class="btn btn-danger sm" style="padding:8px 15px" onclick="clearAllBookings()">🗑 Clear All Bookings</button>
+            <button class="btn btn-primary sm" style="padding:8px 15px" onclick="run(this,()=>downloadCSV('bookings'))">Download CSV</button>
+            <button class="btn btn-warn sm" style="padding:8px 15px" onclick="run(this,openBulkReschedule)">📅 Bulk Reschedule</button>
+            <button class="btn btn-danger sm" style="padding:8px 15px" onclick="run(this,clearAllBookings)">🗑 Clear All Bookings</button>
           </div>
         </div>
         <div class="filters">
-          <input type="date" id="filterFrom" onchange="filterAdminTable()">
-          <input type="date" id="filterTo" onchange="filterAdminTable()">
-          <select id="filterBranch" onchange="filterAdminTable()"><option value="">All Branches</option></select>
-          <select id="filterCategory" onchange="filterAdminTable()"><option value="">All Categories</option></select>
-          <select id="filterFaculty" onchange="filterAdminTable()"><option value="">All Faculties</option></select>
-          <input type="text" id="filterSearch" placeholder="Search Name / ID..." oninput="filterAdminTable()">
+          <input type="date" id="filterFrom" title="From date">
+          <input type="date" id="filterTo" title="To date">
+          <select id="filterBranch"><option value="">All Branches</option></select>
+          <select id="filterCategory"><option value="">All Categories</option></select>
+          <select id="filterFaculty"><option value="">All Faculties</option></select>
+          <input type="text" id="filterSearch" placeholder="Search Name / ID..." onkeydown="if(event.key==='Enter')run($('applyBookBtn'),applyBookingFilter)">
+          <button class="btn btn-primary sm" id="applyBookBtn" style="padding:8px 16px" onclick="run(this,applyBookingFilter)">🔍 Apply Filter</button>
+          <button class="btn btn-gray sm" style="padding:8px 16px" onclick="run(this,resetBookingFilter)">Reset</button>
         </div>
         <div class="table-container"><table>
           <thead><tr>
@@ -200,11 +233,13 @@ small{color:#64748b}
 
       <div id="viewKnowStudents" class="view-section"><div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
-          <h3>Student Database</h3><button class="btn btn-primary sm" style="padding:8px 15px" onclick="downloadCSV('students')">Download CSV</button></div>
+          <h3>Student Database</h3><button class="btn btn-primary sm" style="padding:8px 15px" onclick="run(this,()=>downloadCSV('students'))">Download CSV</button></div>
         <div class="filters">
-          <select id="searchStudentBranch" onchange="renderStudentsTable()"><option value="">All Branches</option></select>
-          <select id="searchStudentCategory" onchange="renderStudentsTable()"><option value="">All Categories</option></select>
-          <input type="text" id="searchStudentPhone" placeholder="Search Name / ID / Phone / PW..." oninput="renderStudentsTable()">
+          <select id="searchStudentBranch"><option value="">All Branches</option></select>
+          <select id="searchStudentCategory"><option value="">All Categories</option></select>
+          <input type="text" id="searchStudentPhone" placeholder="Search Name / ID / PW..." onkeydown="if(event.key==='Enter')run($('applyStuBtn'),applyStudentFilter)">
+          <button class="btn btn-primary sm" id="applyStuBtn" style="padding:8px 16px" onclick="run(this,applyStudentFilter)">🔍 Apply Filter</button>
+          <button class="btn btn-gray sm" style="padding:8px 16px" onclick="run(this,resetStudentFilter)">Reset</button>
         </div>
         <div class="table-container"><table><thead><tr><th>Name</th><th>Branch</th><th>Batch</th><th>Target Year</th><th>PW Number</th><th>Category</th><th>Status</th><th>Action</th></tr></thead><tbody id="studentsBody"></tbody></table></div>
       </div></div>
@@ -213,11 +248,11 @@ small{color:#64748b}
         <h3 style="margin-bottom:15px">Manage Categories &amp; Branches</h3>
         <div class="input-row" style="padding-bottom:20px;border-bottom:1px solid #ccc">
           <div><label>Add Category</label><input type="text" id="newCatName" placeholder="e.g. GATE"></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addCat()">Add</button></div></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="run(this,addCat)">Add</button></div></div>
         <div id="categoryList" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px"></div>
         <div class="input-row">
           <div><label>Add Branch</label><input type="text" id="newBranchName" placeholder="e.g. CSE"></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addBranch()">Add</button></div></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="run(this,addBranch)">Add</button></div></div>
         <div id="branchList" style="display:flex;flex-wrap:wrap;gap:10px"></div>
       </div></div>
 
@@ -227,7 +262,7 @@ small{color:#64748b}
           <div><label>Faculty Name</label><input type="text" id="facName"></div>
           <div><label>Branch</label><select id="facBranch"></select></div>
           <div><label>Category</label><select id="facCategory"></select></div></div>
-        <button class="btn btn-success" style="width:200px;margin-bottom:20px" onclick="addFac()">Add Faculty</button>
+        <button class="btn btn-success" style="width:200px;margin-bottom:20px" onclick="run(this,addFac)">Add Faculty</button>
         <div class="table-container"><table><thead><tr><th>Faculty Name</th><th>Branch</th><th>Category</th><th>Action</th></tr></thead><tbody id="facultyListBody"></tbody></table></div>
       </div></div>
 
@@ -235,17 +270,17 @@ small{color:#64748b}
         <h3 style="margin-bottom:15px">Upload Slots CSV</h3>
         <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>Faculty Name, Branch, Date (DD/MM/YYYY), Slot1, Slot2, Slot3...</b></p>
         <input type="file" id="slotsFile" accept=".csv" style="margin-bottom:15px;padding:10px;border:1px dashed #6366f1;border-radius:8px;width:100%">
-        <button class="btn btn-primary" style="width:200px;margin-bottom:30px" onclick="uploadCSV('slotsFile','uploadSlots',loadSlotsAdmin)">Upload File</button>
+        <button class="btn btn-primary" style="width:200px;margin-bottom:30px" onclick="run(this,()=>uploadCSV('slotsFile','uploadSlots',loadSlotsAdmin))">Upload File</button>
         <h4 style="margin-bottom:15px">Existing Slots &amp; Bookings</h4>
         <div class="table-container"><table><thead><tr><th>Faculty</th><th>Date</th><th>Time Slot</th><th>Booked</th><th>Capacity (Editable)</th><th>Action</th></tr></thead><tbody id="adminSlotsBody"></tbody></table></div>
       </div></div>
 
       <div id="viewUsersCSV" class="view-section"><div class="card">
         <h3 style="margin-bottom:15px">Add Students to System</h3>
-        <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>User ID, Phone Number, Branch</b></p>
+        <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>User ID, Phone Number, Branch</b> (each phone number must be unique)</p>
         <input type="file" id="usersFile" accept=".csv" style="margin-bottom:15px;padding:10px;border:1px dashed #10b981;border-radius:8px;width:100%">
-        <button class="btn btn-success" style="width:200px;margin-bottom:30px" onclick="uploadCSV('usersFile','uploadUsers',loadUsersAdmin)">Upload Users</button>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><h4>Registered Users</h4>
+        <button class="btn btn-success" style="width:200px;margin-bottom:30px" onclick="run(this,()=>uploadCSV('usersFile','uploadUsers',loadUsersAdmin))">Upload Users</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:8px"><h4>Registered Users</h4>
           <input type="text" id="searchUserAdmin" placeholder="Search User ID / Phone..." oninput="renderUsersAdminTable()" style="padding:8px;border:1px solid #ccc;border-radius:5px"></div>
         <div class="table-container"><table><thead><tr><th>User ID</th><th>Phone</th><th>Branch</th><th>Name</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminUsersBody"></tbody></table></div>
       </div></div>
@@ -257,8 +292,8 @@ small{color:#64748b}
         <div class="input-row"><div><label>Admin ID</label><input type="text" id="setAdminId"></div><div><label>Admin Phone</label><input type="text" id="setAdminPhone"></div><div><label>Admin Security Code</label><input type="text" id="setAdminCode"></div></div>
         <div class="input-row"><div><label>Report Email</label><input type="email" id="setReportEmail" placeholder="admin@example.com"></div><div><label>Daily Report Enabled</label><select id="setReportEnabled"><option value="true">Yes</option><option value="false">No</option></select></div></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-success" style="width:200px" onclick="saveSettings()">Save Settings</button>
-          <button class="btn btn-primary" style="width:200px" onclick="runReportNow()">📧 Send Report Now</button>
+          <button class="btn btn-success" style="width:200px" onclick="run(this,saveSettings)">Save Settings</button>
+          <button class="btn btn-primary" style="width:200px" onclick="run(this,runReportNow)">📧 Send Report Now</button>
         </div>
       </div></div>
 
@@ -274,7 +309,7 @@ small{color:#64748b}
         <div class="input-group"><label>Registered Phone Number</label><input type="tel" id="bookPhone" placeholder="10-digit number"></div>
         <div class="input-group"><label>Query</label><textarea id="query" maxlength="1000"></textarea></div>
         <div id="telegramQueryBanner" style="background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px;display:none">Join this GATE Pro Mentorship telegram group link for further mentorship update - <a id="telegramLinkQuery" href="#" target="_blank" rel="noopener" style="color:#6366f1;font-weight:600">Click Here</a></div>
-        <button class="btn btn-success" id="bookBtn" onclick="handleBooking()"><span class="spinner" id="bookSpinner"></span><span id="bookBtnText">Book Now</span></button>
+        <button class="btn btn-success" id="bookBtn" onclick="run(this,handleBooking)">Book Now</button>
       </div></div>
 
       <div id="viewMySchedule" class="view-section"><div class="card">
@@ -283,10 +318,11 @@ small{color:#64748b}
       </div></div>
 
       <div id="viewCancel" class="view-section"><div class="card">
-        <h3 style="margin-bottom:15px">Cancel Booking</h3>
+        <h3 style="margin-bottom:5px">Cancel Booking</h3>
+        <p style="font-size:13px;color:#64748b;margin-bottom:15px">Only upcoming sessions are listed. A session can be cancelled up to 10 hours before it starts.</p>
         <div class="input-group"><label>Select Booking</label><select id="cancelBookingId"></select></div>
         <div class="input-group"><label>Reason</label><input type="text" id="cancelReason" placeholder="Why cancel?"></div>
-        <button class="btn btn-danger" onclick="handleCancel()">Cancel Session</button>
+        <button class="btn btn-danger" onclick="run(this,handleCancel)">Cancel Session</button>
       </div></div>
 
     </div>
@@ -298,23 +334,53 @@ const API_URL = "/api/proxy";
 const TOKEN_KEY = 'gpm_token';
 let token = null, role = null, master = null, dash = null, dashAt = 0, pendingId = '';
 let adminBookingsList = [], students = [], slotsAdmin = [], usersAdmin = [], facSlots = [], utilData = [];
-let selectedBookings = new Set();
+let selectedBookings = new Set(), adminTriggerPhone = '';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const digits = s => String(s || '').replace(/\D/g, '').slice(-10);
 
+/* ---------- spinner helpers ---------- */
+// button spinner: shows a spinner inside the clicked button until the work finishes (min 350ms so it is always visible)
+async function run(btn, fn) {
+  if (!btn || btn.dataset.busy) return;
+  btn.dataset.busy = '1';
+  const old = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '<span class="btn-spin"></span>' + old;
+  const t0 = Date.now();
+  try { await fn(btn); }
+  catch (e) { console.error(e); alert('Something went wrong. Please try again.'); }
+  finally {
+    const wait = 350 - (Date.now() - t0); if (wait > 0) await sleep(wait);
+    btn.disabled = false; btn.innerHTML = old; delete btn.dataset.busy;
+  }
+}
+let netCount = 0, pageCount = 0;
+function netDelta(n) { netCount = Math.max(0, netCount + n); $('netBadge').style.display = netCount > 0 ? 'flex' : 'none'; }
+function pageLoading(on) { pageCount = Math.max(0, pageCount + (on ? 1 : -1)); $('viewLoader').style.display = pageCount > 0 ? 'flex' : 'none'; }
+
+/* ---------- API ---------- */
 function api(action, data) {
+  netDelta(1);
   return fetch(API_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action, token, data: data || {} }) })
     .then(r => r.json())
     .then(res => { if (res.authError && token) forceLogout(res.message); return res; })
-    .catch(() => ({ success: false, message: 'Network error. Please try again.' }));
+    .catch(() => ({ success: false, message: 'Network error. Please try again.' }))
+    .finally(() => netDelta(-1));
 }
-function clearSession() { localStorage.removeItem(TOKEN_KEY); token = null; }
+
+/* ---------- session: PER TAB (sessionStorage) so student/admin in same browser never mix ---------- */
+function getTok() { try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; } }
+function setTok(t) { try { sessionStorage.setItem(TOKEN_KEY, t); } catch (e) {} }
+function clearSession() { try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} token = null; }
+function purgeLegacy() { ['gpm_token', 'studentId', 'isAdmin', 'studentName'].forEach(k => localStorage.removeItem(k)); }
 function forceLogout(msg) { clearSession(); alert(msg || 'Session expired.'); location.reload(); }
-function logout() { if (token) api('logout'); clearSession(); setTimeout(() => location.reload(), 150); }
+async function logout() { if (token) await api('logout'); clearSession(); location.reload(); }
 
 window.onload = async function () {
-  token = localStorage.getItem(TOKEN_KEY);
+  purgeLegacy();                       // old shared tokens are never trusted
+  token = getTok();
   if (!token) return showLogin();
   const res = await api('session');
   if (res.success) afterAuth(res); else { clearSession(); showLogin(); }
@@ -333,47 +399,43 @@ async function afterAuth(res) {
   $('adminMenus').style.display = admin ? 'block' : 'none';
   $('studentMenus').style.display = admin ? 'none' : 'block';
   loadMaster();
-  switchView(admin ? 'viewAllBookings' : 'viewBook', document.querySelector(admin ? '#adminMenus button' : '#studentMenus button'));
+  await switchView(admin ? 'viewAllBookings' : 'viewBook', document.querySelector(admin ? '#adminMenus button' : '#studentMenus button'));
 }
 
+/* ---------- login ---------- */
 function showErr(m) { const e = $('loginError'); e.innerText = m; e.style.display = 'block'; }
 async function handleLogin() {
-  const p = $('loginPhone').value.trim(), c = $('loginAdminCode').value.trim();
+  const p = $('loginPhone').value.trim(), codeVisible = $('adminCodeGroup').style.display !== 'none';
+  const c = codeVisible ? $('loginAdminCode').value.trim() : '';
   if (!p) return showErr('Please enter your phone number');
+  if (codeVisible && !c) return showErr('Please enter the Security Code');
   $('loginError').style.display = 'none';
-  $('loginBtn').disabled = true; $('loginSpinner').style.display = 'inline-block'; $('loginBtnText').innerText = 'Loading...';
-  
   const res = await api('login', { phone: p, adminCode: c });
-  
-  $('loginBtn').disabled = false; $('loginSpinner').style.display = 'none'; $('loginBtnText').innerText = 'Login';
-  
-  if (res.success && res.token) { 
-    token = res.token; 
-    localStorage.setItem(TOKEN_KEY, token); 
-    afterAuth(res); 
-  }
-  else if (res.requireCode) { 
-    // Admin phone detected: reveal code box and focus
-    $('adminCodeGroup').style.display = 'block'; 
-    $('loginAdminCode').focus();
-    showErr('Admin detected. Please enter your Security Code.'); 
-  }
-  else {
-    showErr(res.message || 'Login failed');
-  }
+  if (res.success && res.token) {
+    token = res.token; setTok(token); $('loginAdminCode').value = '';
+    await afterAuth(res);
+  } else if (res.requireCode) {
+    adminTriggerPhone = digits(p);
+    $('adminCodeGroup').style.display = 'block'; $('loginAdminCode').focus();
+    showErr('Admin detected. Please enter your Security Code.');
+  } else showErr(res.message || 'Login failed');
 }
-['loginPhone', 'loginAdminCode'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); }));
+$('loginPhone').addEventListener('input', () => {   // hide admin code box if a different number is typed
+  if ($('adminCodeGroup').style.display !== 'none' && digits($('loginPhone').value) !== adminTriggerPhone) {
+    $('adminCodeGroup').style.display = 'none'; $('loginAdminCode').value = ''; $('loginError').style.display = 'none';
+  }
+});
+['loginPhone', 'loginAdminCode'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') run($('loginBtn'), handleLogin); }));
 
 async function submitProfile() {
   const data = { name: $('profName').value, branch: $('profBranch').value, batch: $('profBatch').value, year: $('profYear').value, phone: $('profPhone').value };
   if (Object.values(data).some(v => !String(v).trim())) return alert('Fill all fields');
-  $('profBtn').disabled = true;
   const res = await api('saveProfile', data);
-  $('profBtn').disabled = false;
   if (res.success) { $('profileModal').style.display = 'none'; const s = await api('session'); if (s.success) afterAuth(s); }
   else alert(res.message);
 }
 
+/* ---------- master data ---------- */
 async function loadMaster(force) {
   if (master && !force) return master;
   const r = await api('getMaster');
@@ -398,7 +460,8 @@ function fillMasterUI() {
   if (role === 'student') filterFaculty();
 }
 
-function switchView(id, btn) {
+/* ---------- navigation (page spinner on every tab click) ---------- */
+async function switchView(id, btn) {
   document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
   $(id).classList.add('active');
   if (btn) {
@@ -406,121 +469,118 @@ function switchView(id, btn) {
     btn.classList.add('active');
     $('pageTitle').innerText = btn.innerText.replace(/^[^A-Za-z]+/, '').trim();
   }
-  const L = { viewAllBookings: loadAdminBookings, viewUtilization: loadUtilization, viewKnowStudents: loadStudents, viewSettings: loadSettings, viewMySchedule: loadSchedule,
-              viewCancel: loadCancelDropdown, viewBook: loadStudentData, viewSlots: loadSlotsAdmin, viewUsersCSV: loadUsersAdmin };
-  if (L[id]) L[id]();
+  const L = { viewAllBookings: loadAdminBookings, viewUtilization: loadUtilization, viewKnowStudents: loadStudents, viewSettings: loadSettings,
+              viewMySchedule: loadSchedule, viewCancel: loadCancelDropdown, viewBook: loadStudentData, viewSlots: loadSlotsAdmin, viewUsersCSV: loadUsersAdmin,
+              viewAddMaster: () => loadMaster(true), viewAddFaculty: () => loadMaster(true) };
+  if (L[id]) { pageLoading(true); try { await L[id](); } finally { pageLoading(false); } }
 }
 
+/* ---------- row buttons (all get a spinner through run()) ---------- */
 const ACTIONS = {
-  delCat: async (b, id) => { if (confirm('Remove Category?')) { const r = await api('removeCategory', { catName: id }); alert(r.message); loadMaster(true); } },
-  delBr: async (b, id) => { if (confirm('Remove Branch?')) { const r = await api('removeBranch', { branchName: id }); alert(r.message); loadMaster(true); } },
-  delFac: async (b, id) => { if (confirm('Remove Faculty?')) { const r = await api('removeFaculty', { facName: id }); alert(r.message); loadMaster(true); } },
-  setLink: async (b, id, tr) => { const r = await api('updateLink', { bookingId: id, meetingLink: tr.querySelector('.lnk').value.trim() }); alert(r.message); if (r.success) loadAdminBookings(); },
-  admCancel: async (b, id) => { if (!confirm('Cancel this booking?')) return; const r = await api('cancel', { bookingId: id, reason: 'Cancelled by Admin' }); alert(r.message); loadAdminBookings(); },
-  reschedule: (b, id) => openRescheduleModal(id),
-  saveCap: async (b, id, tr) => { const r = await api('updateSlotCapacity', { row: b.dataset.row, sig: b.dataset.sig, newCap: tr.querySelector('.cap-input').value }); alert(r.message); loadSlotsAdmin(); },
-  delSlot: async (b) => { if (!confirm('Delete this slot?')) return; const r = await api('deleteSlot', { row: b.dataset.row, sig: b.dataset.sig }); alert(r.message); loadSlotsAdmin(); },
-  saveUser: async (b, id, tr) => { const r = await api('updateUser', { id, phone: tr.querySelector('.ph').value, branch: tr.querySelector('.br').value, name: tr.querySelector('.nm').value }); alert(r.message); loadUsersAdmin(); },
-  delUser: async (b, id) => { if (!confirm('Remove this user?')) return; const r = await api('deleteUser', { id }); alert(r.message); loadUsersAdmin(); },
-  blockStu: async (b, id) => { if (!confirm('Block this student from login/booking?')) return; const r = await api('blockStudent', { id, note: 'Blocked by admin' }); alert(r.message); loadStudents(); },
-  unblockStu: async (b, id) => { if (!confirm('Restore access for this student?')) return; const r = await api('unblockStudent', { id }); alert(r.message); loadStudents(); }
+  delCat: async (b, id) => { if (!confirm('Remove Category?')) return; const r = await api('removeCategory', { catName: id }); alert(r.message); await loadMaster(true); },
+  delBr: async (b, id) => { if (!confirm('Remove Branch?')) return; const r = await api('removeBranch', { branchName: id }); alert(r.message); await loadMaster(true); },
+  delFac: async (b, id) => { if (!confirm('Remove Faculty?')) return; const r = await api('removeFaculty', { facName: id }); alert(r.message); await loadMaster(true); },
+  setLink: async (b, id, tr) => { const r = await api('updateLink', { bookingId: id, meetingLink: tr.querySelector('.lnk').value.trim() }); alert(r.message); if (r.success) await loadAdminBookings(); },
+  admCancel: async (b, id) => { if (!confirm('Cancel this booking?')) return; const r = await api('cancel', { bookingId: id, reason: 'Cancelled by Admin' }); alert(r.message); await loadAdminBookings(); },
+  reschedule: async (b, id) => openRescheduleModal(id),
+  saveCap: async (b, id, tr) => { const r = await api('updateSlotCapacity', { row: b.dataset.row, sig: b.dataset.sig, newCap: tr.querySelector('.cap-input').value }); alert(r.message); await loadSlotsAdmin(); },
+  delSlot: async (b) => { if (!confirm('Delete this slot?')) return; const r = await api('deleteSlot', { row: b.dataset.row, sig: b.dataset.sig }); alert(r.message); await loadSlotsAdmin(); },
+  saveUser: async (b, id, tr) => { const r = await api('updateUser', { id, phone: tr.querySelector('.ph').value, branch: tr.querySelector('.br').value, name: tr.querySelector('.nm').value }); alert(r.message); await loadUsersAdmin(); },
+  delUser: async (b, id) => { if (!confirm('Remove this user?')) return; const r = await api('deleteUser', { id }); alert(r.message); await loadUsersAdmin(); },
+  blockStu: async (b, id) => { if (!confirm('Block this student from login/booking?')) return; const r = await api('blockStudent', { id, note: 'Blocked by admin' }); alert(r.message); await loadStudents(); },
+  unblockStu: async (b, id) => { if (!confirm('Restore access for this student?')) return; const r = await api('unblockStudent', { id }); alert(r.message); await loadStudents(); }
 };
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
-  const h = ACTIONS[b.dataset.act]; if (h) h(b, b.dataset.id, b.closest('tr'));
+  const h = ACTIONS[b.dataset.act]; if (h) run(b, () => h(b, b.dataset.id, b.closest('tr')));
 });
 
+/* ---------- admin: bookings ---------- */
 const sessionBadge = b => {
   if (b.status !== 'Booked') return '-';
   if (b.isDone === 'Done') return '<span class="badge bg-done">Done</span>';
   if (b.isDone === 'Not Done' || b.isDone === 'Not Joined') return `<span class="badge bg-cancelled">${esc(b.isDone)}</span>`;
   return '<span class="badge bg-pending">Pending</span>';
 };
-async function loadAdminBookings() { const r = await api('getAdminData'); if (r.success) { adminBookingsList = r.data; selectedBookings.clear(); renderAdminTable(); } }
+async function loadAdminBookings() { const r = await api('getAdminData'); if (r.success) { adminBookingsList = r.data; selectedBookings.clear(); $('selectAllBookings').checked = false; renderAdminTable(); } }
+async function applyBookingFilter() { await loadAdminBookings(); }
+async function resetBookingFilter() { ['filterFrom', 'filterTo', 'filterBranch', 'filterCategory', 'filterFaculty', 'filterSearch'].forEach(id => $(id).value = ''); await loadAdminBookings(); }
 function filteredBookings() {
-  const fD = $('filterFrom').value, tD = $('filterTo').value, fB = $('filterBranch').value, fC = $('filterCategory').value, fF = $('filterFaculty').value, q = $('filterSearch').value.toLowerCase();
+  const fD = $('filterFrom').value, tD = $('filterTo').value, fB = $('filterBranch').value, fC = $('filterCategory').value, fF = $('filterFaculty').value, q = $('filterSearch').value.trim().toLowerCase();
   return adminBookingsList.filter(b => {
     if (fD || tD) { const p = b.date.split('/'), bd = `${p[2]}-${p[1]}-${p[0]}`; if (fD && bd < fD) return false; if (tD && bd > tD) return false; }
-    return (!fB || b.branch === fB) && (!fC || b.category === fC) && (!fF || b.faculty === fF) && (b.name.toLowerCase().includes(q) || b.studentId.toLowerCase().includes(q));
+    return (!fB || b.branch === fB) && (!fC || b.category === fC) && (!fF || b.faculty === fF) && (!q || b.name.toLowerCase().includes(q) || b.studentId.toLowerCase().includes(q));
   });
 }
-function filterAdminTable() { renderAdminTable(); }
 function renderAdminTable() {
-  const list = filteredBookings();
-  $('adminBookingsBody').innerHTML = list.map(b => {
+  $('adminBookingsBody').innerHTML = filteredBookings().map(b => {
     const booked = b.status === 'Booked';
     const link = booked ? `<input class="lnk cell-in" value="${esc(b.meetingLink)}" placeholder="Paste Link" style="width:100px"> <button class="btn btn-success sm" data-act="setLink" data-id="${esc(b.bookingId)}">Set</button>` : '-';
     const act = booked ? `<button class="btn btn-warn sm" data-act="reschedule" data-id="${esc(b.bookingId)}">📅</button> <button class="btn btn-danger sm" data-act="admCancel" data-id="${esc(b.bookingId)}">Cancel</button>` : '-';
     const q = b.query ? `<br><small title="${esc(b.query)}">💬 ${esc(b.query.slice(0, 30))}${b.query.length > 30 ? '…' : ''}</small>` : '';
-    const checked = selectedBookings.has(b.bookingId) ? 'checked' : '';
-    const cb = booked ? `<input type="checkbox" class="book-chk" data-id="${esc(b.bookingId)}" ${checked} onchange="toggleBookingSelect(this)">` : '';
-    return `<tr>
-      <td>${cb}</td>
+    const cb = booked ? `<input type="checkbox" class="book-chk" data-id="${esc(b.bookingId)}" ${selectedBookings.has(b.bookingId) ? 'checked' : ''} onchange="toggleBookingSelect(this)">` : '';
+    return `<tr><td>${cb}</td>
       <td><b>${esc(b.name)}</b><br><small>${esc(b.studentId)}</small><br><small>${esc(b.email)} ${esc(b.phone)}</small>${q}</td>
       <td>${esc(b.branch)}/${esc(b.batchName)}</td><td>${esc(b.faculty)}</td><td>${esc(b.date)}<br>${esc(b.time)}</td>
       <td><span class="badge ${booked ? 'bg-booked' : 'bg-cancelled'}">${esc(b.status)}</span></td><td>${sessionBadge(b)}</td><td>${link}</td><td>${act}</td></tr>`;
   }).join('');
 }
-function toggleBookingSelect(cb) {
-  if (cb.checked) selectedBookings.add(cb.dataset.id); else selectedBookings.delete(cb.dataset.id);
-}
+function toggleBookingSelect(cb) { if (cb.checked) selectedBookings.add(cb.dataset.id); else selectedBookings.delete(cb.dataset.id); }
 function toggleSelectAll(cb) {
-  const list = filteredBookings().filter(b => b.status === 'Booked');
-  document.querySelectorAll('.book-chk').forEach(el => {
-    el.checked = cb.checked;
-    if (cb.checked) selectedBookings.add(el.dataset.id); else selectedBookings.delete(el.dataset.id);
-  });
+  document.querySelectorAll('.book-chk').forEach(el => { el.checked = cb.checked; if (cb.checked) selectedBookings.add(el.dataset.id); else selectedBookings.delete(el.dataset.id); });
 }
 async function clearAllBookings() {
   if (!confirm('This will remove ALL bookings (backup saved). Continue?')) return;
   if (prompt('Type CLEAR to confirm') !== 'CLEAR') return alert('Cancelled.');
-  const r = await api('clearAllBookings'); alert(r.message); loadAdminBookings();
+  const r = await api('clearAllBookings'); alert(r.message); await loadAdminBookings();
 }
 
+/* reschedule (date / time pickers) */
+const dmy2ymd = d => { const p = String(d).split('/'); return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : ''; };
+function to24(t) { const m = String(t).match(/(\d+):(\d+)\s*(AM|PM)/i); if (!m) return ''; let h = +m[1]; const pm = m[3].toUpperCase() === 'PM'; if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; return String(h).padStart(2, '0') + ':' + m[2]; }
 let reschBookingId = '';
 function openRescheduleModal(bid) {
   reschBookingId = bid;
   const b = adminBookingsList.find(x => x.bookingId === bid);
   $('rescheduleInfo').innerText = b ? `Student: ${b.name} | Faculty: ${b.faculty} | Current: ${b.date} ${b.time}` : '';
-  $('reschDate').value = b ? b.date : '';
-  $('reschTime').value = b ? b.time : '';
+  $('reschDate').value = b ? dmy2ymd(b.date) : ''; $('reschTime').value = b ? to24(b.time) : '';
   $('rescheduleModal').style.display = 'flex';
 }
 async function confirmReschedule() {
-  const d = $('reschDate').value.trim(), t = $('reschTime').value.trim();
+  const d = $('reschDate').value, t = $('reschTime').value;
   if (!d || !t) return alert('Fill both fields');
   const r = await api('rescheduleBooking', { bookingId: reschBookingId, date: d, time: t });
   alert(r.message);
-  if (r.success) { $('rescheduleModal').style.display = 'none'; loadAdminBookings(); }
+  if (r.success) { $('rescheduleModal').style.display = 'none'; await loadAdminBookings(); }
 }
-function openBulkReschedule() {
+async function openBulkReschedule() {
   if (!selectedBookings.size) return alert('Select at least one booking first (checkbox in left column).');
   $('bulkInfo').innerText = `${selectedBookings.size} booking(s) selected.`;
   $('bulkRescheduleModal').style.display = 'flex';
 }
 async function confirmBulkReschedule() {
-  const d = $('bulkDate').value.trim(), t = $('bulkTime').value.trim();
+  const d = $('bulkDate').value, t = $('bulkTime').value;
   if (!d || !t) return alert('Fill both fields');
   const r = await api('bulkReschedule', { bookingIds: Array.from(selectedBookings), date: d, time: t });
   alert(r.message);
-  if (r.success) { $('bulkRescheduleModal').style.display = 'none'; selectedBookings.clear(); loadAdminBookings(); }
+  if (r.success) { $('bulkRescheduleModal').style.display = 'none'; selectedBookings.clear(); await loadAdminBookings(); }
 }
 
+/* ---------- admin: utilization ---------- */
 async function loadUtilization() {
   const r = await api('getUtilization'); if (!r.success) return;
   utilData = r.data;
   $('utilContainer').innerHTML = utilData.length ? '<div class="util-grid">' + utilData.map(u =>
     `<div class="util-card"><h4>${esc(u.month)}</h4><div class="big">${u.total}</div>
     <div class="row"><span>Done: ${u.done}</span><span>Not Joined: ${u.notJoined}</span></div>
-    <div class="row"><span>Not Done: ${u.notDone}</span><span>Cancelled: ${u.cancelled}</span></div></div>`
-  ).join('') + '</div>' : '<p style="color:#64748b">No data yet.</p>';
-  $('utilBody').innerHTML = utilData.map(u =>
-    `<tr><td><b>${esc(u.month)}</b></td><td>${u.total}</td><td>${u.booked}</td><td>${u.done}</td><td>${u.notJoined}</td><td>${u.notDone}</td><td>${u.cancelled}</td></tr>`
-  ).join('') || '<tr><td colspan="7" style="text-align:center;color:#64748b">No data</td></tr>';
+    <div class="row"><span>Not Done: ${u.notDone}</span><span>Cancelled: ${u.cancelled}</span></div></div>`).join('') + '</div>' : '<p style="color:#64748b">No data yet.</p>';
+  $('utilBody').innerHTML = utilData.map(u => `<tr><td><b>${esc(u.month)}</b></td><td>${u.total}</td><td>${u.booked}</td><td>${u.done}</td><td>${u.notJoined}</td><td>${u.notDone}</td><td>${u.cancelled}</td></tr>`).join('')
+    || '<tr><td colspan="7" style="text-align:center;color:#64748b">No data</td></tr>';
 }
 
+/* ---------- CSV ---------- */
 function csvCell(v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }
-function downloadCSV(type) {
+async function downloadCSV(type) {
   let head, rows;
   if (type === 'bookings') {
     head = ['StudentName', 'StudentID', 'Email', 'Phone', 'Branch', 'Batch', 'Faculty', 'Date', 'Time', 'BookingStatus', 'SessionStatus', 'Query'];
@@ -534,39 +594,35 @@ function downloadCSV(type) {
   a.download = type + '.csv'; document.body.appendChild(a); a.click(); a.remove();
 }
 
-async function loadStudents() {
-  const r = await api('getKnowYourStudents'); if (!r.success) return;
-  students = r.data;
-  const bmap = {}; adminBookingsList.forEach(b => { if (!bmap[b.studentId]) bmap[b.studentId] = b.category; });
-  students.forEach(s => { s.category = bmap[s.id] || ''; });
-  renderStudentsTable();
-}
+/* ---------- admin: students ---------- */
+async function loadStudents() { const r = await api('getKnowYourStudents'); if (r.success) { students = r.data; renderStudentsTable(); } }
+async function applyStudentFilter() { await loadStudents(); }
+async function resetStudentFilter() { ['searchStudentBranch', 'searchStudentCategory', 'searchStudentPhone'].forEach(id => $(id).value = ''); await loadStudents(); }
 function filteredStudents() {
-  const br = $('searchStudentBranch').value, cat = $('searchStudentCategory').value, q = $('searchStudentPhone').value.toLowerCase();
+  const br = $('searchStudentBranch').value, cat = $('searchStudentCategory').value, q = $('searchStudentPhone').value.trim().toLowerCase();
   return students.filter(s => (!br || s.branch === br) && (!cat || s.category === cat) &&
-    (s.name.toLowerCase().includes(q) || s.phone.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)));
+    (!q || s.name.toLowerCase().includes(q) || s.phone.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)));
 }
 function renderStudentsTable() {
   $('studentsBody').innerHTML = filteredStudents().map(s => {
     const act = s.blocked
       ? `<button class="btn btn-success sm" data-act="unblockStu" data-id="${esc(s.id)}">Restore Access</button>`
       : `<button class="btn btn-danger sm" data-act="blockStu" data-id="${esc(s.id)}">Block Access</button>`;
-    return `<tr>
-      <td><b>${esc(s.name)}</b><br><small>${esc(s.id)}</small></td>
-      <td>${esc(s.branch)}</td><td>${esc(s.batch)}</td><td>${esc(s.year)}</td><td>${esc(s.phone)}</td><td>${esc(s.category || '-')}</td>
-      <td>${s.blocked ? '<span class="badge bg-blocked">Blocked</span>' : '<span class="badge bg-booked">Active</span>'}</td>
-      <td>${act}</td></tr>`;
+    return `<tr><td><b>${esc(s.name)}</b><br><small>${esc(s.id)}</small></td><td>${esc(s.branch)}</td><td>${esc(s.batch)}</td><td>${esc(s.year)}</td><td>${esc(s.phone)}</td><td>${esc(s.category || '-')}</td>
+      <td>${s.blocked ? '<span class="badge bg-blocked">Blocked</span>' : '<span class="badge bg-booked">Active</span>'}</td><td>${act}</td></tr>`;
   }).join('');
 }
 
-async function addCat() { const v = $('newCatName').value.trim(); if (!v) return; const r = await api('addCategory', { catName: v }); alert(r.message); $('newCatName').value = ''; loadMaster(true); }
-async function addBranch() { const v = $('newBranchName').value.trim(); if (!v) return; const r = await api('addBranch', { branchName: v }); alert(r.message); $('newBranchName').value = ''; loadMaster(true); }
+/* ---------- admin: master / faculty ---------- */
+async function addCat() { const v = $('newCatName').value.trim(); if (!v) return alert('Enter a category name'); const r = await api('addCategory', { catName: v }); alert(r.message); $('newCatName').value = ''; await loadMaster(true); }
+async function addBranch() { const v = $('newBranchName').value.trim(); if (!v) return alert('Enter a branch name'); const r = await api('addBranch', { branchName: v }); alert(r.message); $('newBranchName').value = ''; await loadMaster(true); }
 async function addFac() {
   const n = $('facName').value.trim(), b = $('facBranch').value, c = $('facCategory').value;
   if (!n || !b || !c) return alert('Fill all fields');
-  const r = await api('addFaculty', { name: n, branch: b, category: c }); alert(r.message); $('facName').value = ''; loadMaster(true);
+  const r = await api('addFaculty', { name: n, branch: b, category: c }); alert(r.message); $('facName').value = ''; await loadMaster(true);
 }
 
+/* ---------- admin: slots / users / settings ---------- */
 async function loadSlotsAdmin() { const r = await api('getSlotsAdmin'); if (r.success) { slotsAdmin = r.data; renderSlotsAdminTable(); } }
 function renderSlotsAdminTable() {
   $('adminSlotsBody').innerHTML = slotsAdmin.map(s => {
@@ -578,12 +634,14 @@ function renderSlotsAdminTable() {
   }).join('');
 }
 function uploadCSV(inputId, action, after) {
-  const f = $(inputId); if (!f.files.length) return alert('Please select a CSV file first.');
-  const reader = new FileReader();
-  reader.onload = async e => { const r = await api(action, { csv: e.target.result }); alert(r.message); f.value = ''; after(); };
-  reader.readAsText(f.files[0]);
+  const f = $(inputId); if (!f.files.length) { alert('Please select a CSV file first.'); return Promise.resolve(); }
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = async e => { const r = await api(action, { csv: e.target.result }); alert(r.message); f.value = ''; await after(); resolve(); };
+    reader.onerror = () => { alert('Could not read the file.'); resolve(); };
+    reader.readAsText(f.files[0]);
+  });
 }
-
 async function loadUsersAdmin() { const r = await api('getUsersAdmin'); if (r.success) { usersAdmin = r.data; renderUsersAdminTable(); } }
 function renderUsersAdminTable() {
   const q = $('searchUserAdmin').value.toLowerCase();
@@ -592,7 +650,6 @@ function renderUsersAdminTable() {
     <td>${u.blocked ? '<span class="badge bg-blocked">Blocked</span>' : '<span class="badge bg-booked">Active</span>'}</td>
     <td><button class="btn btn-success sm" data-act="saveUser" data-id="${esc(u.id)}">Save</button> <button class="btn btn-danger sm" data-act="delUser" data-id="${esc(u.id)}">Del</button></td></tr>`).join('');
 }
-
 async function loadSettings() {
   const r = await api('getSettings'); if (!r.success) return;
   $('setLimit').value = r.data.limit; $('setCapacity').value = r.data.capacity; $('setTelegram').value = r.data.telegram;
@@ -609,6 +666,7 @@ async function saveSettings() {
 }
 async function runReportNow() { const r = await api('runReportNow'); alert(r.message); }
 
+/* ---------- student ---------- */
 async function getDash(force) {
   if (!force && dash && Date.now() - dashAt < 20000) return dash;
   const r = await api('getDashboard'); if (r.success) { dash = r; dashAt = Date.now(); } return dash;
@@ -625,7 +683,6 @@ async function loadStudentData() {
   if (pendingId) $('statusModal').style.display = 'flex';
   if (master) filterFaculty();
 }
-
 function filterFaculty() {
   if (!master) return;
   const br = $('branch').value, cat = $('category').value, cur = $('faculty').value;
@@ -634,7 +691,6 @@ function filterFaculty() {
   if (cur && list.some(f => f.name === cur)) $('faculty').value = cur; else resetSlots();
 }
 function resetSlots() { facSlots = []; $('bookDate').innerHTML = '<option value="">Select Faculty first</option>'; $('timeSlot').innerHTML = '<option value="">Select Date first</option>'; }
-
 async function fetchSlots() {
   const f = $('faculty').value; if (!f) return resetSlots();
   $('bookDate').innerHTML = '<option value="">Loading…</option>';
@@ -652,22 +708,17 @@ function fillTimes() {
   $('timeSlot').innerHTML = '<option value="">Select Time</option>' + facSlots.filter(s => s.date === d)
     .map(s => `<option value="${esc(s.time)}" ${s.full ? 'disabled' : ''}>${esc(s.time)} (${s.full ? 'Full Booked' : s.left + ' Seats Left'})</option>`).join('');
 }
-
 async function handleBooking() {
   const data = { branch: $('branch').value, category: $('category').value, faculty: $('faculty').value, date: $('bookDate').value, time: $('timeSlot').value,
                  email: $('bookEmail').value.trim(), phone: $('bookPhone').value.trim(), query: $('query').value.trim() };
   if (!data.branch || !data.category || !data.faculty || !data.date || !data.time || !data.email || !data.phone) return alert('Fill all fields');
-  $('bookBtn').disabled = true; $('bookSpinner').style.display = 'inline-block'; $('bookBtnText').innerText = 'Booking...';
   const r = await api('book', data);
-  $('bookBtn').disabled = false; $('bookSpinner').style.display = 'none'; $('bookBtnText').innerText = 'Book Now';
   if (r.success) {
-    $('succBookingId').innerText = r.bookingId;
-    $('bookingSuccessModal').style.display = 'flex';
+    $('succBookingId').innerText = r.bookingId; $('bookingSuccessModal').style.display = 'flex';
     $('query').value = ''; resetSlots(); $('faculty').value = ''; dash = null;
-    setTimeout(() => switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]), 100);
-  } else { alert('Booking Failed!\n' + r.message); if (data.faculty) fetchSlots(); }
+    switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]);
+  } else { alert('Booking Failed!\n' + r.message); if (data.faculty) await fetchSlots(); }
 }
-
 async function loadSchedule() {
   const d = await getDash(true); if (!d) return;
   $('scheduleBody').innerHTML = d.data.map(b => {
@@ -677,24 +728,25 @@ async function loadSchedule() {
     return `<tr><td>${esc(b.bookingId)}</td><td>${esc(b.date)} ${esc(b.time)}</td><td>${esc(b.faculty)}</td><td style="color:${b.status === 'Booked' ? '#10b981' : '#ef4444'}">${esc(b.status)}</td><td>${sessionBadge(b)}</td><td>${lnk}</td></tr>`;
   }).join('');
 }
-
 async function submitStatus(s) {
   if (!pendingId) { $('statusModal').style.display = 'none'; return; }
   const r = await api('markStatus', { bookingId: pendingId, status: s });
-  $('statusModal').style.display = 'none'; pendingId = ''; dash = null;
-  alert(r.message);
+  $('statusModal').style.display = 'none'; pendingId = ''; dash = null; alert(r.message);
 }
 
+/* cancel dropdown: ONLY upcoming sessions; those inside the 10-hour window are shown but disabled */
 async function loadCancelDropdown() {
   const d = await getDash(true); if (!d) return;
-  $('cancelBookingId').innerHTML = '<option value="">Select Booking</option>' + d.data.filter(b => b.status === 'Booked')
-    .map(b => `<option value="${esc(b.bookingId)}">${esc(b.date)} ${esc(b.time)} - ${esc(b.faculty)}</option>`).join('');
+  const list = d.data.filter(b => b.upcoming);
+  const hrs = d.cancelHours || 10;
+  $('cancelBookingId').innerHTML = (list.length ? '<option value="">Select Booking</option>' : '<option value="">No upcoming bookings to cancel</option>') +
+    list.map(b => `<option value="${esc(b.bookingId)}" ${b.canCancel ? '' : 'disabled'}>${esc(b.date)} ${esc(b.time)} - ${esc(b.faculty)}${b.canCancel ? '' : ` (cancel closed: less than ${hrs} hrs left)`}</option>`).join('');
 }
 async function handleCancel() {
   const id = $('cancelBookingId').value; if (!id) return alert('Select a booking.');
   if (!confirm('Cancel this session?')) return;
   const r = await api('cancel', { bookingId: id, reason: $('cancelReason').value.trim() });
-  alert(r.message); $('cancelReason').value = ''; dash = null; loadCancelDropdown(); loadStudentData();
+  alert(r.message); $('cancelReason').value = ''; dash = null; await loadCancelDropdown(); await loadStudentData();
 }
 </script>
 </body>
