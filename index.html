@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GATE Pro Mentorship</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--primary:#6366f1;--primary-hover:#4f46e5;--success:#10b981;--success-hover:#059669;--card-bg:rgba(255,255,255,.95);--text-main:#1e293b;--text-muted:#64748b;--sidebar-bg:#1e293b}
@@ -92,6 +94,7 @@ small{color:#64748b}
 .util-card .big{font-size:28px;font-weight:700}
 .util-card .row{display:flex;justify-content:space-between;margin-top:10px;font-size:12px;opacity:.95}
 .vres{font-size:13px;margin:12px 0;padding:10px;border-radius:8px;background:#f1f5f9;text-align:left;line-height:1.6}
+.more-row td{text-align:center;background:#f8fafc}
 @media(max-width:768px){
   body{padding:10px;align-items:flex-start}
   .container{padding:25px;margin:auto}
@@ -114,9 +117,10 @@ small{color:#64748b}
 
 <div class="modal-overlay" id="profileModal"><div class="modal-box">
   <h2>Complete Your Profile</h2>
-  <p style="font-size:13px;margin-bottom:15px;color:#64748b">All fields are compulsory. They cannot be changed later.</p>
+  <p style="font-size:13px;margin-bottom:15px;color:#64748b">All fields are compulsory (<span style="color:#ef4444">*</span>). They cannot be changed later.</p>
   <div class="input-group"><input type="text" id="profName" placeholder="Full Name *"></div>
   <div class="input-group"><select id="profBranch"><option value="">Select Branch *</option></select></div>
+  <div class="input-group"><select id="profCategory"><option value="">Select Category *</option></select></div>
   <div class="input-group"><input type="text" id="profBatch" placeholder="Batch (e.g. CSE-A) *"></div>
   <div class="input-group"><select id="profYear"><option value="">Target Year *</option></select></div>
   <div class="input-group"><input type="text" id="profPhone" placeholder="Register PW Number *"></div>
@@ -365,7 +369,7 @@ small{color:#64748b}
         <input type="file" id="usersFile" accept=".csv" style="margin-bottom:15px;padding:10px;border:1px dashed #10b981;border-radius:8px;width:100%">
         <button class="btn btn-success" style="width:200px;margin-bottom:30px" onclick="run(this,()=>uploadCSV('usersFile','uploadUsers',loadUsersAdmin))">Upload Users</button>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h4>Registered Users</h4>
-          <input type="text" id="searchUserAdmin" placeholder="Search User ID / Phone / Name..." oninput="renderUsersAdminTable()" style="padding:8px;border:1px solid #ccc;border-radius:5px"></div>
+          <input type="text" id="searchUserAdmin" placeholder="Search User ID / Phone / Name..." oninput="lim.usr=PAGE;renderUsersAdminTable()" style="padding:8px;border:1px solid #ccc;border-radius:5px"></div>
         <div class="bulkbar">
           <span class="cnt" id="userSelCount">0 selected</span>
           <button class="btn btn-danger sm" style="padding:7px 12px" onclick="run(this,openBulkDelUsers)">🗑 Delete Selected Users</button>
@@ -422,8 +426,8 @@ small{color:#64748b}
       <div id="viewCancel" class="view-section"><div class="card">
         <h3 style="margin-bottom:5px">Cancel Booking</h3>
         <p style="font-size:13px;color:#64748b;margin-bottom:15px">Only upcoming sessions are listed. A session can be cancelled up to 10 hours before it starts.</p>
-        <div class="input-group"><label>Select Booking</label><select id="cancelBookingId"></select></div>
-        <div class="input-group"><label>Reason</label><input type="text" id="cancelReason" placeholder="Why cancel?"></div>
+        <div class="input-group"><label class="req">Select Booking</label><select id="cancelBookingId"></select></div>
+        <div class="input-group"><label class="req">Reason</label><input type="text" id="cancelReason" placeholder="Why cancel? (compulsory)" maxlength="300"></div>
         <button class="btn btn-danger" onclick="run(this,handleCancel)">Cancel Session</button>
       </div></div>
 
@@ -433,16 +437,19 @@ small{color:#64748b}
 
 <script>
 const API_URL = "/api/proxy";
-const TOKEN_KEY = 'gpm_token';
+const TOKEN_KEY = 'gpm_token', ROLE_KEY = 'gpm_role';
 let token = null, role = null, isMain = false, master = null, dash = null, dashAt = 0, pendingId = '';
 let adminBookingsList = [], students = [], slotsAdmin = [], usersAdmin = [], facSlots = [], utilData = [];
 let selectedBookings = new Set(), selectedSlots = new Set(), selectedUsers = new Set(), protectIds = new Set(), adminTriggerPhone = '';
+// big admin tables only draw the first PAGE rows (keeps the page fast); "Show more" draws the next PAGE
+const PAGE = 200, lim = { book: PAGE, stu: PAGE, usr: PAGE };
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const digits = s => String(s || '').replace(/\D/g, '').slice(-10);
 const dateOk = d => d && !isNaN(new Date(d));
+const moreRow = (cols, key, total, shown) => `<tr class="more-row"><td colspan="${cols}"><button class="btn btn-primary sm" style="padding:7px 16px" data-act="more" data-id="${key}">Show more (${total - shown} remaining)</button></td></tr>`;
 
 /* ---------- frontend error reporting (goes to the daily report with function + line) ---------- */
 let _logging = false;
@@ -450,11 +457,13 @@ const fnFromErr = er => { const m = String(er && er.stack || '').match(/at\s+(\S
 const lineFromErr = er => { const m = String(er && er.stack || '').match(/:(\d+):\d+\)?\s*$/m); return m ? m[1] : ''; };
 function logClient(fn, line, msg, ctx) {
   if (_logging || !token) return; _logging = true;
-  fetch(API_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'logError', token, data: { fn: String(fn), line: String(line || ''), msg: String(msg), ctx: String(ctx || '') } }) })
+  fetch(API_URL, { method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'logError', token, data: { fn: String(fn), line: String(line || ''), msg: String(msg), ctx: String(ctx || '') } }) })
     .catch(() => {}).finally(() => { _logging = false; });
 }
 window.addEventListener('error', e => logClient(fnFromErr(e.error), e.lineno || lineFromErr(e.error), e.message, 'window.onerror'));
 window.addEventListener('unhandledrejection', e => { const r = e.reason || {}; logClient(fnFromErr(r), lineFromErr(r), r.message || r, 'unhandledrejection'); });
+// a page restored from the browser back/forward cache must never show an old role's screen
+window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
 
 /* ---------- spinner helpers: every button that runs through run() shows a spinner until the work finishes ---------- */
 async function run(btn, fn) {
@@ -462,13 +471,9 @@ async function run(btn, fn) {
   btn.dataset.busy = '1';
   const old = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = '<span class="btn-spin"></span>' + old;
-  const t0 = Date.now();
   try { await fn(btn); }
   catch (e) { console.error(e); logClient(fnFromErr(e), lineFromErr(e), e.message || e, 'button'); alert('Something went wrong. Please try again.'); }
-  finally {
-    const wait = 350 - (Date.now() - t0); if (wait > 0) await sleep(wait);
-    btn.disabled = false; btn.innerHTML = old; delete btn.dataset.busy;
-  }
+  finally { btn.disabled = false; btn.innerHTML = old; delete btn.dataset.busy; }
 }
 let netCount = 0, pageCount = 0;
 function netDelta(n) { netCount = Math.max(0, netCount + n); $('netBadge').style.display = netCount > 0 ? 'flex' : 'none'; }
@@ -477,17 +482,18 @@ function pageLoading(on) { pageCount = Math.max(0, pageCount + (on ? 1 : -1)); $
 /* ---------- API ---------- */
 function api(action, data) {
   netDelta(1);
-  return fetch(API_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action, token, data: data || {} }) })
+  return fetch(API_URL, { method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action, token, data: data || {} }) })
     .then(r => r.json())
     .then(res => { if (res.authError && token) forceLogout(res.message); return res; })
     .catch(e => { logClient('api(' + action + ')', '', 'Network/parse error: ' + (e && e.message), action); return { success: false, message: 'Network error. Please try again.' }; })
     .finally(() => netDelta(-1));
 }
 
-/* ---------- session: PER TAB (sessionStorage) ---------- */
+/* ---------- session: PER TAB (sessionStorage) - token AND role are kept together ---------- */
 function getTok() { try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; } }
-function setTok(t) { try { sessionStorage.setItem(TOKEN_KEY, t); } catch (e) {} }
-function clearSession() { try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} token = null; }
+function getSavedRole() { try { return sessionStorage.getItem(ROLE_KEY); } catch (e) { return null; } }
+function setTok(t, r) { try { sessionStorage.setItem(TOKEN_KEY, t); sessionStorage.setItem(ROLE_KEY, r || ''); } catch (e) {} }
+function clearSession() { try { sessionStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(ROLE_KEY); } catch (e) {} token = null; role = null; }
 function purgeLegacy() { ['gpm_token', 'studentId', 'isAdmin', 'studentName'].forEach(k => localStorage.removeItem(k)); }
 function forceLogout(msg) { clearSession(); alert(msg || 'Session expired.'); location.reload(); }
 async function logout() { if (token) await api('logout'); clearSession(); location.reload(); }
@@ -497,12 +503,19 @@ window.onload = async function () {
   token = getTok();
   if (!token) return showLogin();
   const res = await api('session');
-  if (res.success) afterAuth(res); else { clearSession(); showLogin(); }
+  // the role the SERVER says this token has must match the role saved at login, otherwise start clean
+  const saved = getSavedRole();
+  if (res.success && (res.role === 'admin' || res.role === 'student') && (!saved || saved === res.role)) afterAuth(res);
+  else { clearSession(); showLogin(); }
 };
 function showLogin() { $('bootLoader').style.display = 'none'; $('loginSection').style.display = 'flex'; }
 
 async function afterAuth(res) {
+  if (res.role !== 'admin' && res.role !== 'student') { clearSession(); return showLogin(); }
   role = res.role; isMain = !!res.main;
+  // start from a clean screen every time (nothing of a previous role can stay visible)
+  $('adminMenus').style.display = 'none'; $('studentMenus').style.display = 'none'; $('dashboardLayout').style.display = 'none';
+  dash = null; dashAt = 0;
   $('bootLoader').style.display = 'none'; $('loginSection').style.display = 'none';
   if (role === 'student' && !(res.profile && res.profile.isComplete)) {
     await loadMaster(); $('profileModal').style.display = 'flex'; return;
@@ -527,7 +540,7 @@ async function handleLogin() {
   $('loginError').style.display = 'none';
   const res = await api('login', { phone: p, adminCode: c });
   if (res.success && res.token) {
-    token = res.token; setTok(token); $('loginAdminCode').value = '';
+    token = res.token; setTok(token, res.role); $('loginAdminCode').value = '';
     await afterAuth(res);
   } else if (res.requireCode) {
     adminTriggerPhone = digits(p);
@@ -543,8 +556,10 @@ $('loginPhone').addEventListener('input', () => {
 ['loginPhone', 'loginAdminCode'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') run($('loginBtn'), handleLogin); }));
 
 async function submitProfile() {
-  const data = { name: $('profName').value, branch: $('profBranch').value, batch: $('profBatch').value, year: $('profYear').value, phone: $('profPhone').value };
-  if (Object.values(data).some(v => !String(v).trim())) return alert('All fields are compulsory. Please fill every field.');
+  const data = { name: $('profName').value.trim(), branch: $('profBranch').value, category: $('profCategory').value, batch: $('profBatch').value.trim(), year: $('profYear').value, phone: $('profPhone').value.trim() };
+  if (Object.values(data).some(v => !String(v).trim())) return alert('All fields are compulsory. Please fill every field (Name, Branch, Category, Batch, Target Year, PW Number).');
+  if (data.name.length < 2) return alert('Please enter your full name.');
+  if (master && master.categories && !master.categories.includes(data.category)) return alert('Please select a valid category from the list.');
   const res = await api('saveProfile', data);
   if (res.success) { $('profileModal').style.display = 'none'; const s = await api('session'); if (s.success) afterAuth(s); }
   else alert(res.message);
@@ -567,7 +582,7 @@ function fillMasterUI() {
   opts('facCategory', cats, 'Select'); opts('category', cats, 'Select Category'); opts('filterCategory', cats, 'All Categories');
   opts('facBranch', brs, 'Select'); opts('branch', brs, 'Select Branch'); opts('filterBranch', brs, 'All Branches');
   opts('searchStudentBranch', brs, 'All Branches'); opts('profBranch', brs, 'Select Branch *'); opts('addUBranch', brs, 'Select Branch');
-  opts('searchStudentCategory', cats, 'All Categories'); opts('profYear', yrs, 'Target Year *');
+  opts('searchStudentCategory', cats, 'All Categories'); opts('profYear', yrs, 'Target Year *'); opts('profCategory', cats, 'Select Category *');
   const facNames = [...new Set(facs.map(f => f.name))];
   opts('filterFaculty', facNames, 'All Faculties'); opts('slotFac', facNames, 'Select Faculty');
   $('categoryList').innerHTML = cats.map(c => `<span class="chip">${esc(c)} <button data-act="delCat" data-id="${esc(c)}">✕</button></span>`).join('');
@@ -594,6 +609,7 @@ async function switchView(id, btn) {
 
 /* ---------- row buttons (all get a spinner through run()) ---------- */
 const ACTIONS = {
+  more: async (b, id) => { lim[id] += PAGE; ({ book: renderAdminTable, stu: renderStudentsTable, usr: renderUsersAdminTable })[id](); },
   delCat: async (b, id) => { if (!confirm('Remove Category?')) return; const r = await api('removeCategory', { catName: id }); alert(r.message); await loadMaster(true); },
   delBr: async (b, id) => { if (!confirm('Remove Branch?')) return; const r = await api('removeBranch', { branchName: id }); alert(r.message); await loadMaster(true); },
   delFac: async (b, id) => { if (!confirm('Remove Faculty?')) return; const r = await api('removeFaculty', { facName: id }); alert(r.message); await loadMaster(true); },
@@ -623,9 +639,10 @@ const sessionBadge = b => {
   if (b.isDone === 'Not Done' || b.isDone === 'Not Joined') return `<span class="badge bg-cancelled">${esc(b.isDone)}</span>`;
   return '<span class="badge bg-pending">Pending</span>';
 };
-async function loadAdminBookings() { const r = await api('getAdminData'); if (r.success) { adminBookingsList = r.data; selectedBookings.clear(); $('selectAllBookings').checked = false; renderAdminTable(); } }
-async function applyBookingFilter() { await loadAdminBookings(); }
-async function resetBookingFilter() { ['filterFrom', 'filterTo', 'filterBranch', 'filterCategory', 'filterFaculty', 'filterSearch'].forEach(id => $(id).value = ''); await loadAdminBookings(); }
+async function loadAdminBookings() { const r = await api('getAdminData'); if (r.success) { adminBookingsList = r.data; selectedBookings.clear(); $('selectAllBookings').checked = false; lim.book = PAGE; renderAdminTable(); } }
+// filters work on the data already loaded in the browser (no server call -> instant)
+async function applyBookingFilter() { lim.book = PAGE; renderAdminTable(); }
+async function resetBookingFilter() { ['filterFrom', 'filterTo', 'filterBranch', 'filterCategory', 'filterFaculty', 'filterSearch'].forEach(id => $(id).value = ''); lim.book = PAGE; renderAdminTable(); }
 function filteredBookings() {
   const fD = $('filterFrom').value, tD = $('filterTo').value, fB = $('filterBranch').value, fC = $('filterCategory').value, fF = $('filterFaculty').value, q = $('filterSearch').value.trim().toLowerCase();
   return adminBookingsList.filter(b => {
@@ -636,7 +653,8 @@ function filteredBookings() {
 }
 function updateSelCount() { $('selCount').innerText = selectedBookings.size + ' selected'; }
 function renderAdminTable() {
-  $('adminBookingsBody').innerHTML = filteredBookings().map(b => {
+  const all = filteredBookings(), list = all.slice(0, lim.book);
+  $('adminBookingsBody').innerHTML = list.map(b => {
     const booked = b.status === 'Booked';
     const link = booked ? `<input class="lnk cell-in" value="${esc(b.meetingLink)}" placeholder="Paste Link" style="width:130px"> <button class="btn btn-success sm" data-act="setLink" data-id="${esc(b.bookingId)}">Set</button> <button class="btn btn-gray sm" title="Delete link" data-act="delLink" data-id="${esc(b.bookingId)}">🗑</button>` : '-';
     const act = booked ? `<button class="btn btn-warn sm" title="Change date & time" data-act="reschedule" data-id="${esc(b.bookingId)}">📅</button> <button class="btn btn-danger sm" data-act="admCancel" data-id="${esc(b.bookingId)}">Cancel</button>` : '-';
@@ -647,7 +665,7 @@ function renderAdminTable() {
       <td>${esc(b.email) || '-'}</td><td>${esc(b.phone) || '-'}</td>
       <td>${esc(b.branch)}/${esc(b.batchName)}</td><td>${esc(b.faculty)}</td><td>${esc(b.date)}<br>${esc(b.time)}</td>
       <td><span class="badge ${booked ? 'bg-booked' : 'bg-cancelled'}">${esc(b.status)}</span></td><td>${sessionBadge(b)}</td><td>${link}</td><td>${act}</td></tr>`;
-  }).join('');
+  }).join('') + (all.length > list.length ? moreRow(11, 'book', all.length, list.length) : '');
   updateSelCount();
 }
 function toggleBookingSelect(cb) { if (cb.checked) selectedBookings.add(cb.dataset.id); else selectedBookings.delete(cb.dataset.id); updateSelCount(); }
@@ -747,24 +765,25 @@ async function loadStudents() {
     students = r.data;
     const ys = [...new Set([...(master ? master.targetYears || [] : []), ...students.map(s => s.year)].filter(Boolean))].sort();
     opts('searchStudentYear', ys, 'All Target Years');
-    renderStudentsTable();
+    lim.stu = PAGE; renderStudentsTable();
   }
 }
-async function applyStudentFilter() { await loadStudents(); }
-async function resetStudentFilter() { ['searchStudentBranch', 'searchStudentYear', 'searchStudentCategory', 'searchStudentPhone'].forEach(id => $(id).value = ''); await loadStudents(); }
+async function applyStudentFilter() { lim.stu = PAGE; renderStudentsTable(); }
+async function resetStudentFilter() { ['searchStudentBranch', 'searchStudentYear', 'searchStudentCategory', 'searchStudentPhone'].forEach(id => $(id).value = ''); lim.stu = PAGE; renderStudentsTable(); }
 function filteredStudents() {
   const br = $('searchStudentBranch').value, yr = $('searchStudentYear').value, cat = $('searchStudentCategory').value, q = $('searchStudentPhone').value.trim().toLowerCase();
   return students.filter(s => (!br || s.branch === br) && (!yr || s.year === yr) && (!cat || s.category === cat) &&
     (!q || s.name.toLowerCase().includes(q) || s.phone.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)));
 }
 function renderStudentsTable() {
-  $('studentsBody').innerHTML = filteredStudents().map(s => {
+  const all = filteredStudents(), list = all.slice(0, lim.stu);
+  $('studentsBody').innerHTML = list.map(s => {
     const act = s.blocked
       ? `<button class="btn btn-success sm" data-act="unblockStu" data-id="${esc(s.id)}">Restore Access</button>`
       : `<button class="btn btn-danger sm" data-act="blockStu" data-id="${esc(s.id)}">Block Access</button>`;
     return `<tr><td><b>${esc(s.name)}</b><br><small>${esc(s.id)}</small></td><td>${esc(s.branch)}</td><td>${esc(s.batch)}</td><td>${esc(s.year)}</td><td>${esc(s.phone)}</td><td>${esc(s.category || '-')}</td>
       <td>${s.blocked ? '<span class="badge bg-blocked">Blocked</span>' : '<span class="badge bg-booked">Active</span>'}</td><td>${act}</td></tr>`;
-  }).join('');
+  }).join('') + (all.length > list.length ? moreRow(8, 'stu', all.length, list.length) : '');
 }
 
 /* ---------- admin: master / faculty ---------- */
@@ -821,18 +840,20 @@ function uploadCSV(inputId, action, after) {
 }
 
 /* ---------- admin: users ---------- */
-async function loadUsersAdmin() { const r = await api('getUsersAdmin'); if (r.success) { usersAdmin = r.data; const ids = new Set(usersAdmin.map(u => u.id)); selectedUsers.forEach(i => { if (!ids.has(i)) selectedUsers.delete(i); }); $('selectAllUsers').checked = false; renderUsersAdminTable(); } }
+async function loadUsersAdmin() { const r = await api('getUsersAdmin'); if (r.success) { usersAdmin = r.data; const ids = new Set(usersAdmin.map(u => u.id)); selectedUsers.forEach(i => { if (!ids.has(i)) selectedUsers.delete(i); }); $('selectAllUsers').checked = false; lim.usr = PAGE; renderUsersAdminTable(); } }
 function filteredUsers() {
   const q = $('searchUserAdmin').value.toLowerCase();
   return usersAdmin.filter(u => u.id.toLowerCase().includes(q) || u.phone.includes(q) || u.name.toLowerCase().includes(q));
 }
 function updateUserCount() { $('userSelCount').innerText = selectedUsers.size + ' selected'; }
 function renderUsersAdminTable() {
-  $('adminUsersBody').innerHTML = filteredUsers().map(u => `<tr><td><input type="checkbox" class="usr-chk" data-id="${esc(u.id)}" ${selectedUsers.has(u.id) ? 'checked' : ''} onchange="toggleUserSel(this)"></td><td>${esc(u.id)}</td>
+  const all = filteredUsers(), list = all.slice(0, lim.usr);
+  $('adminUsersBody').innerHTML = list.map(u => `<tr><td><input type="checkbox" class="usr-chk" data-id="${esc(u.id)}" ${selectedUsers.has(u.id) ? 'checked' : ''} onchange="toggleUserSel(this)"></td><td>${esc(u.id)}</td>
     <td><input class="ph cell-in" value="${esc(u.phone)}" style="width:110px"></td><td><input class="br cell-in" value="${esc(u.branch)}" style="width:80px"></td><td><input class="nm cell-in" value="${esc(u.name)}" style="width:130px"></td>
     <td>${esc(u.year) || '-'}</td><td>${esc(u.category) || '-'}</td>
     <td>${u.blocked ? '<span class="badge bg-blocked">Blocked</span>' : '<span class="badge bg-booked">Active</span>'}</td>
-    <td><button class="btn btn-success sm" data-act="saveUser" data-id="${esc(u.id)}">Save</button> <button class="btn btn-danger sm" data-act="delUser" data-id="${esc(u.id)}">Del</button></td></tr>`).join('');
+    <td><button class="btn btn-success sm" data-act="saveUser" data-id="${esc(u.id)}">Save</button> <button class="btn btn-danger sm" data-act="delUser" data-id="${esc(u.id)}">Del</button></td></tr>`).join('')
+    + (all.length > list.length ? moreRow(9, 'usr', all.length, list.length) : '');
   updateUserCount();
 }
 function toggleUserSel(cb) { if (cb.checked) selectedUsers.add(cb.dataset.id); else selectedUsers.delete(cb.dataset.id); updateUserCount(); }
@@ -922,12 +943,13 @@ async function addCoAdminUI() {
 }
 
 /* ---------- student ---------- */
+// dashboard data is reused for 20 s between tabs; it is cleared (dash=null) after every booking / cancel / status change
 async function getDash(force) {
   if (!force && dash && Date.now() - dashAt < 20000) return dash;
   const r = await api('getDashboard'); if (r.success) { dash = r; dashAt = Date.now(); } return dash;
 }
 async function loadStudentData() {
-  const d = await getDash(true); if (!d) return;
+  const d = await getDash(false); if (!d) return;
   $('chancesBadge').innerText = d.chancesLeft + '/' + d.limit + ' Left';
   $('chancesBadge').className = 'badge ' + (d.chancesLeft <= 0 ? 'bg-cancelled' : 'bg-booked');
   if (d.telegram && /^https?:\/\//i.test(d.telegram)) {
@@ -978,7 +1000,7 @@ async function handleBooking() {
   } else { alert('Booking Failed!\n' + r.message); if (data.faculty) await fetchSlots(); }
 }
 async function loadSchedule() {
-  const d = await getDash(true); if (!d) return;
+  const d = await getDash(false); if (!d) return;
   $('scheduleBody').innerHTML = d.data.map(b => {
     let lnk = '-';
     if (b.linkState === 'open' && /^https?:\/\//i.test(b.meetingLink)) lnk = `<a href="${esc(b.meetingLink)}" target="_blank" rel="noopener">Join</a>`;
@@ -994,7 +1016,7 @@ async function submitStatus(s) {
 
 /* cancel dropdown: ONLY upcoming sessions; those inside the 10-hour window are shown but disabled */
 async function loadCancelDropdown() {
-  const d = await getDash(true); if (!d) return;
+  const d = await getDash(false); if (!d) return;
   const list = d.data.filter(b => b.upcoming);
   const hrs = d.cancelHours || 10;
   $('cancelBookingId').innerHTML = (list.length ? '<option value="">Select Booking</option>' : '<option value="">No upcoming bookings to cancel</option>') +
@@ -1002,9 +1024,13 @@ async function loadCancelDropdown() {
 }
 async function handleCancel() {
   const id = $('cancelBookingId').value; if (!id) return alert('Select a booking.');
+  const reason = $('cancelReason').value.trim();
+  if (reason.length < 3) return alert('Reason is compulsory. Please write why you want to cancel (at least 3 characters).');
   if (!confirm('Cancel this session?')) return;
-  const r = await api('cancel', { bookingId: id, reason: $('cancelReason').value.trim() });
-  alert(r.message); $('cancelReason').value = ''; dash = null; await loadCancelDropdown(); await loadStudentData();
+  const r = await api('cancel', { bookingId: id, reason: reason });
+  alert(r.message);
+  if (r.success) $('cancelReason').value = '';
+  dash = null; await loadCancelDropdown(); await loadStudentData();
 }
 </script>
 </body>
