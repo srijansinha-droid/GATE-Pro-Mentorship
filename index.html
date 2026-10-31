@@ -1,1147 +1,1011 @@
-// ==========================================================
-// GATE Pro Mentorship - Code.gs  (v2.0)
-// API key = Config sheet "ApiKey" (unchanged)
-// After pasting: run setupSheets() once, then installTriggers() once.
-// Run speedTest() any time to measure speed (View > Logs).
-// ==========================================================
-const VERSION = '2.0';
-const SHEET_USERS = 'Users', SHEET_BOOKINGS = 'Bookings', SHEET_HISTORY = 'Cancellation_History',
-      SHEET_CONFIG = 'Config', SHEET_PROFILES = 'Profiles', SHEET_SLOTS = 'Slots',
-      SHEET_FACULTIES = 'Faculties', SHEET_ARCHIVE = 'Bookings_Archive',
-      SHEET_BLOCKED = 'BlockedUsers', SHEET_REPORTLOG = 'Report_Log',
-      SHEET_COADMINS = 'CoAdmins', SHEET_YEARS = 'TargetYears', SHEET_ERRORS = 'Error_Log';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GATE Pro Mentorship</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#6366f1;--primary-hover:#4f46e5;--success:#10b981;--success-hover:#059669;--card-bg:rgba(255,255,255,.95);--text-main:#1e293b;--text-muted:#64748b;--sidebar-bg:#1e293b}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{background-color:#0f172a;display:flex;justify-content:center;align-items:center;min-height:100vh;min-height:100dvh;padding:20px}
 
-const MAX_LOGIN_ATTEMPTS = 5, MAX_STUDENT_FAILS_PER_IP = 15, MAX_ADMIN_FAILS_GLOBAL = 25;
-const BLOCK_SECONDS = 30 * 60, SESSION_SECONDS = 6 * 60 * 60;
-const LINK_OPEN_BEFORE_MIN = 15, LINK_OPEN_AFTER_MIN = 30, MIN_GAP_DAYS = 10, CANCEL_HOURS = 10;
+.bg-layer{position:fixed;inset:0;pointer-events:none}
+.bg-blur{z-index:-3;background:url('bg.jpg.png') center/cover no-repeat;filter:blur(18px) brightness(.85);transform:scale(1.08)}
+.bg-main{z-index:-2;background:url('bg.jpg.png') center/contain no-repeat}
+body::before{content:"";position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:-1;pointer-events:none}
 
-const DEFAULT_ADMIN_ID = "622710a6f186ed0011ecba1f";
-const DEFAULT_ADMIN_PHONE = "7906433140";
-const DEFAULT_ADMIN_CODE = "8596";
-const DEFAULT_YEARS = ['2026', '2027', '2028'];
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:15px;overflow-y:auto}
+.modal-box{background:#fff;padding:30px;border-radius:15px;width:100%;max-width:500px;text-align:center;animation:pop .3s ease;max-height:92vh;overflow-y:auto}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.container{background:var(--card-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);width:100%;padding:40px;display:flex;flex-direction:column;animation:slideUp .5s ease-out;max-width:450px;border:1px solid rgba(255,255,255,.2)}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+h2{color:var(--text-main);font-size:22px;font-weight:700;text-align:center;margin-bottom:20px}
+.input-group{margin-bottom:15px}
+.input-group label,.input-row label{display:block;margin-bottom:5px;color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase}
+.input-group input,.input-group select,.input-group textarea,.input-row input,.input-row select{width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;background:rgba(255,255,255,.9)}
+.input-group input:focus,.input-group select:focus,.input-row input:focus{border-color:var(--primary);background:#fff}
+.req::after{content:" *";color:#ef4444}
+.btn{padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;transition:.3s;display:inline-flex;justify-content:center;align-items:center;width:100%}
+.btn:disabled{opacity:.7;cursor:not-allowed}
+.btn-primary{background:var(--primary)}.btn-primary:hover{background:var(--primary-hover)}
+.btn-success{background:var(--success)}.btn-success:hover{background:var(--success-hover)}
+.btn-danger{background:#ef4444}.btn-danger:hover{background:#dc2626}
+.btn-warn{background:#f59e0b}.btn-warn:hover{background:#d97706}
+.btn-gray{background:#64748b}.btn-gray:hover{background:#475569}
+.sm{width:auto;padding:4px 10px;font-size:12px}
 
-// Bookings columns (0-based)
-const B = { ID:0, NAME:1, BRANCH:2, FAC:3, DATE:4, TIME:5, CAT:6, STATUS:7, BID:8, LINK:9, YEAR:10, BATCH:11,
-            REASON:12, DONE:13, TS:14, CTS:15, EMAIL:16, PHONE:17, QUERY:18 };
-const BCOLS = 19;
-const TZ = Session.getScriptTimeZone();
+.btn-spin{display:inline-block;flex:none;width:15px;height:15px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:8px}
+.sm .btn-spin{width:11px;height:11px;border-width:2px;margin-right:5px}
+.big-spin{width:46px;height:46px;border:5px solid rgba(99,102,241,.2);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#viewLoader{position:absolute;inset:0;background:rgba(248,250,252,.65);display:none;justify-content:center;align-items:center;z-index:50}
+#netBadge{position:fixed;right:16px;bottom:16px;background:#1e293b;color:#fff;padding:8px 14px;border-radius:25px;font-size:12px;display:none;align-items:center;gap:8px;z-index:1200;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+#netBadge .btn-spin{margin:0}
 
-// ---------------- helpers ----------------
-const fail = m => ({ success: false, message: m });
-const ok = (m, extra) => Object.assign({ success: true, message: m }, extra || {});
-const str = v => String(v == null ? '' : v).trim();
-const pad = n => String(n).padStart(2, '0');
-const normPhone = v => String(v || '').replace(/\D/g, '').slice(-10);
-const sheet = n => SpreadsheetApp.getActiveSpreadsheet().getSheetByName(n);
-const cache = () => CacheService.getScriptCache();
-const timestamp = () => Utilities.formatDate(new Date(), TZ, 'dd-MM-yyyy HH:mm:ss');
-const startOfToday = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+.msg{padding:10px;border-radius:8px;margin-top:15px;display:none;font-size:13px;text-align:center;font-weight:500}
+.error-msg{background:#fee2e2;color:#991b1b}
+#dashboardLayout{display:none;width:100%;height:calc(100vh - 40px);height:calc(100dvh - 40px);background:#f1f5f9;border-radius:15px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2)}
+.sidebar{width:260px;background:var(--sidebar-bg);color:#fff;display:flex;flex-direction:column}
+.sidebar-header{padding:25px 20px;border-bottom:1px solid #334155;font-size:18px;font-weight:700;line-height:1.2}
+.sidebar-menu{flex:1;padding:20px 0;overflow-y:auto}
+.sidebar-menu button{width:100%;padding:15px 25px;text-align:left;background:none;border:none;color:#cbd5e1;font-size:14px;font-weight:500;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:10px;border-left:4px solid transparent}
+.sidebar-menu button:hover,.sidebar-menu button.active{background:#334155;color:#fff;border-left-color:var(--primary)}
+.sidebar-footer{padding:20px;border-top:1px solid #334155}
+.main-content{flex:1;display:flex;flex-direction:column;background:#f8fafc;overflow:hidden;position:relative}
+.topbar{background:#fff;padding:15px 30px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0}
+.topbar h2{margin:0;font-size:20px;text-align:left}
+.content-area{flex:1;padding:30px;overflow-y:auto}
+.view-section{display:none}.view-section.active{display:block}
+.card{background:#fff;padding:25px;border-radius:15px;border:1px solid #e2e8f0;margin-bottom:20px}
+.table-container{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 15px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:13px;white-space:nowrap}
+th{background:#f8fafc;color:#64748b;font-weight:600}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.bg-booked{background:#d1fae5;color:#065f46}.bg-cancelled{background:#fee2e2;color:#991b1b}.bg-pending{background:#fef3c7;color:#92400e}.bg-done{background:#dbeafe;color:#1e40af}.bg-blocked{background:#fecaca;color:#7f1d1d}
+.input-row{display:flex;gap:15px;margin-bottom:15px}.input-row>div{flex:1}
+.filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filters input,.filters select{padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;outline:none}
+.bulkbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#eef2ff;border:1px solid #c7d2fe;padding:10px 12px;border-radius:10px;margin-bottom:15px}
+.bulkbar .cnt{font-weight:600;color:#3730a3;font-size:13px;margin-right:6px}
+.addbox{background:#f8fafc;border:1px dashed #94a3b8;border-radius:10px;padding:15px;margin-bottom:20px}
+.addbox h4{margin-bottom:10px;font-size:14px}
+.notice-banner{background:#e0e7ff;color:#3730a3;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;font-weight:500;font-size:14px;display:none}
+.notice-banner a{color:#4338ca;font-weight:700;text-decoration:underline}
+.chip{background:#e2e8f0;padding:5px 10px;border-radius:5px;font-size:13px;display:flex;gap:8px;align-items:center}
+.chip button{background:transparent;border:none;color:red;cursor:pointer;font-weight:700}
+.chip button.ed{color:#4f46e5}
+.slot-stat-badge{padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700}
+.stat-full{background:#fee2e2;color:#991b1b}.stat-available{background:#d1fae5;color:#065f46}
+.cap-input{width:60px;padding:5px;text-align:center;border:1px solid #cbd5e1;border-radius:5px}
+.cell-in{padding:4px 6px;border:1px solid #cbd5e1;border-radius:5px}
+small{color:#64748b}
+.success-box{background:#fff;padding:30px 28px;border-radius:15px;max-width:520px;width:100%;text-align:left;animation:pop .3s ease;max-height:92vh;overflow-y:auto}
+.success-box .icon{font-size:52px;margin-bottom:10px;text-align:center}
+.success-box h2{color:#059669;margin-bottom:14px}
+.success-box p{color:#334155;font-size:14px;line-height:1.65;margin-bottom:12px}
+.success-box .det p{margin-bottom:4px;font-size:15px}
+.util-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;margin-top:15px}
+.util-card{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:20px;border-radius:12px}
+.util-card h4{font-size:13px;opacity:.85;margin-bottom:8px;font-weight:500}
+.util-card .big{font-size:28px;font-weight:700}
+.util-card .row{display:flex;justify-content:space-between;margin-top:10px;font-size:12px;opacity:.95}
+.vres{font-size:13px;margin:12px 0;padding:10px;border-radius:8px;background:#f1f5f9;text-align:left;line-height:1.6}
+@media(max-width:768px){
+  body{padding:10px;align-items:flex-start}
+  .container{padding:25px;margin:auto}
+  #dashboardLayout{flex-direction:column;height:auto;min-height:calc(100dvh - 20px)}
+  .sidebar{width:100%;border-bottom:1px solid #334155}
+  .sidebar-menu{display:flex;flex-wrap:wrap;padding:10px}
+  .sidebar-menu>div{display:flex;flex-wrap:wrap}
+  .sidebar-menu button{width:auto;padding:10px 15px;border-radius:5px;border-left:none}
+  .main-content{overflow:visible;min-height:60vh}
+  .content-area{padding:15px}
+  .topbar{padding:12px 15px}
+  .input-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="bg-layer bg-blur"></div>
+<div class="bg-layer bg-main"></div>
+<div id="netBadge"><span class="btn-spin"></span>Working…</div>
 
-function getOrMake(name, header) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let s = ss.getSheetByName(name);
-  if (!s) { s = ss.insertSheet(name); s.appendRow(header); }
-  return s;
+<div class="modal-overlay" id="profileModal"><div class="modal-box">
+  <h2>Complete Your Profile</h2>
+  <p style="font-size:13px;margin-bottom:15px;color:#64748b">All fields are compulsory. They cannot be changed later.</p>
+  <div class="input-group"><input type="text" id="profName" placeholder="Full Name *"></div>
+  <div class="input-group"><select id="profBranch"><option value="">Select Branch *</option></select></div>
+  <div class="input-group"><input type="text" id="profBatch" placeholder="Batch (e.g. CSE-A) *"></div>
+  <div class="input-group"><select id="profYear"><option value="">Target Year *</option></select></div>
+  <div class="input-group"><input type="text" id="profPhone" placeholder="Register PW Number *"></div>
+  <button class="btn btn-primary" onclick="run(this,submitProfile)">Save Profile</button>
+</div></div>
+
+<div class="modal-overlay" id="statusModal"><div class="modal-box">
+  <h2>Mentorship Status</h2>
+  <p style="font-size:14px;margin-bottom:20px">Did you attend your mentorship session? (This can be marked only once.)</p>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-success" onclick="run(this,()=>submitStatus('Done'))">Done</button>
+    <button class="btn btn-danger" onclick="run(this,()=>submitStatus('Not Done'))">Not Done</button>
+  </div>
+</div></div>
+
+<div class="modal-overlay" id="bookingSuccessModal"><div class="success-box">
+  <div class="icon">🎉</div>
+  <h2 style="text-align:center">Booking Confirmed!</h2>
+  <div class="det">
+    <p>Booking date - <b id="succDate"></b></p>
+    <p>Booking Time - <b id="succTime"></b></p>
+    <p>Faculty name - <b id="succFac"></b></p>
+  </div>
+  <p style="margin-top:14px">The session link will be visible in My Scheduled Sessions 15 minutes before your scheduled time.</p>
+  <p>Please click on Join at your scheduled time to attend the session.</p>
+  <p>Once the link is updated, you will also be notified in the Close Faculty Group.</p>
+  <p>You will get 3 booking chances per month.</p>
+  <p>You can make your next booking after 10 days.</p>
+  <p>Note: Please make sure to join the session on time. 😊</p>
+  <button class="btn btn-primary" onclick="document.getElementById('bookingSuccessModal').style.display='none'">Got it</button>
+</div></div>
+
+<div class="modal-overlay" id="rescheduleModal"><div class="modal-box" style="text-align:left">
+  <h2 style="text-align:left">Reschedule Booking</h2>
+  <p style="font-size:13px;color:#64748b;margin-bottom:15px" id="rescheduleInfo"></p>
+  <div class="input-group"><label>New Date</label><input type="date" id="reschDate"></div>
+  <div class="input-group"><label>New Time</label><input type="time" id="reschTime"></div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-primary" onclick="run(this,confirmReschedule)">Save</button>
+    <button class="btn btn-gray" onclick="document.getElementById('rescheduleModal').style.display='none'">Cancel</button>
+  </div>
+</div></div>
+
+<div class="modal-overlay" id="bulkRescheduleModal"><div class="modal-box" style="text-align:left">
+  <h2 style="text-align:left">Bulk Reschedule (Date &amp; Time)</h2>
+  <p style="font-size:13px;color:#64748b;margin-bottom:15px" id="bulkInfo"></p>
+  <div class="input-group"><label>New Date</label><input type="date" id="bulkDate"></div>
+  <div class="input-group"><label>New Time</label><input type="time" id="bulkTime"></div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-primary" onclick="run(this,confirmBulkReschedule)">Update All</button>
+    <button class="btn btn-gray" onclick="document.getElementById('bulkRescheduleModal').style.display='none'">Cancel</button>
+  </div>
+</div></div>
+
+<div class="modal-overlay" id="bulkLinkModal"><div class="modal-box" style="text-align:left">
+  <h2 style="text-align:left">Bulk Update Meeting Link</h2>
+  <p style="font-size:13px;color:#64748b;margin-bottom:15px" id="bulkLinkInfo"></p>
+  <div class="input-group"><label>Meeting Link</label><input type="text" id="bulkLinkInput" placeholder="https://..."></div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-success" onclick="run(this,confirmBulkLink)">Update All</button>
+    <button class="btn btn-gray" onclick="document.getElementById('bulkLinkModal').style.display='none'">Cancel</button>
+  </div>
+</div></div>
+
+<div class="modal-overlay" id="bulkDelUsersModal"><div class="modal-box" style="text-align:left">
+  <h2 style="text-align:left">Delete Selected Users</h2>
+  <p style="font-size:14px;margin-bottom:12px;color:#991b1b;font-weight:600" id="bulkDelInfo"></p>
+  <div style="background:#fef3c7;color:#92400e;padding:10px;border-radius:8px;font-size:12px;line-height:1.5;margin-bottom:12px">
+    <b>Optional – protect users:</b> upload a CSV of users you do NOT want deleted (columns: <b>User ID, Phone Number, Branch, Target Year</b>). Any selected user found in this file will be kept.
+  </div>
+  <input type="file" id="protectFile" accept=".csv" style="width:100%;padding:8px;border:1px dashed #f59e0b;border-radius:8px" onchange="$('protectResult').innerHTML=''">
+  <div id="protectResult" class="vres" style="display:none"></div>
+  <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+    <button class="btn btn-warn" style="flex:1" onclick="run(this,validateProtect)">✔ Validate</button>
+    <button class="btn btn-danger" style="flex:1" onclick="run(this,confirmBulkDelUsers)">🗑 Delete</button>
+    <button class="btn btn-gray" style="flex:1" onclick="document.getElementById('bulkDelUsersModal').style.display='none'">Cancel</button>
+  </div>
+</div></div>
+
+<div class="container" id="bootLoader" style="align-items:center"><h2 style="margin:0 0 15px">Loading…</h2><div class="big-spin"></div></div>
+
+<div class="container" id="loginSection" style="display:none">
+  <h2>GATE Pro Mentorship</h2>
+  <div class="input-group"><label>Phone Number</label><input type="tel" id="loginPhone" placeholder="10-digit registered number" autocomplete="tel"></div>
+  <div class="input-group" id="adminCodeGroup" style="display:none"><label style="color:#ef4444">Security Code (Admin)</label><input type="password" id="loginAdminCode" placeholder="Enter Admin Code" autocomplete="off"></div>
+  <button class="btn btn-primary" id="loginBtn" onclick="run(this,handleLogin)">Login</button>
+  <div class="msg error-msg" id="loginError"></div>
+</div>
+
+<div id="dashboardLayout">
+  <div class="sidebar">
+    <div class="sidebar-header">GATE Pro Mentorship</div>
+    <div class="sidebar-menu">
+      <div id="adminMenus" style="display:none">
+        <button onclick="switchView('viewAllBookings',this)" class="active">📊 All Bookings</button>
+        <button onclick="switchView('viewUtilization',this)">📈 Session Utilization</button>
+        <button onclick="switchView('viewKnowStudents',this)">👨‍🎓 Know Your Students</button>
+        <button onclick="switchView('viewAddMaster',this)">🗂️ Category &amp; Branches</button>
+        <button onclick="switchView('viewAddFaculty',this)">👨‍🏫 Faculty List</button>
+        <button onclick="switchView('viewSlots',this)">⏰ Manage Slots</button>
+        <button onclick="switchView('viewUsersCSV',this)">👥 Add Users</button>
+        <button onclick="switchView('viewSettings',this)">⚙️ System Settings</button>
+      </div>
+      <div id="studentMenus" style="display:none">
+        <button onclick="switchView('viewBook',this)" class="active">📝 Book Mentorship</button>
+        <button onclick="switchView('viewMySchedule',this)">📅 My Scheduled Sessions</button>
+        <button onclick="switchView('viewCancel',this)">❌ Cancel Session</button>
+      </div>
+    </div>
+    <div class="sidebar-footer"><button class="btn btn-danger" onclick="run(this,logout)">Logout</button></div>
+  </div>
+
+  <div class="main-content">
+    <div id="viewLoader"><div class="big-spin"></div></div>
+    <div class="topbar"><h2 id="pageTitle">Dashboard</h2><div style="font-weight:600;color:#64748b;font-size:14px">Welcome, <span id="displayName" style="color:var(--primary)">User</span></div></div>
+    <div class="content-area">
+
+      <!-- ===== ALL BOOKINGS ===== -->
+      <div id="viewAllBookings" class="view-section active"><div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px">
+          <h3>All Student Bookings</h3>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary sm" style="padding:8px 15px" onclick="run(this,()=>downloadCSV('bookings'))">Download CSV</button>
+            <button class="btn btn-danger sm" style="padding:8px 15px" onclick="run(this,clearAllBookings)">🗑 Clear All Bookings</button>
+          </div>
+        </div>
+        <div class="filters">
+          <input type="date" id="filterFrom" title="From date">
+          <input type="date" id="filterTo" title="To date">
+          <select id="filterBranch"><option value="">All Branches</option></select>
+          <select id="filterCategory"><option value="">All Categories</option></select>
+          <select id="filterFaculty"><option value="">All Faculties</option></select>
+          <input type="text" id="filterSearch" placeholder="Search Name / ID / Phone / Mail..." onkeydown="if(event.key==='Enter')run($('applyBookBtn'),applyBookingFilter)">
+          <button class="btn btn-primary sm" id="applyBookBtn" style="padding:8px 16px" onclick="run(this,applyBookingFilter)">🔍 Apply Filter</button>
+          <button class="btn btn-gray sm" style="padding:8px 16px" onclick="run(this,resetBookingFilter)">Reset</button>
+        </div>
+        <div class="bulkbar">
+          <span class="cnt" id="selCount">0 selected</span>
+          <button class="btn btn-success sm" style="padding:7px 12px" onclick="run(this,openBulkLink)">🔗 Bulk Set Link</button>
+          <button class="btn btn-danger sm" style="padding:7px 12px" onclick="run(this,bulkDeleteLinks)">🧹 Bulk Delete Link</button>
+          <button class="btn btn-warn sm" style="padding:7px 12px" onclick="run(this,openBulkReschedule)">📅 Bulk Date &amp; Time</button>
+          <small>Tick the boxes in the first column for bulk actions, or use the buttons on each row for a single student.</small>
+        </div>
+        <div class="table-container"><table>
+          <thead><tr>
+            <th style="width:30px"><input type="checkbox" id="selectAllBookings" onchange="toggleSelectAll(this)"></th>
+            <th>Student</th><th>Mail ID</th><th>Phone</th><th>Branch/Batch</th><th>Faculty</th><th>Date &amp; Time</th><th>Booking Status</th><th>Session Status</th><th>Meeting Link</th><th>Action</th>
+          </tr></thead>
+          <tbody id="adminBookingsBody"></tbody></table></div>
+      </div></div>
+
+      <!-- ===== UTILIZATION ===== -->
+      <div id="viewUtilization" class="view-section"><div class="card">
+        <h3 style="margin-bottom:5px">Session Utilization Status (by Month)</h3>
+        <p style="font-size:13px;color:#64748b;margin-bottom:15px">Total bookings, sessions done, not joined, and cancelled per month.</p>
+        <div id="utilContainer"><p style="color:#64748b">Loading…</p></div>
+        <h4 style="margin-top:25px;margin-bottom:10px">Detailed Table</h4>
+        <div class="table-container"><table>
+          <thead><tr><th>Month</th><th>Total</th><th>Booked</th><th>Done</th><th>Not Joined</th><th>Not Done</th><th>Cancelled</th></tr></thead>
+          <tbody id="utilBody"></tbody></table></div>
+      </div></div>
+
+      <!-- ===== KNOW YOUR STUDENTS ===== -->
+      <div id="viewKnowStudents" class="view-section"><div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+          <h3>Student Database</h3><button class="btn btn-primary sm" style="padding:8px 15px" onclick="run(this,()=>downloadCSV('students'))">Download CSV</button></div>
+        <div class="filters">
+          <select id="searchStudentBranch"><option value="">All Branches</option></select>
+          <select id="searchStudentYear"><option value="">All Target Years</option></select>
+          <select id="searchStudentCategory"><option value="">All Categories</option></select>
+          <input type="text" id="searchStudentPhone" placeholder="Search Name / ID / PW..." onkeydown="if(event.key==='Enter')run($('applyStuBtn'),applyStudentFilter)">
+          <button class="btn btn-primary sm" id="applyStuBtn" style="padding:8px 16px" onclick="run(this,applyStudentFilter)">🔍 Apply Filter</button>
+          <button class="btn btn-gray sm" style="padding:8px 16px" onclick="run(this,resetStudentFilter)">Reset</button>
+        </div>
+        <div class="table-container"><table><thead><tr><th>Name</th><th>Branch</th><th>Batch</th><th>Target Year</th><th>PW Number</th><th>Category</th><th>Status</th><th>Action</th></tr></thead><tbody id="studentsBody"></tbody></table></div>
+      </div></div>
+
+      <!-- ===== CATEGORY / BRANCH / TARGET YEAR ===== -->
+      <div id="viewAddMaster" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">Manage Categories, Branches &amp; Target Years</h3>
+        <div class="input-row" style="padding-bottom:20px;border-bottom:1px solid #ccc">
+          <div><label>Add Category</label><input type="text" id="newCatName" placeholder="e.g. GATE"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="run(this,addCat)">Add</button></div></div>
+        <div id="categoryList" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px"></div>
+        <div class="input-row">
+          <div><label>Add Branch</label><input type="text" id="newBranchName" placeholder="e.g. CSE"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="run(this,addBranch)">Add</button></div></div>
+        <div id="branchList" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px"></div>
+        <div class="input-row" style="padding-top:20px;border-top:1px solid #ccc">
+          <div><label>Add Target Year</label><input type="text" id="newYearName" placeholder="e.g. 2029" maxlength="12"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="run(this,addYear)">Add</button></div></div>
+        <p style="font-size:12px;color:#64748b;margin-bottom:10px">✎ changes the name in the list (shown to new students). Students who already saved their profile keep their saved year.</p>
+        <div id="yearList" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+      </div></div>
+
+      <!-- ===== FACULTY ===== -->
+      <div id="viewAddFaculty" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">Add &amp; Manage Faculties</h3>
+        <div class="input-row">
+          <div><label>Faculty Name</label><input type="text" id="facName"></div>
+          <div><label>Branch</label><select id="facBranch"></select></div>
+          <div><label>Category</label><select id="facCategory"></select></div></div>
+        <button class="btn btn-success" style="width:200px;margin-bottom:20px" onclick="run(this,addFac)">Add Faculty</button>
+        <div class="table-container"><table><thead><tr><th>Faculty Name</th><th>Branch</th><th>Category</th><th>Action</th></tr></thead><tbody id="facultyListBody"></tbody></table></div>
+      </div></div>
+
+      <!-- ===== SLOTS ===== -->
+      <div id="viewSlots" class="view-section"><div class="card">
+        <div class="addbox">
+          <h4>➕ Add a Particular Slot</h4>
+          <div class="input-row">
+            <div><label>Faculty</label><select id="slotFac"><option value="">Select Faculty</option></select></div>
+            <div><label>Date</label><input type="date" id="slotDate"></div>
+            <div><label>Time</label><input type="time" id="slotTime"></div>
+            <div><label>Capacity (optional)</label><input type="number" id="slotCap" min="0" placeholder="Default"></div>
+          </div>
+          <button class="btn btn-success" style="width:200px" onclick="run(this,addSlotAdmin)">Add Slot</button>
+        </div>
+        <h3 style="margin-bottom:15px">Upload Slots CSV</h3>
+        <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>Faculty Name, Branch, Date (DD/MM/YYYY), Slot1, Slot2, Slot3...</b> (faculty must already be in Faculty List)</p>
+        <input type="file" id="slotsFile" accept=".csv" style="margin-bottom:15px;padding:10px;border:1px dashed #6366f1;border-radius:8px;width:100%">
+        <button class="btn btn-primary" style="width:200px;margin-bottom:30px" onclick="run(this,()=>uploadCSV('slotsFile','uploadSlots',loadSlotsAdmin))">Upload File</button>
+        <h4 style="margin-bottom:12px">Existing Slots &amp; Bookings</h4>
+        <div class="bulkbar">
+          <span class="cnt" id="slotSelCount">0 selected</span>
+          <button class="btn btn-danger sm" style="padding:7px 12px" onclick="run(this,bulkDeleteSlotsUI)">🗑 Delete Selected Slots</button>
+          <small>Tick slots for bulk delete, or use "Del Slot" on a row for a single slot.</small>
+        </div>
+        <div class="table-container"><table><thead><tr><th style="width:30px"><input type="checkbox" id="selectAllSlots" onchange="toggleAllSlots(this)"></th><th>Faculty</th><th>Date</th><th>Time Slot</th><th>Booked</th><th>Capacity (Editable)</th><th>Action</th></tr></thead><tbody id="adminSlotsBody"></tbody></table></div>
+      </div></div>
+
+      <!-- ===== USERS ===== -->
+      <div id="viewUsersCSV" class="view-section"><div class="card">
+        <div class="addbox">
+          <h4>➕ Add a Particular User</h4>
+          <div class="input-row">
+            <div><label>User ID</label><input type="text" id="addUId"></div>
+            <div><label>Phone Number</label><input type="tel" id="addUPhone" placeholder="10-digit"></div>
+            <div><label>Branch</label><select id="addUBranch"><option value="">Select Branch</option></select></div>
+            <div><label>Name (optional)</label><input type="text" id="addUName"></div>
+          </div>
+          <button class="btn btn-success" style="width:200px" onclick="run(this,addUserAdmin)">Add User</button>
+        </div>
+        <h3 style="margin-bottom:15px">Add Students to System (CSV)</h3>
+        <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>User ID, Phone Number, Branch</b> (each phone number must be unique)</p>
+        <input type="file" id="usersFile" accept=".csv" style="margin-bottom:15px;padding:10px;border:1px dashed #10b981;border-radius:8px;width:100%">
+        <button class="btn btn-success" style="width:200px;margin-bottom:30px" onclick="run(this,()=>uploadCSV('usersFile','uploadUsers',loadUsersAdmin))">Upload Users</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h4>Registered Users</h4>
+          <input type="text" id="searchUserAdmin" placeholder="Search User ID / Phone / Name..." oninput="renderUsersAdminTable()" style="padding:8px;border:1px solid #ccc;border-radius:5px"></div>
+        <div class="bulkbar">
+          <span class="cnt" id="userSelCount">0 selected</span>
+          <button class="btn btn-danger sm" style="padding:7px 12px" onclick="run(this,openBulkDelUsers)">🗑 Delete Selected Users</button>
+          <small>Tick users for bulk delete, or use "Del" on a row for a single user.</small>
+        </div>
+        <div class="table-container"><table><thead><tr><th style="width:30px"><input type="checkbox" id="selectAllUsers" onchange="toggleAllUsers(this)"></th><th>User ID</th><th>Phone</th><th>Branch</th><th>Name</th><th>Target Year</th><th>Category</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminUsersBody"></tbody></table></div>
+      </div></div>
+
+      <!-- ===== SETTINGS ===== -->
+      <div id="viewSettings" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">System Settings</h3>
+        <div class="input-row"><div><label>Monthly Limit</label><input type="number" id="setLimit" min="0"></div><div><label>Default Slot Capacity</label><input type="number" id="setCapacity" min="1"></div></div>
+        <div class="input-row"><div><label>Telegram Link</label><input type="text" id="setTelegram" placeholder="https://t.me/..."></div></div>
+        <div class="input-row main-only"><div><label>Admin ID</label><input type="text" id="setAdminId"></div><div><label>Admin Phone</label><input type="text" id="setAdminPhone"></div><div><label>Admin Security Code</label><input type="text" id="setAdminCode"></div></div>
+        <div class="input-row"><div><label>Report Email</label><input type="email" id="setReportEmail" placeholder="admin@example.com"></div><div><label>Daily Report Enabled</label><select id="setReportEnabled"><option value="true">Yes</option><option value="false">No</option></select></div></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-success" style="width:200px" onclick="run(this,saveSettings)">Save Settings</button>
+          <button class="btn btn-primary" style="width:200px" onclick="run(this,runReportNow)">📧 Send Report Now</button>
+        </div>
+        <div class="main-only" style="margin-top:30px;padding-top:20px;border-top:1px solid #e2e8f0">
+          <h3 style="margin-bottom:5px">Co-Admins</h3>
+          <p style="font-size:12px;color:#64748b;margin-bottom:12px">A co-admin logs in with their own phone number + security code and gets admin access (cannot manage co-admins or main admin credentials).</p>
+          <div class="input-row">
+            <div><label>Name</label><input type="text" id="coName" placeholder="Co-admin name"></div>
+            <div><label>Phone Number</label><input type="tel" id="coPhone" placeholder="10-digit"></div>
+            <div><label>Security Code</label><input type="text" id="coCode" placeholder="min 4 characters"></div>
+          </div>
+          <button class="btn btn-primary" style="width:200px;margin-bottom:15px" onclick="run(this,addCoAdminUI)">➕ Add Co-Admin</button>
+          <div class="table-container"><table><thead><tr><th>Name</th><th>Phone</th><th>Action</th></tr></thead><tbody id="coAdminBody"></tbody></table></div>
+        </div>
+      </div></div>
+
+      <!-- ===== STUDENT VIEWS ===== -->
+      <div id="viewBook" class="view-section"><div class="card">
+        <div id="telegramBanner" class="notice-banner">Join this GATE Pro Mentorship Telegram group link for further mentorship update: <a id="telegramLinkForm" href="#" target="_blank" rel="noopener">Click Here</a></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><h3>Book Mentorship</h3><span id="chancesBadge" class="badge bg-booked" style="font-size:14px">… Left</span></div>
+        <div class="input-group"><label class="req">Branch</label><select id="branch" onchange="filterFaculty()"></select></div>
+        <div class="input-group"><label class="req">Category</label><select id="category" onchange="filterFaculty()"></select></div>
+        <div class="input-group"><label class="req">Faculty</label><select id="faculty" onchange="fetchSlots()"><option value="">Select Faculty</option></select></div>
+        <div class="input-group"><label class="req">Date (DD/MM/YYYY)</label><select id="bookDate" onchange="fillTimes()"><option value="">Select Faculty first</option></select></div>
+        <div class="input-group"><label class="req">Time Slot</label><select id="timeSlot"><option value="">Select Date first</option></select></div>
+        <div class="input-group"><label class="req">Mail ID</label><input type="email" id="bookEmail" placeholder="student@example.com"></div>
+        <div class="input-group"><label class="req">Registered Phone Number</label><input type="tel" id="bookPhone" placeholder="10-digit number"></div>
+        <div class="input-group"><label class="req">Query</label><textarea id="query" maxlength="1000" placeholder="Write your query for the mentor"></textarea></div>
+        <div id="telegramQueryBanner" style="background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px;display:none">Join this GATE Pro Mentorship telegram group link for further mentorship update - <a id="telegramLinkQuery" href="#" target="_blank" rel="noopener" style="color:#6366f1;font-weight:600">Click Here</a></div>
+        <button class="btn btn-success" id="bookBtn" onclick="run(this,handleBooking)">Book Now</button>
+      </div></div>
+
+      <div id="viewMySchedule" class="view-section"><div class="card">
+        <h3 style="margin-bottom:15px">My Scheduled Sessions</h3>
+        <div class="table-container"><table><thead><tr><th>ID</th><th>Date/Time</th><th>Faculty</th><th>Status</th><th>Session Status</th><th>Meeting Link</th></tr></thead><tbody id="scheduleBody"></tbody></table></div>
+      </div></div>
+
+      <div id="viewCancel" class="view-section"><div class="card">
+        <h3 style="margin-bottom:5px">Cancel Booking</h3>
+        <p style="font-size:13px;color:#64748b;margin-bottom:15px">Only upcoming sessions are listed. A session can be cancelled up to 10 hours before it starts.</p>
+        <div class="input-group"><label>Select Booking</label><select id="cancelBookingId"></select></div>
+        <div class="input-group"><label>Reason</label><input type="text" id="cancelReason" placeholder="Why cancel?"></div>
+        <button class="btn btn-danger" onclick="run(this,handleCancel)">Cancel Session</button>
+      </div></div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = "/api/proxy";
+const TOKEN_KEY = 'gpm_token';
+let token = null, role = null, isMain = false, master = null, dash = null, dashAt = 0, pendingId = '';
+let adminBookingsList = [], students = [], slotsAdmin = [], usersAdmin = [], facSlots = [], utilData = [];
+let selectedBookings = new Set(), selectedSlots = new Set(), selectedUsers = new Set(), protectIds = new Set(), adminTriggerPhone = '';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const digits = s => String(s || '').replace(/\D/g, '').slice(-10);
+const dateOk = d => d && !isNaN(new Date(d));
+
+/* ---------- frontend error reporting (goes to the daily report with function + line) ---------- */
+let _logging = false;
+const fnFromErr = er => { const m = String(er && er.stack || '').match(/at\s+(\S+)\s+\(/); return m ? m[1] : '(anonymous)'; };
+const lineFromErr = er => { const m = String(er && er.stack || '').match(/:(\d+):\d+\)?\s*$/m); return m ? m[1] : ''; };
+function logClient(fn, line, msg, ctx) {
+  if (_logging || !token) return; _logging = true;
+  fetch(API_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'logError', token, data: { fn: String(fn), line: String(line || ''), msg: String(msg), ctx: String(ctx || '') } }) })
+    .catch(() => {}).finally(() => { _logging = false; });
 }
-function readRows(name, ncols) {
-  const sh = sheet(name); if (!sh) return [];
-  const last = sh.getLastRow(); if (last < 2) return [];
-  return sh.getRange(2, 1, last - 1, ncols).getValues();
+window.addEventListener('error', e => logClient(fnFromErr(e.error), e.lineno || lineFromErr(e.error), e.message, 'window.onerror'));
+window.addEventListener('unhandledrejection', e => { const r = e.reason || {}; logClient(fnFromErr(r), lineFromErr(r), r.message || r, 'unhandledrejection'); });
+
+/* ---------- spinner helpers: every button that runs through run() shows a spinner until the work finishes ---------- */
+async function run(btn, fn) {
+  if (!btn || btn.dataset.busy) return;
+  btn.dataset.busy = '1';
+  const old = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '<span class="btn-spin"></span>' + old;
+  const t0 = Date.now();
+  try { await fn(btn); }
+  catch (e) { console.error(e); logClient(fnFromErr(e), lineFromErr(e), e.message || e, 'button'); alert('Something went wrong. Please try again.'); }
+  finally {
+    const wait = 350 - (Date.now() - t0); if (wait > 0) await sleep(wait);
+    btn.disabled = false; btn.innerHTML = old; delete btn.dataset.busy;
+  }
 }
-// read only a few columns (faster than the whole row)
-function readCols(name, c0, n) {
-  const sh = sheet(name); if (!sh) return [];
-  const last = sh.getLastRow(); if (last < 2) return [];
-  return sh.getRange(2, c0, last - 1, n).getValues();
+let netCount = 0, pageCount = 0;
+function netDelta(n) { netCount = Math.max(0, netCount + n); $('netBadge').style.display = netCount > 0 ? 'flex' : 'none'; }
+function pageLoading(on) { pageCount = Math.max(0, pageCount + (on ? 1 : -1)); $('viewLoader').style.display = pageCount > 0 ? 'flex' : 'none'; }
+
+/* ---------- API ---------- */
+function api(action, data) {
+  netDelta(1);
+  return fetch(API_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action, token, data: data || {} }) })
+    .then(r => r.json())
+    .then(res => { if (res.authError && token) forceLogout(res.message); return res; })
+    .catch(e => { logClient('api(' + action + ')', '', 'Network/parse error: ' + (e && e.message), action); return { success: false, message: 'Network error. Please try again.' }; })
+    .finally(() => netDelta(-1));
 }
-function appendRowsText(sh, rows) {
-  if (!rows.length) return;
-  const r = sh.getLastRow() + 1, need = r + rows.length - 1;
-  if (need > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), need - sh.getMaxRows() + 50);
-  const rg = sh.getRange(r, 1, rows.length, rows[0].length);
-  rg.setNumberFormat('@'); rg.setValues(rows);
+
+/* ---------- session: PER TAB (sessionStorage) ---------- */
+function getTok() { try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; } }
+function setTok(t) { try { sessionStorage.setItem(TOKEN_KEY, t); } catch (e) {} }
+function clearSession() { try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} token = null; }
+function purgeLegacy() { ['gpm_token', 'studentId', 'isAdmin', 'studentName'].forEach(k => localStorage.removeItem(k)); }
+function forceLogout(msg) { clearSession(); alert(msg || 'Session expired.'); location.reload(); }
+async function logout() { if (token) await api('logout'); clearSession(); location.reload(); }
+
+window.onload = async function () {
+  purgeLegacy();
+  token = getTok();
+  if (!token) return showLogin();
+  const res = await api('session');
+  if (res.success) afterAuth(res); else { clearSession(); showLogin(); }
+};
+function showLogin() { $('bootLoader').style.display = 'none'; $('loginSection').style.display = 'flex'; }
+
+async function afterAuth(res) {
+  role = res.role; isMain = !!res.main;
+  $('bootLoader').style.display = 'none'; $('loginSection').style.display = 'none';
+  if (role === 'student' && !(res.profile && res.profile.isComplete)) {
+    await loadMaster(); $('profileModal').style.display = 'flex'; return;
+  }
+  $('displayName').innerText = role === 'admin' ? (res.name || 'Admin') : (res.name || (res.profile && res.profile.name) || 'Student');
+  $('dashboardLayout').style.display = 'flex';
+  const admin = role === 'admin';
+  $('adminMenus').style.display = admin ? 'block' : 'none';
+  $('studentMenus').style.display = admin ? 'none' : 'block';
+  document.querySelectorAll('.main-only').forEach(el => el.style.display = isMain ? '' : 'none');
+  loadMaster();
+  await switchView(admin ? 'viewAllBookings' : 'viewBook', document.querySelector(admin ? '#adminMenus button' : '#studentMenus button'));
 }
-function withLock(fn) {
-  const l = LockService.getScriptLock();
-  if (!l.tryLock(20000)) return fail('Server is busy. Please try again.');
-  try { return fn(); } finally { l.releaseLock(); }
+
+/* ---------- login ---------- */
+function showErr(m) { const e = $('loginError'); e.innerText = m; e.style.display = 'block'; }
+async function handleLogin() {
+  const p = $('loginPhone').value.trim(), codeVisible = $('adminCodeGroup').style.display !== 'none';
+  const c = codeVisible ? $('loginAdminCode').value.trim() : '';
+  if (!p) return showErr('Please enter your phone number');
+  if (codeVisible && !c) return showErr('Please enter the Security Code');
+  $('loginError').style.display = 'none';
+  const res = await api('login', { phone: p, adminCode: c });
+  if (res.success && res.token) {
+    token = res.token; setTok(token); $('loginAdminCode').value = '';
+    await afterAuth(res);
+  } else if (res.requireCode) {
+    adminTriggerPhone = digits(p);
+    $('adminCodeGroup').style.display = 'block'; $('loginAdminCode').focus();
+    showErr('Admin detected. Please enter your Security Code.');
+  } else showErr(res.message || 'Login failed');
 }
-// CSV: strips BOM, auto-detects , ; or tab, removes quotes
-function csvRows(csv) {
-  const lines = String(csv || '').replace(/^\ufeff/, '').split(/\r?\n/).filter(l => l.trim());
+$('loginPhone').addEventListener('input', () => {
+  if ($('adminCodeGroup').style.display !== 'none' && digits($('loginPhone').value) !== adminTriggerPhone) {
+    $('adminCodeGroup').style.display = 'none'; $('loginAdminCode').value = ''; $('loginError').style.display = 'none';
+  }
+});
+['loginPhone', 'loginAdminCode'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') run($('loginBtn'), handleLogin); }));
+
+async function submitProfile() {
+  const data = { name: $('profName').value, branch: $('profBranch').value, batch: $('profBatch').value, year: $('profYear').value, phone: $('profPhone').value };
+  if (Object.values(data).some(v => !String(v).trim())) return alert('All fields are compulsory. Please fill every field.');
+  const res = await api('saveProfile', data);
+  if (res.success) { $('profileModal').style.display = 'none'; const s = await api('session'); if (s.success) afterAuth(s); }
+  else alert(res.message);
+}
+
+/* ---------- master data ---------- */
+async function loadMaster(force) {
+  if (master && !force) return master;
+  const r = await api('getMaster');
+  if (r.success) { master = r.data; fillMasterUI(); }
+  return master;
+}
+function opts(id, arr, ph) {
+  const el = $(id); if (!el) return; const keep = el.value;
+  el.innerHTML = `<option value="">${esc(ph)}</option>` + arr.map(x => `<option>${esc(x)}</option>`).join('');
+  if (keep && arr.includes(keep)) el.value = keep;
+}
+function fillMasterUI() {
+  const cats = master.categories, brs = master.branches, facs = master.faculties, yrs = master.targetYears || [];
+  opts('facCategory', cats, 'Select'); opts('category', cats, 'Select Category'); opts('filterCategory', cats, 'All Categories');
+  opts('facBranch', brs, 'Select'); opts('branch', brs, 'Select Branch'); opts('filterBranch', brs, 'All Branches');
+  opts('searchStudentBranch', brs, 'All Branches'); opts('profBranch', brs, 'Select Branch *'); opts('addUBranch', brs, 'Select Branch');
+  opts('searchStudentCategory', cats, 'All Categories'); opts('profYear', yrs, 'Target Year *');
+  const facNames = [...new Set(facs.map(f => f.name))];
+  opts('filterFaculty', facNames, 'All Faculties'); opts('slotFac', facNames, 'Select Faculty');
+  $('categoryList').innerHTML = cats.map(c => `<span class="chip">${esc(c)} <button data-act="delCat" data-id="${esc(c)}">✕</button></span>`).join('');
+  $('branchList').innerHTML = brs.map(b => `<span class="chip">${esc(b)} <button data-act="delBr" data-id="${esc(b)}">✕</button></span>`).join('');
+  $('yearList').innerHTML = yrs.map(y => `<span class="chip">${esc(y)} <button class="ed" title="Change" data-act="editYear" data-id="${esc(y)}">✎</button><button data-act="delYear" data-id="${esc(y)}">✕</button></span>`).join('');
+  $('facultyListBody').innerHTML = facs.map(f => `<tr><td>${esc(f.name)}</td><td>${esc(f.branch)}</td><td>${esc(f.category)}</td><td><button class="btn btn-danger sm" data-act="delFac" data-id="${esc(f.name)}">Remove</button></td></tr>`).join('');
+  if (role === 'student') filterFaculty();
+}
+
+/* ---------- navigation ---------- */
+async function switchView(id, btn) {
+  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+  $(id).classList.add('active');
+  if (btn) {
+    document.querySelectorAll('.sidebar-menu button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    $('pageTitle').innerText = btn.innerText.replace(/^[^A-Za-z]+/, '').trim();
+  }
+  const L = { viewAllBookings: loadAdminBookings, viewUtilization: loadUtilization, viewKnowStudents: loadStudents, viewSettings: loadSettings,
+              viewMySchedule: loadSchedule, viewCancel: loadCancelDropdown, viewBook: loadStudentData, viewSlots: loadSlotsAdmin, viewUsersCSV: loadUsersAdmin,
+              viewAddMaster: () => loadMaster(true), viewAddFaculty: () => loadMaster(true) };
+  if (L[id]) { pageLoading(true); try { await L[id](); } finally { pageLoading(false); } }
+}
+
+/* ---------- row buttons (all get a spinner through run()) ---------- */
+const ACTIONS = {
+  delCat: async (b, id) => { if (!confirm('Remove Category?')) return; const r = await api('removeCategory', { catName: id }); alert(r.message); await loadMaster(true); },
+  delBr: async (b, id) => { if (!confirm('Remove Branch?')) return; const r = await api('removeBranch', { branchName: id }); alert(r.message); await loadMaster(true); },
+  delFac: async (b, id) => { if (!confirm('Remove Faculty?')) return; const r = await api('removeFaculty', { facName: id }); alert(r.message); await loadMaster(true); },
+  editYear: async (b, id) => { const v = prompt('Change target year "' + id + '" to:', id); if (v === null || !v.trim() || v.trim() === id) return; const r = await api('renameTargetYear', { oldYear: id, newYear: v.trim() }); alert(r.message); await loadMaster(true); },
+  delYear: async (b, id) => { if (!confirm('Remove target year ' + id + '?')) return; const r = await api('removeTargetYear', { year: id }); alert(r.message); await loadMaster(true); },
+  setLink: async (b, id, tr) => { const r = await api('updateLink', { bookingId: id, meetingLink: tr.querySelector('.lnk').value.trim() }); alert(r.message); if (r.success) await loadAdminBookings(); },
+  delLink: async (b, id) => { if (!confirm('Delete the meeting link of this booking?')) return; const r = await api('updateLink', { bookingId: id, meetingLink: '' }); alert(r.message); if (r.success) await loadAdminBookings(); },
+  admCancel: async (b, id) => { if (!confirm('Cancel this booking?')) return; const r = await api('cancel', { bookingId: id, reason: 'Cancelled by Admin' }); alert(r.message); await loadAdminBookings(); },
+  reschedule: async (b, id) => openRescheduleModal(id),
+  saveCap: async (b, id, tr) => { const r = await api('updateSlotCapacity', { row: b.dataset.row, sig: b.dataset.sig, newCap: tr.querySelector('.cap-input').value }); alert(r.message); await loadSlotsAdmin(); },
+  delSlot: async (b) => { if (!confirm('Delete this slot?')) return; const r = await api('deleteSlot', { row: b.dataset.row, sig: b.dataset.sig }); alert(r.message); await loadSlotsAdmin(); },
+  saveUser: async (b, id, tr) => { const r = await api('updateUser', { id, phone: tr.querySelector('.ph').value, branch: tr.querySelector('.br').value, name: tr.querySelector('.nm').value }); alert(r.message); await loadUsersAdmin(); },
+  delUser: async (b, id) => { if (!confirm('Remove this user?')) return; const r = await api('deleteUser', { id }); alert(r.message); selectedUsers.delete(id); await loadUsersAdmin(); },
+  blockStu: async (b, id) => { if (!confirm('Block this student from login/booking?')) return; const r = await api('blockStudent', { id, note: 'Blocked by admin' }); alert(r.message); await loadStudents(); },
+  unblockStu: async (b, id) => { if (!confirm('Restore access for this student?')) return; const r = await api('unblockStudent', { id }); alert(r.message); await loadStudents(); },
+  delCo: async (b, id) => { if (!confirm('Remove this co-admin?')) return; const r = await api('removeCoAdmin', { phone: id }); alert(r.message); await loadCoAdmins(); }
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const h = ACTIONS[b.dataset.act]; if (h) run(b, () => h(b, b.dataset.id, b.closest('tr')));
+});
+
+/* ---------- admin: bookings ---------- */
+const sessionBadge = b => {
+  if (b.status !== 'Booked') return '-';
+  if (b.isDone === 'Done') return '<span class="badge bg-done">Done</span>';
+  if (b.isDone === 'Not Done' || b.isDone === 'Not Joined') return `<span class="badge bg-cancelled">${esc(b.isDone)}</span>`;
+  return '<span class="badge bg-pending">Pending</span>';
+};
+async function loadAdminBookings() { const r = await api('getAdminData'); if (r.success) { adminBookingsList = r.data; selectedBookings.clear(); $('selectAllBookings').checked = false; renderAdminTable(); } }
+async function applyBookingFilter() { await loadAdminBookings(); }
+async function resetBookingFilter() { ['filterFrom', 'filterTo', 'filterBranch', 'filterCategory', 'filterFaculty', 'filterSearch'].forEach(id => $(id).value = ''); await loadAdminBookings(); }
+function filteredBookings() {
+  const fD = $('filterFrom').value, tD = $('filterTo').value, fB = $('filterBranch').value, fC = $('filterCategory').value, fF = $('filterFaculty').value, q = $('filterSearch').value.trim().toLowerCase();
+  return adminBookingsList.filter(b => {
+    if (fD || tD) { const p = b.date.split('/'), bd = `${p[2]}-${p[1]}-${p[0]}`; if (fD && bd < fD) return false; if (tD && bd > tD) return false; }
+    return (!fB || b.branch === fB) && (!fC || b.category === fC) && (!fF || b.faculty === fF) &&
+      (!q || b.name.toLowerCase().includes(q) || b.studentId.toLowerCase().includes(q) || b.phone.toLowerCase().includes(q) || b.email.toLowerCase().includes(q));
+  });
+}
+function updateSelCount() { $('selCount').innerText = selectedBookings.size + ' selected'; }
+function renderAdminTable() {
+  $('adminBookingsBody').innerHTML = filteredBookings().map(b => {
+    const booked = b.status === 'Booked';
+    const link = booked ? `<input class="lnk cell-in" value="${esc(b.meetingLink)}" placeholder="Paste Link" style="width:130px"> <button class="btn btn-success sm" data-act="setLink" data-id="${esc(b.bookingId)}">Set</button> <button class="btn btn-gray sm" title="Delete link" data-act="delLink" data-id="${esc(b.bookingId)}">🗑</button>` : '-';
+    const act = booked ? `<button class="btn btn-warn sm" title="Change date & time" data-act="reschedule" data-id="${esc(b.bookingId)}">📅</button> <button class="btn btn-danger sm" data-act="admCancel" data-id="${esc(b.bookingId)}">Cancel</button>` : '-';
+    const q = b.query ? `<br><small title="${esc(b.query)}">💬 ${esc(b.query.slice(0, 30))}${b.query.length > 30 ? '…' : ''}</small>` : '';
+    const cb = booked ? `<input type="checkbox" class="book-chk" data-id="${esc(b.bookingId)}" ${selectedBookings.has(b.bookingId) ? 'checked' : ''} onchange="toggleBookingSelect(this)">` : '';
+    return `<tr><td>${cb}</td>
+      <td><b>${esc(b.name)}</b><br><small>${esc(b.studentId)}</small>${q}</td>
+      <td>${esc(b.email) || '-'}</td><td>${esc(b.phone) || '-'}</td>
+      <td>${esc(b.branch)}/${esc(b.batchName)}</td><td>${esc(b.faculty)}</td><td>${esc(b.date)}<br>${esc(b.time)}</td>
+      <td><span class="badge ${booked ? 'bg-booked' : 'bg-cancelled'}">${esc(b.status)}</span></td><td>${sessionBadge(b)}</td><td>${link}</td><td>${act}</td></tr>`;
+  }).join('');
+  updateSelCount();
+}
+function toggleBookingSelect(cb) { if (cb.checked) selectedBookings.add(cb.dataset.id); else selectedBookings.delete(cb.dataset.id); updateSelCount(); }
+function toggleSelectAll(cb) {
+  document.querySelectorAll('.book-chk').forEach(el => { el.checked = cb.checked; if (cb.checked) selectedBookings.add(el.dataset.id); else selectedBookings.delete(el.dataset.id); });
+  updateSelCount();
+}
+async function clearAllBookings() {
+  if (!confirm('This will remove ALL bookings (backup saved). Continue?')) return;
+  if (prompt('Type CLEAR to confirm') !== 'CLEAR') return alert('Cancelled.');
+  const r = await api('clearAllBookings'); alert(r.message); await loadAdminBookings();
+}
+
+/* reschedule */
+const dmy2ymd = d => { const p = String(d).split('/'); return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : ''; };
+function to24(t) { const m = String(t).match(/(\d+):(\d+)\s*(AM|PM)/i); if (!m) return ''; let h = +m[1]; const pm = m[3].toUpperCase() === 'PM'; if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; return String(h).padStart(2, '0') + ':' + m[2]; }
+let reschBookingId = '';
+function openRescheduleModal(bid) {
+  reschBookingId = bid;
+  const b = adminBookingsList.find(x => x.bookingId === bid);
+  $('rescheduleInfo').innerText = b ? `Student: ${b.name} | Faculty: ${b.faculty} | Current: ${b.date} ${b.time}` : '';
+  $('reschDate').value = b ? dmy2ymd(b.date) : ''; $('reschTime').value = b ? to24(b.time) : '';
+  $('rescheduleModal').style.display = 'flex';
+}
+async function confirmReschedule() {
+  const d = $('reschDate').value, t = $('reschTime').value;
+  if (!d || !t) return alert('Fill both fields');
+  const r = await api('rescheduleBooking', { bookingId: reschBookingId, date: d, time: t });
+  alert(r.message);
+  if (r.success) { $('rescheduleModal').style.display = 'none'; await loadAdminBookings(); }
+}
+function needSelection() { if (!selectedBookings.size) { alert('Select at least one booking first (checkbox in the left column).'); return false; } return true; }
+async function openBulkReschedule() {
+  if (!needSelection()) return;
+  $('bulkInfo').innerText = `${selectedBookings.size} booking(s) selected. They will all be moved to the date & time below.`;
+  $('bulkRescheduleModal').style.display = 'flex';
+}
+async function confirmBulkReschedule() {
+  const d = $('bulkDate').value, t = $('bulkTime').value;
+  if (!d || !t) return alert('Fill both fields');
+  const r = await api('bulkReschedule', { bookingIds: Array.from(selectedBookings), date: d, time: t });
+  alert(r.message);
+  if (r.success) { $('bulkRescheduleModal').style.display = 'none'; selectedBookings.clear(); await loadAdminBookings(); }
+}
+async function openBulkLink() {
+  if (!needSelection()) return;
+  $('bulkLinkInfo').innerText = `The same link will be set for ${selectedBookings.size} selected booking(s).`;
+  $('bulkLinkInput').value = ''; $('bulkLinkModal').style.display = 'flex';
+}
+async function confirmBulkLink() {
+  const l = $('bulkLinkInput').value.trim();
+  if (!l) return alert('Paste the meeting link first.');
+  const r = await api('bulkLink', { bookingIds: Array.from(selectedBookings), meetingLink: l });
+  alert(r.message);
+  if (r.success) { $('bulkLinkModal').style.display = 'none'; selectedBookings.clear(); await loadAdminBookings(); }
+}
+async function bulkDeleteLinks() {
+  if (!needSelection()) return;
+  if (!confirm(`Delete the meeting link of ${selectedBookings.size} selected booking(s)?`)) return;
+  const r = await api('bulkLink', { bookingIds: Array.from(selectedBookings), meetingLink: '' });
+  alert(r.message);
+  if (r.success) { selectedBookings.clear(); await loadAdminBookings(); }
+}
+
+/* ---------- admin: utilization ---------- */
+async function loadUtilization() {
+  const r = await api('getUtilization'); if (!r.success) return;
+  utilData = r.data;
+  $('utilContainer').innerHTML = utilData.length ? '<div class="util-grid">' + utilData.map(u =>
+    `<div class="util-card"><h4>${esc(u.month)}</h4><div class="big">${u.total}</div>
+    <div class="row"><span>Done: ${u.done}</span><span>Not Joined: ${u.notJoined}</span></div>
+    <div class="row"><span>Not Done: ${u.notDone}</span><span>Cancelled: ${u.cancelled}</span></div></div>`).join('') + '</div>' : '<p style="color:#64748b">No data yet.</p>';
+  $('utilBody').innerHTML = utilData.map(u => `<tr><td><b>${esc(u.month)}</b></td><td>${u.total}</td><td>${u.booked}</td><td>${u.done}</td><td>${u.notJoined}</td><td>${u.notDone}</td><td>${u.cancelled}</td></tr>`).join('')
+    || '<tr><td colspan="7" style="text-align:center;color:#64748b">No data</td></tr>';
+}
+
+/* ---------- CSV ---------- */
+function csvCell(v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }
+async function downloadCSV(type) {
+  let head, rows;
+  if (type === 'bookings') {
+    head = ['StudentName', 'StudentID', 'Email', 'Phone', 'Branch', 'Batch', 'Faculty', 'Date', 'Time', 'BookingStatus', 'SessionStatus', 'MeetingLink', 'Query'];
+    rows = filteredBookings().map(b => [b.name, b.studentId, b.email, b.phone, b.branch, b.batchName, b.faculty, b.date, b.time, b.status, b.status === 'Booked' ? b.isDone : '-', b.meetingLink, b.query]);
+  } else {
+    head = ['Name', 'StudentID', 'Branch', 'Batch', 'TargetYear', 'PWNumber', 'Category', 'Blocked'];
+    rows = filteredStudents().map(s => [s.name, s.id, s.branch, s.batch, s.year, s.phone, s.category || '', s.blocked ? 'Yes' : 'No']);
+  }
+  const csv = '\ufeff' + [head, ...rows].map(r => r.map(csvCell).join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = type + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- admin: students ---------- */
+async function loadStudents() {
+  const r = await api('getKnowYourStudents');
+  if (r.success) {
+    students = r.data;
+    const ys = [...new Set([...(master ? master.targetYears || [] : []), ...students.map(s => s.year)].filter(Boolean))].sort();
+    opts('searchStudentYear', ys, 'All Target Years');
+    renderStudentsTable();
+  }
+}
+async function applyStudentFilter() { await loadStudents(); }
+async function resetStudentFilter() { ['searchStudentBranch', 'searchStudentYear', 'searchStudentCategory', 'searchStudentPhone'].forEach(id => $(id).value = ''); await loadStudents(); }
+function filteredStudents() {
+  const br = $('searchStudentBranch').value, yr = $('searchStudentYear').value, cat = $('searchStudentCategory').value, q = $('searchStudentPhone').value.trim().toLowerCase();
+  return students.filter(s => (!br || s.branch === br) && (!yr || s.year === yr) && (!cat || s.category === cat) &&
+    (!q || s.name.toLowerCase().includes(q) || s.phone.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)));
+}
+function renderStudentsTable() {
+  $('studentsBody').innerHTML = filteredStudents().map(s => {
+    const act = s.blocked
+      ? `<button class="btn btn-success sm" data-act="unblockStu" data-id="${esc(s.id)}">Restore Access</button>`
+      : `<button class="btn btn-danger sm" data-act="blockStu" data-id="${esc(s.id)}">Block Access</button>`;
+    return `<tr><td><b>${esc(s.name)}</b><br><small>${esc(s.id)}</small></td><td>${esc(s.branch)}</td><td>${esc(s.batch)}</td><td>${esc(s.year)}</td><td>${esc(s.phone)}</td><td>${esc(s.category || '-')}</td>
+      <td>${s.blocked ? '<span class="badge bg-blocked">Blocked</span>' : '<span class="badge bg-booked">Active</span>'}</td><td>${act}</td></tr>`;
+  }).join('');
+}
+
+/* ---------- admin: master / faculty ---------- */
+async function addCat() { const v = $('newCatName').value.trim(); if (!v) return alert('Enter a category name'); const r = await api('addCategory', { catName: v }); alert(r.message); $('newCatName').value = ''; await loadMaster(true); }
+async function addBranch() { const v = $('newBranchName').value.trim(); if (!v) return alert('Enter a branch name'); const r = await api('addBranch', { branchName: v }); alert(r.message); $('newBranchName').value = ''; await loadMaster(true); }
+async function addYear() { const v = $('newYearName').value.trim(); if (!v) return alert('Enter a target year'); const r = await api('addTargetYear', { year: v }); alert(r.message); if (r.success) $('newYearName').value = ''; await loadMaster(true); }
+async function addFac() {
+  const n = $('facName').value.trim(), b = $('facBranch').value, c = $('facCategory').value;
+  if (!n || !b || !c) return alert('Fill all fields');
+  const r = await api('addFaculty', { name: n, branch: b, category: c }); alert(r.message); $('facName').value = ''; await loadMaster(true);
+}
+
+/* ---------- admin: slots ---------- */
+async function loadSlotsAdmin() { const r = await api('getSlotsAdmin'); if (r.success) { slotsAdmin = r.data; selectedSlots.clear(); $('selectAllSlots').checked = false; renderSlotsAdminTable(); } }
+const slotSig = s => `${s.faculty}|${s.date}|${s.time}`;
+function updateSlotCount() { $('slotSelCount').innerText = selectedSlots.size + ' selected'; }
+function renderSlotsAdminTable() {
+  $('adminSlotsBody').innerHTML = slotsAdmin.map(s => {
+    const sig = esc(slotSig(s)), full = s.booked >= s.capacity;
+    return `<tr><td><input type="checkbox" class="slot-chk" data-sig="${sig}" ${selectedSlots.has(slotSig(s)) ? 'checked' : ''} onchange="toggleSlotSel(this)"></td>
+      <td>${esc(s.faculty)}<br><small>${esc(s.branch)}</small></td><td>${esc(s.date)}</td><td>${esc(s.time)}</td>
+      <td><span class="slot-stat-badge ${full ? 'stat-full' : 'stat-available'}">${s.booked} Booked</span></td>
+      <td><input type="number" min="0" value="${s.capacity}" class="cap-input"> <button class="btn btn-success sm" data-act="saveCap" data-row="${s.row}" data-sig="${sig}">Save</button></td>
+      <td><button class="btn btn-danger sm" data-act="delSlot" data-row="${s.row}" data-sig="${sig}">Del Slot</button></td></tr>`;
+  }).join('');
+  updateSlotCount();
+}
+function toggleSlotSel(cb) { if (cb.checked) selectedSlots.add(cb.dataset.sig); else selectedSlots.delete(cb.dataset.sig); updateSlotCount(); }
+function toggleAllSlots(cb) {
+  document.querySelectorAll('.slot-chk').forEach(el => { el.checked = cb.checked; if (cb.checked) selectedSlots.add(el.dataset.sig); else selectedSlots.delete(el.dataset.sig); });
+  updateSlotCount();
+}
+async function bulkDeleteSlotsUI() {
+  if (!selectedSlots.size) return alert('Select at least one slot first.');
+  const items = slotsAdmin.filter(s => selectedSlots.has(slotSig(s))).map(s => ({ row: s.row, sig: slotSig(s) }));
+  const withBookings = slotsAdmin.filter(s => selectedSlots.has(slotSig(s)) && s.booked > 0).length;
+  if (!confirm(`Delete ${items.length} selected slot(s)?` + (withBookings ? `\n\nWarning: ${withBookings} of them already have bookings (bookings stay, but the slot disappears).` : ''))) return;
+  const r = await api('bulkDeleteSlots', { items }); alert(r.message); await loadSlotsAdmin();
+}
+async function addSlotAdmin() {
+  const f = $('slotFac').value, d = $('slotDate').value, t = $('slotTime').value;
+  if (!f || !d || !t) return alert('Select faculty, date and time.');
+  const r = await api('addSlot', { faculty: f, date: d, time: t, capacity: $('slotCap').value });
+  alert(r.message); if (r.success) { $('slotTime').value = ''; $('slotCap').value = ''; await loadSlotsAdmin(); }
+}
+function uploadCSV(inputId, action, after) {
+  const f = $(inputId); if (!f.files.length) { alert('Please select a CSV file first.'); return Promise.resolve(); }
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = async e => { const r = await api(action, { csv: e.target.result }); alert(r.message); f.value = ''; await after(); resolve(); };
+    reader.onerror = () => { alert('Could not read the file.'); resolve(); };
+    reader.readAsText(f.files[0]);
+  });
+}
+
+/* ---------- admin: users ---------- */
+async function loadUsersAdmin() { const r = await api('getUsersAdmin'); if (r.success) { usersAdmin = r.data; const ids = new Set(usersAdmin.map(u => u.id)); selectedUsers.forEach(i => { if (!ids.has(i)) selectedUsers.delete(i); }); $('selectAllUsers').checked = false; renderUsersAdminTable(); } }
+function filteredUsers() {
+  const q = $('searchUserAdmin').value.toLowerCase();
+  return usersAdmin.filter(u => u.id.toLowerCase().includes(q) || u.phone.includes(q) || u.name.toLowerCase().includes(q));
+}
+function updateUserCount() { $('userSelCount').innerText = selectedUsers.size + ' selected'; }
+function renderUsersAdminTable() {
+  $('adminUsersBody').innerHTML = filteredUsers().map(u => `<tr><td><input type="checkbox" class="usr-chk" data-id="${esc(u.id)}" ${selectedUsers.has(u.id) ? 'checked' : ''} onchange="toggleUserSel(this)"></td><td>${esc(u.id)}</td>
+    <td><input class="ph cell-in" value="${esc(u.phone)}" style="width:110px"></td><td><input class="br cell-in" value="${esc(u.branch)}" style="width:80px"></td><td><input class="nm cell-in" value="${esc(u.name)}" style="width:130px"></td>
+    <td>${esc(u.year) || '-'}</td><td>${esc(u.category) || '-'}</td>
+    <td>${u.blocked ? '<span class="badge bg-blocked">Blocked</span>' : '<span class="badge bg-booked">Active</span>'}</td>
+    <td><button class="btn btn-success sm" data-act="saveUser" data-id="${esc(u.id)}">Save</button> <button class="btn btn-danger sm" data-act="delUser" data-id="${esc(u.id)}">Del</button></td></tr>`).join('');
+  updateUserCount();
+}
+function toggleUserSel(cb) { if (cb.checked) selectedUsers.add(cb.dataset.id); else selectedUsers.delete(cb.dataset.id); updateUserCount(); }
+function toggleAllUsers(cb) {
+  document.querySelectorAll('.usr-chk').forEach(el => { el.checked = cb.checked; if (cb.checked) selectedUsers.add(el.dataset.id); else selectedUsers.delete(el.dataset.id); });
+  updateUserCount();
+}
+async function addUserAdmin() {
+  const id = $('addUId').value.trim(), ph = $('addUPhone').value.trim(), br = $('addUBranch').value, nm = $('addUName').value.trim();
+  if (!id || !ph || !br) return alert('User ID, phone number and branch are required.');
+  const r = await api('addUser', { id, phone: ph, branch: br, name: nm }); alert(r.message);
+  if (r.success) { ['addUId', 'addUPhone', 'addUName'].forEach(x => $(x).value = ''); await loadUsersAdmin(); }
+}
+function parseCsv(text) {
+  const lines = String(text).replace(/^\ufeff/, '').split(/\r?\n/).filter(l => l.trim());
   if (!lines.length) return [];
-  const f = lines[0], delim = f.indexOf(',') >= 0 ? ',' : (f.indexOf(';') >= 0 ? ';' : (f.indexOf('\t') >= 0 ? '\t' : ','));
-  return lines.map(l => l.split(delim).map(s => s.trim().replace(/^"(.*)"$/, '$1')));
+  const d = lines[0].includes(',') ? ',' : lines[0].includes(';') ? ';' : lines[0].includes('\t') ? '\t' : ',';
+  return lines.map(l => l.split(d).map(s => s.trim().replace(/^"(.*)"$/, '$1')));
+}
+const readFileText = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = () => rej(new Error('Could not read file')); r.readAsText(f); });
+async function openBulkDelUsers() {
+  if (!selectedUsers.size) return alert('Select at least one user first.');
+  $('protectFile').value = ''; $('protectResult').style.display = 'none'; $('protectResult').innerHTML = ''; protectIds = new Set();
+  $('bulkDelInfo').innerText = `${selectedUsers.size} user(s) selected for deletion.`;
+  $('bulkDelUsersModal').style.display = 'flex';
+}
+async function validateProtect() {
+  protectIds = new Set();
+  const box = $('protectResult'), f = $('protectFile').files[0]; box.style.display = 'block';
+  if (!f) { box.innerHTML = 'No file chosen – nothing is protected. All ' + selectedUsers.size + ' selected user(s) will be deleted.'; return; }
+  const rows = parseCsv(await readFileText(f)), byId = {}, byPh = {};
+  usersAdmin.forEach(u => { byId[u.id] = u; byPh[digits(u.phone)] = u; });
+  let notFound = 0, notSelected = 0, invalid = 0; const warns = [];
+  rows.forEach((p, i) => {
+    if (i === 0 && /user|id/i.test(p[0])) return;
+    const id = p[0] || '', ph = digits(p[1]);
+    if (!id && !ph) { invalid++; return; }
+    const u = byId[id] || byPh[ph];
+    if (!u) { notFound++; return; }
+    if (!selectedUsers.has(u.id)) { notSelected++; return; }
+    protectIds.add(u.id);
+    if (byId[id] && ph && digits(u.phone) !== ph) warns.push(`${u.id}: phone in file differs from system`);
+    else if (p[2] && u.branch && p[2].toLowerCase() !== u.branch.toLowerCase()) warns.push(`${u.id}: branch in file (${p[2]}) differs from system (${u.branch})`);
+    else if (p[3] && u.year && p[3] !== u.year) warns.push(`${u.id}: target year in file (${p[3]}) differs from system (${u.year})`);
+  });
+  const del = selectedUsers.size - protectIds.size;
+  box.innerHTML = `<b>✔ Validated</b><br>🛡 Protected (will NOT be deleted): <b>${protectIds.size}</b><br>🗑 Will be deleted: <b>${del}</b><br>` +
+    `Rows not in system: ${notFound} | Rows not in your selection: ${notSelected} | Invalid rows: ${invalid}` +
+    (warns.length ? `<br><span style="color:#b45309">⚠ ${warns.slice(0, 5).map(esc).join('<br>⚠ ')}${warns.length > 5 ? '<br>…and ' + (warns.length - 5) + ' more' : ''}</span>` : '');
+}
+async function confirmBulkDelUsers() {
+  if ($('protectFile').files[0]) await validateProtect(); else protectIds = new Set();
+  const ids = [...selectedUsers].filter(i => !protectIds.has(i));
+  if (!ids.length) return alert('Nothing to delete – all selected users are protected.');
+  if (!confirm(`Permanently delete ${ids.length} user(s)?` + (protectIds.size ? `\n${protectIds.size} protected user(s) will be kept.` : ''))) return;
+  const r = await api('bulkDeleteUsers', { ids }); alert(r.message);
+  if (r.success) { $('bulkDelUsersModal').style.display = 'none'; selectedUsers.clear(); await loadUsersAdmin(); }
 }
 
-function normDate(v) {
-  if (v instanceof Date) return Utilities.formatDate(v, TZ, 'dd/MM/yyyy');
-  const s = str(v); if (!s) return '';
-  let m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
-  if (m) return pad(m[1]) + '/' + pad(m[2]) + '/' + m[3];
-  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if (m) return pad(m[3]) + '/' + pad(m[2]) + '/' + m[1];
-  return s;
+/* ---------- admin: settings + co-admins ---------- */
+async function loadSettings() {
+  const r = await api('getSettings'); if (!r.success) return;
+  $('setLimit').value = r.data.limit; $('setCapacity').value = r.data.capacity; $('setTelegram').value = r.data.telegram;
+  if (isMain) { $('setAdminId').value = r.data.adminId; $('setAdminPhone').value = r.data.adminPhone; $('setAdminCode').value = r.data.adminCode; }
+  $('setReportEmail').value = r.data.reportEmail || ''; $('setReportEnabled').value = r.data.reportEnabled || 'true';
+  if (isMain) await loadCoAdmins();
 }
-function dateObj(ds) {
-  const p = String(ds).split('/'); if (p.length !== 3) return null;
-  const d = new Date(+p[2], +p[1] - 1, +p[0]); return isNaN(d) ? null : d;
+async function saveSettings() {
+  const r = await api('updateSettings', {
+    limit: $('setLimit').value, capacity: $('setCapacity').value, telegram: $('setTelegram').value.trim(),
+    adminId: $('setAdminId').value.trim(), adminPhone: $('setAdminPhone').value.trim(), adminCode: $('setAdminCode').value.trim(),
+    reportEmail: $('setReportEmail').value.trim(), reportEnabled: $('setReportEnabled').value
+  });
+  alert(r.message);
 }
-function fmtTime(h, m) { return (h % 12 || 12) + ':' + pad(m) + ' ' + (h >= 12 ? 'PM' : 'AM'); }
-function normTime(v) {
-  if (v instanceof Date) { const p = Utilities.formatDate(v, TZ, 'H:m').split(':'); return fmtTime(+p[0], +p[1]); }
-  const s = str(v); if (!s) return '';
-  const m = s.match(/^(\d{1,2})(?::(\d{2}))?\s*([AaPp][Mm])?$/); if (!m) return s;
-  let h = +m[1]; const min = +(m[2] || 0);
-  if (m[3]) { const pm = m[3].toUpperCase() === 'PM'; if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; }
-  return fmtTime(h, min);
+async function runReportNow() { const r = await api('runReportNow'); alert(r.message); }
+async function loadCoAdmins() {
+  const r = await api('getCoAdmins'); if (!r.success) return;
+  $('coAdminBody').innerHTML = r.data.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td><button class="btn btn-danger sm" data-act="delCo" data-id="${esc(c.phone)}">Remove</button></td></tr>`).join('')
+    || '<tr><td colspan="3" style="text-align:center;color:#64748b">No co-admins added</td></tr>';
 }
-function slotStart(ds, ts) {
-  const d = dateObj(ds); if (!d) return null;
-  const m = String(ts).match(/(\d+):(\d+)\s*(AM|PM)/i);
-  if (m) { let h = +m[1]; const pm = m[3].toUpperCase() === 'PM'; if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; d.setHours(h, +m[2], 0, 0); }
-  return d;
-}
-function parseTs(s) {
-  const m = String(s || '').match(/^(\d{2})-(\d{2})-(\d{4}) (\d{2}):(\d{2}):(\d{2})$/);
-  return m ? new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6]) : null;
+async function addCoAdminUI() {
+  const name = $('coName').value.trim(), phone = $('coPhone').value.trim(), code = $('coCode').value.trim();
+  if (!phone || !code) return alert('Phone number and security code are required.');
+  const r = await api('addCoAdmin', { name, phone, code }); alert(r.message);
+  if (r.success) { ['coName', 'coPhone', 'coCode'].forEach(x => $(x).value = ''); await loadCoAdmins(); }
 }
 
-// ---------------- error logging (function name + line number) ----------------
-function parseStack(err) {
-  let fn = 'unknown', line = '';
-  const lines = String(err && err.stack || '').split('\n');
-  for (const l of lines) {
-    const m = l.match(/^\s*at\s+(?:(.+?)\s+\()?[^():]*:(\d+):\d+\)?\s*$/);
-    if (m) { fn = (m[1] || '(anonymous)').trim(); line = m[2]; break; }
+/* ---------- student ---------- */
+async function getDash(force) {
+  if (!force && dash && Date.now() - dashAt < 20000) return dash;
+  const r = await api('getDashboard'); if (r.success) { dash = r; dashAt = Date.now(); } return dash;
+}
+async function loadStudentData() {
+  const d = await getDash(true); if (!d) return;
+  $('chancesBadge').innerText = d.chancesLeft + '/' + d.limit + ' Left';
+  $('chancesBadge').className = 'badge ' + (d.chancesLeft <= 0 ? 'bg-cancelled' : 'bg-booked');
+  if (d.telegram && /^https?:\/\//i.test(d.telegram)) {
+    $('telegramLinkForm').href = d.telegram; $('telegramLinkQuery').href = d.telegram;
+    $('telegramBanner').style.display = 'block'; $('telegramQueryBanner').style.display = 'block';
   }
-  if (!line && err && err.lineNumber) line = String(err.lineNumber);
-  return { fn: fn, line: line };
+  pendingId = d.pendingBookingId || '';
+  if (pendingId) $('statusModal').style.display = 'flex';
+  if (master) filterFaculty();
 }
-function logError(layer, fn, line, msg, ctx) {
-  try {
-    const sh = getOrMake(SHEET_ERRORS, ['Timestamp', 'Layer', 'Function', 'Line', 'Reason', 'Context']);
-    appendRowsText(sh, [[timestamp(), layer, str(fn), str(line), String(msg).slice(0, 500), String(ctx || '').slice(0, 200)]]);
-  } catch (e) { Logger.log('logError failed: ' + e); }
+function filterFaculty() {
+  if (!master) return;
+  const br = $('branch').value, cat = $('category').value, cur = $('faculty').value;
+  const list = master.faculties.filter(f => (!br || f.branch === br) && (!cat || f.category === cat));
+  $('faculty').innerHTML = '<option value="">Select Faculty</option>' + list.map(f => `<option value="${esc(f.name)}">${esc(f.name)}</option>`).join('');
+  if (cur && list.some(f => f.name === cur)) $('faculty').value = cur; else resetSlots();
 }
-function logClientError(s, d, token) {
-  const c = cache(), k = 'le_' + String(token).slice(0, 16), n = Number(c.get(k) || 0);
-  if (n >= 20) return ok('');                       // spam guard: max 20 / hour / session
-  c.put(k, String(n + 1), 3600);
-  logError('Frontend', str(d.fn).slice(0, 80), str(d.line).slice(0, 10), str(d.msg).slice(0, 300), s.role + ':' + str(d.ctx).slice(0, 60));
-  return ok('');
+function resetSlots() { facSlots = []; $('bookDate').innerHTML = '<option value="">Select Faculty first</option>'; $('timeSlot').innerHTML = '<option value="">Select Date first</option>'; }
+async function fetchSlots() {
+  const f = $('faculty').value; if (!f) return resetSlots();
+  $('bookDate').innerHTML = '<option value="">Loading…</option>';
+  const r = await api('getSlots', { facName: f });
+  if ($('faculty').value !== f) return;
+  facSlots = r.success ? r.data : [];
+  const dates = [...new Set(facSlots.map(s => s.date))];
+  $('bookDate').innerHTML = dates.length
+    ? '<option value="">Select Date</option>' + dates.map(d => { const p = d.split('/'), day = new Date(p[2], p[1] - 1, p[0]).toLocaleDateString('en-IN', { weekday: 'short' }); return `<option value="${esc(d)}">${esc(d)} (${day})</option>`; }).join('')
+    : '<option value="">No upcoming slots</option>';
+  $('timeSlot').innerHTML = '<option value="">Select Date first</option>';
 }
-
-// ---------------- config (cached 5 min) ----------------
-let _cfg = null;
-function cfgAll() {
-  if (_cfg) return _cfg;
-  const c = cache(), raw = c.get('cfg');
-  if (raw) return (_cfg = JSON.parse(raw));
-  const o = {}; readRows(SHEET_CONFIG, 2).forEach(r => { const k = str(r[0]); if (k) o[k] = str(r[1]); });
-  c.put('cfg', JSON.stringify(o), 300); return (_cfg = o);
+function fillTimes() {
+  const d = $('bookDate').value;
+  $('timeSlot').innerHTML = '<option value="">Select Time</option>' + facSlots.filter(s => s.date === d)
+    .map(s => `<option value="${esc(s.time)}" ${s.full ? 'disabled' : ''}>${esc(s.time)} (${s.full ? 'Full Booked' : s.left + ' Seats Left'})</option>`).join('');
 }
-function getConfig(k, d) { const v = cfgAll()[k]; return (v === undefined || v === '') ? d : v; }
-function setConfig(k, val) {
-  const sh = sheet(SHEET_CONFIG); if (!sh) return;
-  const rows = readRows(SHEET_CONFIG, 2), i = rows.findIndex(r => str(r[0]) === k);
-  if (i >= 0) sh.getRange(i + 2, 2).setNumberFormat('@').setValue(val); else appendRowsText(sh, [[k, val]]);
-  _cfg = null; cache().remove('cfg');
+async function handleBooking() {
+  const data = { branch: $('branch').value, category: $('category').value, faculty: $('faculty').value, date: $('bookDate').value, time: $('timeSlot').value,
+                 email: $('bookEmail').value.trim(), phone: $('bookPhone').value.trim(), query: $('query').value.trim() };
+  if (Object.values(data).some(v => !v)) return alert('All fields are compulsory. Please fill every field (including Query).');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) return alert('Enter a valid Mail ID.');
+  if (digits(data.phone).length !== 10) return alert('Enter a valid 10-digit phone number.');
+  const r = await api('book', data);
+  if (r.success) {
+    $('succDate').innerText = data.date; $('succTime').innerText = data.time; $('succFac').innerText = data.faculty;
+    $('bookingSuccessModal').style.display = 'flex';
+    $('query').value = ''; resetSlots(); $('faculty').value = ''; dash = null;
+    switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]);
+  } else { alert('Booking Failed!\n' + r.message); if (data.faculty) await fetchSlots(); }
 }
-const defaultCap = () => Number(getConfig('SlotCapacity', '6')) || 6;
-const capOf = v => (v === '' || v == null || isNaN(Number(v))) ? defaultCap() : Number(v);
-
-// ---------------- setup / repair ----------------
-function setupSheets() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const mk = (name, header) => getOrMake(name, header);
-  const cfg = mk(SHEET_CONFIG, ['Key', 'Value']);
-  if (cfg.getLastRow() < 2) [
-    'GlobalMonthlyLimit,3','SlotCapacity,6','AdminID,' + DEFAULT_ADMIN_ID,'AdminPhone,' + DEFAULT_ADMIN_PHONE,
-    'AdminCode,' + DEFAULT_ADMIN_CODE,'TelegramLink,','ApiKey,CHANGE_ME_' + Utilities.getUuid().slice(0,24),
-    'ReportEmail,','ReportEnabled,true'
-  ].forEach(x => { const p = x.split(','); cfg.appendRow([p[0], p[1]]); });
-  else {
-    const have = {}; readRows(SHEET_CONFIG, 2).forEach(r => have[str(r[0])] = 1);
-    [['ApiKey','CHANGE_ME_' + Utilities.getUuid().slice(0,24)],['ReportEmail',''],['ReportEnabled','true']].forEach(p => {
-      if (!have[p[0]]) cfg.appendRow(p);
-    });
-  }
-  mk('Categories', ['CategoryName']); mk('Branches', ['BranchName']);
-  const yr = mk(SHEET_YEARS, ['TargetYear']);
-  if (yr.getLastRow() < 2) appendRowsText(yr, DEFAULT_YEARS.map(y => [y]));
-  mk(SHEET_PROFILES, ['StudentID','Name','Branch','Batch','TargetYear','PW_Number','IsProfileComplete']);
-  mk(SHEET_USERS, ['UserID','Phone','Branch','Name']);
-  mk(SHEET_FACULTIES, ['ID','Name','Branch','Category']);
-  mk(SHEET_SLOTS, ['Faculty','Branch','Date','Slot1','Slot2','Slot3','Capacity']);
-  mk(SHEET_HISTORY, ['BookingID','StudentID','Name','Faculty','Date','Time','Reason','CancelledBy','Timestamp']);
-  mk(SHEET_BLOCKED, ['StudentID','BlockedAt','BlockedBy','Note']);
-  mk(SHEET_REPORTLOG, ['Timestamp','Type','Status','Details']);
-  mk(SHEET_COADMINS, ['Phone','SecurityCode','Name','AddedAt']);
-  mk(SHEET_ERRORS, ['Timestamp','Layer','Function','Line','Reason','Context']);
-  const bk = mk(SHEET_BOOKINGS, ['StudentID','Name','Branch','Faculty','Date','Time','Category','Status','BookingID','MeetingLink','TargetYear','Batch','CancelReason','SessionStatus','BookedAt','CancelledAt','Email','Phone','Query']);
-  if (!bk.getRange(1, 19).getValue()) bk.getRange(1, 19).setValue('Query');
-  const fix = (sh, c0, n, fn) => {
-    const last = sh.getLastRow(); if (last < 2) return;
-    const rg = sh.getRange(2, c0, last - 1, n), vals = rg.getValues();
-    rg.setNumberFormat('@'); rg.setValues(vals.map(r => r.map((v, j) => fn(j, v))));
-  };
-  fix(sheet(SHEET_SLOTS), 3, 4, (j, v) => j === 0 ? normDate(v) : normTime(v));
-  fix(bk, 5, 2, (j, v) => j === 0 ? normDate(v) : normTime(v));
-  migrateSlots(); clearAllCaches();
+async function loadSchedule() {
+  const d = await getDash(true); if (!d) return;
+  $('scheduleBody').innerHTML = d.data.map(b => {
+    let lnk = '-';
+    if (b.linkState === 'open' && /^https?:\/\//i.test(b.meetingLink)) lnk = `<a href="${esc(b.meetingLink)}" target="_blank" rel="noopener">Join</a>`;
+    else if (b.linkState === 'expired') lnk = 'Expired'; else if (b.linkState === 'soon') lnk = 'Available 15m before';
+    return `<tr><td>${esc(b.bookingId)}</td><td>${esc(b.date)} ${esc(b.time)}</td><td>${esc(b.faculty)}</td><td style="color:${b.status === 'Booked' ? '#10b981' : '#ef4444'}">${esc(b.status)}</td><td>${sessionBadge(b)}</td><td>${lnk}</td></tr>`;
+  }).join('');
 }
-function clearAllCaches() { cache().removeAll(['cfg', 'master', 'blk', 'usr2', 'coadm', 'slver']); _cfg = null; bumpSlots(); }
-
-function migrateSlots() {
-  return withLock(() => {
-    const sh = sheet(SHEET_SLOTS); if (!sh || sh.getLastRow() < 2) return ok('');
-    const vals = sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues();
-    if (!vals.some(r => r[4] || r[5])) return ok('');
-    const extra = [];
-    vals.forEach(r => [4, 5].forEach(c => { if (r[c]) extra.push([str(r[0]), str(r[1]), normDate(r[2]), normTime(r[c]), '', '', r[6]]); }));
-    sh.getRange(2, 5, vals.length, 2).clearContent();
-    appendRowsText(sh, extra); bumpSlots(); return ok('');
-  });
+async function submitStatus(s) {
+  if (!pendingId) { $('statusModal').style.display = 'none'; return; }
+  const r = await api('markStatus', { bookingId: pendingId, status: s });
+  $('statusModal').style.display = 'none'; pendingId = ''; dash = null; alert(r.message);
 }
 
-// ---------------- sessions, blocking & login ----------------
-function createSession(role, id, main, name) {
-  const t = Utilities.getUuid() + Utilities.getUuid();
-  cache().put('s_' + t, JSON.stringify({ role: role, id: id, main: !!main, name: name || '', t: Date.now() }), SESSION_SECONDS); return t;
-}
-function getSession(t) {
-  if (!t) return null;
-  const c = cache(), raw = c.get('s_' + t); if (!raw) return null;
-  const s = JSON.parse(raw);
-  if (Date.now() - (s.t || 0) > 30 * 60 * 1000) { s.t = Date.now(); c.put('s_' + t, JSON.stringify(s), SESSION_SECONDS); } // sliding, refreshed every 30 min
-  return s;
-}
-function isBlocked(p, k) { return !!cache().get(p + '_b_' + k); }
-function clearAttempts(p, k) { cache().remove(p + '_a_' + k); }
-function failAttempt(p, k, label, max) {
-  max = max || MAX_LOGIN_ATTEMPTS;
-  const c = cache(), ak = p + '_a_' + k, n = Number(c.get(ak) || 0) + 1;
-  if (n >= max) { c.put(p + '_b_' + k, '1', BLOCK_SECONDS); c.remove(ak); return 'Max attempts reached. Blocked for 30 mins.'; }
-  c.put(ak, String(n), BLOCK_SECONDS); return label + ' Attempts left: ' + (max - n);
-}
-const BLOCK_MSG = 'Too many failed attempts. Blocked for 30 minutes.';
-
-function idSet(cacheKey, sheetName, ttl) {
-  const c = cache(), raw = c.get(cacheKey); if (raw) return JSON.parse(raw);
-  const o = {}; readRows(sheetName, 1).forEach(r => { const k = str(r[0]); if (k) o[k] = 1; });
-  try { c.put(cacheKey, JSON.stringify(o), ttl); } catch (e) {}
-  return o;
-}
-const blockedSet = () => idSet('blk', SHEET_BLOCKED, 300);
-const isStudentBlocked = uid => !!blockedSet()[str(uid)];
-const bustBlocked = () => cache().remove('blk');
-
-// users: {ids:{id:1}, byPhone:{phone:id}}  (cached 10 min -> login/session checks need no sheet read)
-function usersMap() {
-  const c = cache(), raw = c.get('usr2'); if (raw) return JSON.parse(raw);
-  const ids = {}, byPhone = {};
-  readRows(SHEET_USERS, 2).forEach(r => { const id = str(r[0]); if (!id) return; ids[id] = 1; const p = normPhone(r[1]); if (p) byPhone[p] = id; });
-  const o = { ids: ids, byPhone: byPhone };
-  try { c.put('usr2', JSON.stringify(o), 600); } catch (e) {}
-  return o;
-}
-const bustUsers = () => cache().remove('usr2');
-function userExists(uid) {
-  if (usersMap().ids[str(uid)]) return true;
-  bustUsers(); return !!usersMap().ids[str(uid)];   // re-check once (covers users added manually in sheet)
-}
-
-// co-admins (cached 10 min)
-function coAdmins() {
-  const c = cache(), raw = c.get('coadm'); if (raw) return JSON.parse(raw);
-  const list = readRows(SHEET_COADMINS, 4).filter(r => str(r[0])).map(r => ({ phone: normPhone(r[0]), code: str(r[1]), name: str(r[2]) }));
-  c.put('coadm', JSON.stringify(list), 600); return list;
-}
-const bustCoAdmins = () => cache().remove('coadm');
-const isAdminPhone = p => { p = normPhone(p); return p === normPhone(getConfig('AdminPhone', DEFAULT_ADMIN_PHONE)) || coAdmins().some(c => c.phone === p); };
-
-function handleLogin(d, ip) {
-  const phone = normPhone(d.phone), adminCode = str(d.adminCode);
-  const adminPhone = normPhone(getConfig('AdminPhone', DEFAULT_ADMIN_PHONE));
-  if (!phone) return fail('Please enter your phone number.');
-  const isMain = phone === adminPhone, co = isMain ? null : coAdmins().find(c => c.phone === phone);
-
-  if (adminCode) {
-    const ak = ip || 'admin';
-    if (isBlocked('a', ak) || isBlocked('a', 'global')) return fail(BLOCK_MSG);
-    const good = (isMain && adminCode === getConfig('AdminCode', DEFAULT_ADMIN_CODE)) || (!!co && adminCode === co.code);
-    if (!good) { if (ip) failAttempt('a', 'global', '', MAX_ADMIN_FAILS_GLOBAL); return fail(failAttempt('a', ak, 'Invalid Admin Details.')); }
-    clearAttempts('a', ak);
-    const nm = isMain ? 'Admin' : (co.name || 'Co-Admin');
-    return { success: true, token: createSession('admin', isMain ? getConfig('AdminID', DEFAULT_ADMIN_ID) : 'co-' + phone, isMain, nm), role: 'admin', name: nm, main: isMain };
-  }
-
-  if (isMain || co) return { success: false, requireCode: true };
-
-  const key = ip || ('p' + phone), max = ip ? MAX_STUDENT_FAILS_PER_IP : MAX_LOGIN_ATTEMPTS;
-  if (isBlocked('s', key)) return fail(BLOCK_MSG);
-  let uid = usersMap().byPhone[phone];
-  if (!uid) { bustUsers(); uid = usersMap().byPhone[phone]; }
-  if (!uid) return fail(failAttempt('s', key, 'Phone not registered.', max));
-  if (isStudentBlocked(uid)) return fail('Your access has been blocked by admin. Please contact support.');
-  const profile = getProfile(uid);
-  return { success: true, token: createSession('student', uid, false, profile ? profile.name : ''), role: 'student', name: profile ? profile.name : '', profile: profile };
-}
-
-function getProfile(uid) {
-  const c = cache(), k = 'prof_' + uid, raw = c.get(k); if (raw) return JSON.parse(raw);
-  const r = readRows(SHEET_PROFILES, 7).find(x => str(x[0]) === uid); if (!r) return null;
-  const p = { name: str(r[1]), branch: str(r[2]), batch: str(r[3]), targetYear: str(r[4]), pwNumber: str(r[5]), isComplete: str(r[6]).toUpperCase() === 'TRUE' };
-  c.put(k, JSON.stringify(p), 900); return p;
-}
-function sessionInfo(s) {
-  if (s.role === 'admin') return { success: true, role: 'admin', name: s.name || 'Admin', main: !!s.main };
-  const p = getProfile(s.id); return { success: true, role: 'student', name: p ? p.name : '', profile: p };
-}
-
-// ---------------- student ----------------
-function saveProfile(uid, d) {
-  const vals = [uid, str(d.name), str(d.branch), str(d.batch), str(d.year), str(d.phone), 'TRUE'];
-  if (vals.slice(1, 6).some(v => !v)) return fail('Please fill all fields (all are compulsory).');
-  return withLock(() => {
-    const sh = sheet(SHEET_PROFILES), rows = readRows(SHEET_PROFILES, 7), i = rows.findIndex(r => str(r[0]) === uid);
-    if (i >= 0 && str(rows[i][6]).toUpperCase() === 'TRUE') return fail('Profile is already saved and cannot be changed.');
-    if (i >= 0) { const rg = sh.getRange(i + 2, 1, 1, 7); rg.setNumberFormat('@'); rg.setValues([vals]); } else appendRowsText(sh, [vals]);
-    cache().remove('prof_' + uid);
-    return ok('Profile saved!');
-  });
-}
-
-function effDone(r, dObj, today) {
-  const raw = str(r[B.DONE]) || 'Pending';
-  return (str(r[B.STATUS]) === 'Booked' && raw === 'Pending' && dObj < today) ? 'Not Joined' : raw;
-}
-
-function studentDashboard(uid) {
-  const now = new Date(), today = startOfToday(), out = [];
-  let monthCount = 0, pendingId = '';
-  readRows(SHEET_BOOKINGS, BCOLS).forEach(r => {
-    if (str(r[B.ID]) !== uid) return;
-    const status = str(r[B.STATUS]), date = normDate(r[B.DATE]), time = normTime(r[B.TIME]);
-    const dObj = dateObj(date) || new Date(0), start = slotStart(date, time) || dObj;
-    if (status === 'Booked' && dObj.getMonth() === today.getMonth() && dObj.getFullYear() === today.getFullYear()) monthCount++;
-    const isDone = effDone(r, dObj, today), diff = (now - start) / 60000;
-    if (status === 'Booked' && isDone === 'Pending' && dObj.getTime() === today.getTime() && diff >= LINK_OPEN_AFTER_MIN) pendingId = str(r[B.BID]);
-    let linkState = 'none', link = '';
-    if (status === 'Booked' && str(r[B.LINK])) {
-      if (diff >= -LINK_OPEN_BEFORE_MIN && diff <= LINK_OPEN_AFTER_MIN) { linkState = 'open'; link = str(r[B.LINK]); }
-      else linkState = diff > LINK_OPEN_AFTER_MIN ? 'expired' : 'soon';
-    }
-    const upcoming = status === 'Booked' && start > now;
-    const canCancel = upcoming && (start - now) / 3600000 >= CANCEL_HOURS;
-    out.push({ bookingId: str(r[B.BID]), date: date, time: time, faculty: str(r[B.FAC]), category: str(r[B.CAT]), status: status, isDone: isDone,
-               linkState: linkState, meetingLink: link, upcoming: upcoming, canCancel: canCancel });
-  });
-  const limit = Number(getConfig('GlobalMonthlyLimit', '3'));
-  return { success: true, data: out.reverse(), chancesLeft: Math.max(0, limit - monthCount), limit: limit, telegram: getConfig('TelegramLink', ''), pendingBookingId: pendingId, cancelHours: CANCEL_HOURS };
-}
-
-// booked counts per "faculty|date|time" - reads only 5 columns (Faculty..Status)
-function bookedMap(onlyFac) {
-  const m = {};
-  readCols(SHEET_BOOKINGS, 4, 5).forEach(r => {
-    if (str(r[4]) !== 'Booked') return;
-    const fac = str(r[0]); if (onlyFac && fac !== onlyFac) return;
-    const k = fac + '|' + normDate(r[1]) + '|' + normTime(r[2]); m[k] = (m[k] || 0) + 1;
-  });
-  return m;
-}
-
-// per-faculty slot cache (invalidated whenever admin changes slots)
-const slotVer = () => cache().get('slver') || '0';
-const bumpSlots = () => cache().put('slver', String(Date.now()), 21600);
-function facSlotRows(fac) {
-  const c = cache(), k = 'sl_' + slotVer() + '_' + fac, raw = c.get(k); if (raw) return JSON.parse(raw);
-  const today = startOfToday(), out = [];
-  readRows(SHEET_SLOTS, 7).forEach(r => {
-    if (str(r[0]) !== fac) return;
-    const date = normDate(r[2]), d = dateObj(date); if (!d || d < today) return;
-    for (let i = 3; i <= 5; i++) if (r[i]) out.push({ date: date, time: normTime(r[i]), cap: r[6] });
-  });
-  try { c.put(k, JSON.stringify(out), 300); } catch (e) {}
-  return out;
-}
-
-function getSlots(facName) {
-  const fac = str(facName), booked = bookedMap(fac), now = new Date(), seen = {}, out = [];
-  facSlotRows(fac).forEach(s => {
-    const start = slotStart(s.date, s.time), k = s.date + '|' + s.time;
-    if (!start || start <= now || seen[k]) return;
-    seen[k] = 1; const left = capOf(s.cap) - (booked[fac + '|' + k] || 0);
-    out.push({ date: s.date, time: s.time, left: Math.max(0, left), full: left <= 0, _t: start.getTime() });
-  });
-  out.sort((a, b) => a._t - b._t); out.forEach(o => delete o._t);
-  return { success: true, data: out };
-}
-
-function bookMentorship(uid, d) {
-  const faculty = str(d.faculty), branch = str(d.branch), category = str(d.category), email = str(d.email), phone = str(d.phone);
-  const date = normDate(d.date), time = normTime(d.time), query = str(d.query).slice(0, 1000);
-  if (!faculty || !branch || !category || !date || !time || !email || !phone || !query) return fail('Please fill all fields (all are compulsory).');
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail('Enter a valid email address.');
-  if (normPhone(phone).length !== 10) return fail('Enter a valid 10-digit phone number.');
-  const reqDate = dateObj(date); if (!reqDate) return fail('Invalid date.');
-  return withLock(() => {
-    const profile = getProfile(uid);
-    if (!profile || !profile.isComplete) return fail('Please complete your profile first.');
-    const today = startOfToday(), now = new Date();
-    if (reqDate < today) return fail('Cannot book for past dates.');
-    const slot = facSlotRows(faculty).find(s => s.date === date && s.time === time);
-    if (!slot) return fail('This slot does not exist.');
-    const start = slotStart(date, time); if (start <= now) return fail('This slot time has already passed.');
-    let monthly = 0, slotCount = 0;
-    const rows = readCols(SHEET_BOOKINGS, 1, 8);          // only A:H needed (ID..Status)
-    for (const r of rows) {
-      if (str(r[B.STATUS]) !== 'Booked') continue;
-      const bd = normDate(r[B.DATE]), bo = dateObj(bd); if (!bo) continue;
-      if (str(r[B.ID]) === uid) {
-        if (bd === date) return fail('You already have an active booking on this date.');
-        if (Math.round(Math.abs(bo - reqDate) / 86400000) < MIN_GAP_DAYS) return fail('You must keep at least ' + MIN_GAP_DAYS + ' days between mentorships.');
-        if (bo.getMonth() === reqDate.getMonth() && bo.getFullYear() === reqDate.getFullYear()) monthly++;
-      }
-      if (str(r[B.FAC]) === faculty && bd === date && normTime(r[B.TIME]) === time) slotCount++;
-    }
-    if (monthly >= Number(getConfig('GlobalMonthlyLimit', '3'))) return fail('Monthly booking limit reached.');
-    if (slotCount >= capOf(slot.cap)) return fail('This slot is full.');
-    const bookingId = 'BK-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-    appendRowsText(sheet(SHEET_BOOKINGS), [[uid, profile.name, branch, faculty, date, time, category, 'Booked', bookingId, '', profile.targetYear, profile.batch, '', 'Pending', timestamp(), '', email, phone, query]]);
-    return ok('Booking successful!', { bookingId: bookingId, date: date, time: time, faculty: faculty });
-  });
-}
-
-function cancelBooking(s, d) {
-  const bid = str(d.bookingId), isAdmin = s.role === 'admin';
-  return withLock(() => {
-    const sh = sheet(SHEET_BOOKINGS), rows = readRows(SHEET_BOOKINGS, BCOLS);
-    const i = rows.findIndex(r => str(r[B.BID]) === bid && str(r[B.STATUS]) === 'Booked');
-    if (i < 0 || (!isAdmin && str(rows[i][B.ID]) !== s.id)) return fail('Booking not found.');
-    const r = rows[i], start = slotStart(normDate(r[B.DATE]), normTime(r[B.TIME]));
-    if (!isAdmin) {
-      if (!start || start <= new Date()) return fail('This session date/time has already passed. It cannot be cancelled.');
-      if ((start - new Date()) / 3600000 < CANCEL_HOURS) return fail('You can only cancel at least ' + CANCEL_HOURS + ' hours before the session.');
-    }
-    const reason = str(d.reason) || ('Cancelled by ' + (isAdmin ? 'Admin' : 'Student')), ts = timestamp();
-    r[B.STATUS] = 'Cancelled'; r[B.REASON] = reason; r[B.CTS] = ts;
-    sh.getRange(i + 2, 8, 1, 9).setValues([r.slice(7, 16)]);
-    const h = sheet(SHEET_HISTORY);
-    if (h) appendRowsText(h, [[bid, str(r[B.ID]), str(r[B.NAME]), str(r[B.FAC]), normDate(r[B.DATE]), normTime(r[B.TIME]), reason, isAdmin ? 'Admin' : 'Student', ts]]);
-    return ok('Booking cancelled.');
-  });
-}
-
-function markStatus(uid, bookingId, status) {
-  if (status !== 'Done' && status !== 'Not Done') return fail('Invalid status.');
-  return withLock(() => {
-    const rows = readRows(SHEET_BOOKINGS, BCOLS), i = rows.findIndex(r => str(r[B.BID]) === str(bookingId));
-    if (i < 0 || str(rows[i][B.ID]) !== uid) return fail('Booking not found.');
-    const r = rows[i];
-    if (str(r[B.STATUS]) !== 'Booked') return fail('Only active bookings can be marked.');
-    const cur = str(r[B.DONE]) || 'Pending'; if (cur !== 'Pending') return fail('This session is already marked as ' + cur);
-    const date = normDate(r[B.DATE]);
-    if (dateObj(date) < startOfToday()) return fail('This session is already marked as Not Joined');
-    const start = slotStart(date, normTime(r[B.TIME])); if (start && start > new Date()) return fail('You can mark the session only after it starts.');
-    sheet(SHEET_BOOKINGS).getRange(i + 2, B.DONE + 1).setValue(status);
-    return ok('Marked as ' + status);
-  });
-}
-
-// ---------------- admin: bookings ----------------
-function adminBookings() {
-  const today = startOfToday();
-  const out = readRows(SHEET_BOOKINGS, BCOLS).filter(r => str(r[B.ID])).map(r => {
-    const date = normDate(r[B.DATE]);
-    return { studentId: str(r[B.ID]), name: str(r[B.NAME]), branch: str(r[B.BRANCH]), faculty: str(r[B.FAC]), date: date, time: normTime(r[B.TIME]),
-      category: str(r[B.CAT]), status: str(r[B.STATUS]), bookingId: str(r[B.BID]), meetingLink: str(r[B.LINK]), targetYear: str(r[B.YEAR]), batchName: str(r[B.BATCH]),
-      isDone: effDone(r, dateObj(date) || new Date(0), today), email: str(r[B.EMAIL]), phone: str(r[B.PHONE]), query: str(r[B.QUERY]) };
-  });
-  return { success: true, data: out.reverse() };
-}
-
-function adminUtilization() {
-  const rows = readRows(SHEET_BOOKINGS, BCOLS), today = startOfToday(), map = {};
-  rows.forEach(r => {
-    if (!str(r[B.ID])) return;
-    const d = dateObj(normDate(r[B.DATE])); if (!d) return;
-    const key = pad(d.getMonth() + 1) + '/' + d.getFullYear();
-    if (!map[key]) map[key] = { month: key, booked: 0, done: 0, notJoined: 0, notDone: 0, cancelled: 0, total: 0 };
-    const s = str(r[B.STATUS]), eff = effDone(r, d, today);
-    map[key].total++;
-    if (s === 'Cancelled') { map[key].cancelled++; return; }
-    if (s === 'Booked') {
-      map[key].booked++;
-      if (eff === 'Done') map[key].done++; else if (eff === 'Not Joined') map[key].notJoined++; else if (eff === 'Not Done') map[key].notDone++;
-    }
-  });
-  const arr = Object.values(map).sort((a, b) => { const pa = a.month.split('/'), pb = b.month.split('/'); return (pb[1] + pb[0]).localeCompare(pa[1] + pa[0]); });
-  return { success: true, data: arr };
-}
-
-const validLink = l => !l || /^https?:\/\/\S+$/i.test(l);
-function updateMeetingLink(bookingId, link) {
-  link = str(link);
-  if (!validLink(link)) return fail('Link must start with http:// or https://');
-  return withLock(() => {
-    const rows = readRows(SHEET_BOOKINGS, BCOLS), i = rows.findIndex(r => str(r[B.BID]) === str(bookingId) && str(r[B.STATUS]) === 'Booked');
-    if (i < 0) return fail('Booking not found.');
-    sheet(SHEET_BOOKINGS).getRange(i + 2, B.LINK + 1).setNumberFormat('@').setValue(link);
-    return ok(link ? 'Meeting link updated successfully.' : 'Meeting link deleted.');
-  });
-}
-// bulk: set the same link on many bookings (empty link = delete link). One sheet write for everything.
-function adminBulkLink(bookingIds, link) {
-  link = str(link);
-  if (!Array.isArray(bookingIds) || !bookingIds.length) return fail('No bookings selected.');
-  if (!validLink(link)) return fail('Link must start with http:// or https://');
-  return withLock(() => {
-    const sh = sheet(SHEET_BOOKINGS), last = sh.getLastRow(); if (last < 2) return fail('No bookings.');
-    const n = last - 1, ids = sh.getRange(2, B.BID + 1, n, 1).getValues(), st = sh.getRange(2, B.STATUS + 1, n, 1).getValues();
-    const rg = sh.getRange(2, B.LINK + 1, n, 1), links = rg.getValues(), want = {};
-    bookingIds.forEach(b => want[str(b)] = 1);
-    let done = 0;
-    for (let i = 0; i < n; i++) if (want[str(ids[i][0])] && str(st[i][0]) === 'Booked') { links[i][0] = link; done++; }
-    if (done) { rg.setNumberFormat('@'); rg.setValues(links); }
-    const skipped = bookingIds.length - done;
-    return ok((link ? done + ' link(s) updated' : done + ' link(s) deleted') + (skipped ? ', ' + skipped + ' skipped (not active).' : '.'));
-  });
-}
-
-function validNewSlot(newDate, newTime) {
-  const date = normDate(newDate), time = normTime(newTime);
-  if (!dateObj(date)) return { err: 'Invalid date.' };
-  if (!/^\d{1,2}:\d{2} (AM|PM)$/.test(time)) return { err: 'Invalid time format.' };
-  const st = slotStart(date, time); if (!st || st <= new Date()) return { err: 'New slot time is in the past.' };
-  return { date: date, time: time };
-}
-
-// admin reschedule: admin can move a booking to any future date/time (slot capacity is not enforced for admin)
-function adminRescheduleBooking(bookingId, newDate, newTime) {
-  const v = validNewSlot(newDate, newTime); if (v.err) return fail(v.err);
-  return withLock(() => {
-    const sh = sheet(SHEET_BOOKINGS), rows = readRows(SHEET_BOOKINGS, BCOLS);
-    const i = rows.findIndex(r => str(r[B.BID]) === str(bookingId) && str(r[B.STATUS]) === 'Booked');
-    if (i < 0) return fail('Booking not found or not active.');
-    const uid = str(rows[i][B.ID]);
-    const clash = rows.some((x, j) => j !== i && str(x[B.ID]) === uid && str(x[B.STATUS]) === 'Booked' && normDate(x[B.DATE]) === v.date);
-    if (clash) return fail('This student already has another booking on that date.');
-    const rg = sh.getRange(i + 2, B.DATE + 1, 1, 2); rg.setNumberFormat('@'); rg.setValues([[v.date, v.time]]);
-    return ok('Booking rescheduled successfully.');
-  });
-}
-
-function adminBulkReschedule(bookingIds, newDate, newTime) {
-  if (!Array.isArray(bookingIds) || !bookingIds.length) return fail('No bookings selected.');
-  const v = validNewSlot(newDate, newTime); if (v.err) return fail(v.err);
-  return withLock(() => {
-    const sh = sheet(SHEET_BOOKINGS), rows = readRows(SHEET_BOOKINGS, BCOLS);
-    if (!rows.length) return fail('No bookings.');
-    const idMap = {}, onDate = {};
-    rows.forEach((r, idx) => {
-      if (str(r[B.BID])) idMap[str(r[B.BID])] = idx;
-      if (str(r[B.STATUS]) === 'Booked') onDate[str(r[B.ID]) + '|' + normDate(r[B.DATE])] = 1;
-    });
-    const dt = rows.map(r => [normDate(r[B.DATE]), normTime(r[B.TIME])]);
-    let done = 0, skipped = 0;
-    for (const bid of bookingIds) {
-      const i = idMap[str(bid)]; if (i == null) { skipped++; continue; }
-      const r = rows[i]; if (str(r[B.STATUS]) !== 'Booked') { skipped++; continue; }
-      const uid = str(r[B.ID]), oldDate = dt[i][0];
-      if (oldDate === v.date && dt[i][1] === v.time) { skipped++; continue; }
-      if (oldDate !== v.date && onDate[uid + '|' + v.date]) { skipped++; continue; }
-      delete onDate[uid + '|' + oldDate]; onDate[uid + '|' + v.date] = 1;
-      dt[i] = [v.date, v.time]; done++;
-    }
-    if (done) { const rg = sh.getRange(2, B.DATE + 1, rows.length, 2); rg.setNumberFormat('@'); rg.setValues(dt); }
-    return ok(done + ' booking(s) updated' + (skipped ? ', ' + skipped + ' skipped (inactive / same slot / same-day clash for that student).' : '.'));
-  });
-}
-
-function clearAllBookings() {
-  return withLock(() => {
-    const sh = sheet(SHEET_BOOKINGS), last = sh.getLastRow(); if (last < 2) return ok('No bookings to clear.');
-    const n = last - 1, vals = sh.getRange(2, 1, n, BCOLS).getValues(), ts = timestamp();
-    let arc = sheet(SHEET_ARCHIVE);
-    if (!arc) { arc = SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_ARCHIVE); arc.appendRow(['(same columns as Bookings)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'ArchivedAt']); }
-    appendRowsText(arc, vals.filter(r => str(r[0])).map(r => r.map(v => v instanceof Date ? normDate(v) : v).concat([ts])));
-    sh.getRange(2, 1, n, sh.getMaxColumns()).clearContent();
-    return ok(n + ' bookings cleared (backup saved in "' + SHEET_ARCHIVE + '" sheet).');
-  });
-}
-
-// ---------------- master data (cached 15 min) ----------------
-function bustMaster() { cache().remove('master'); }
-function listCol(name) { return readRows(name, 1).map(r => str(r[0])).filter(Boolean); }
-function ensureYears() {
-  const sh = getOrMake(SHEET_YEARS, ['TargetYear']);
-  if (sh.getLastRow() < 2) appendRowsText(sh, DEFAULT_YEARS.map(y => [y]));
-}
-function getMaster() {
-  const c = cache(), raw = c.get('master');
-  if (raw) return { success: true, data: JSON.parse(raw) };
-  ensureYears();
-  const data = {
-    categories: listCol('Categories'), branches: listCol('Branches'),
-    targetYears: listCol(SHEET_YEARS).sort(),
-    faculties: readRows(SHEET_FACULTIES, 4).filter(r => str(r[1])).map(r => ({ name: str(r[1]), branch: str(r[2]), category: str(r[3]) || 'General' }))
-  };
-  c.put('master', JSON.stringify(data), 900); return { success: true, data: data };
-}
-function addSimple(sheetName, val, label) {
-  val = str(val); if (!val) return fail('Enter a name.');
-  return withLock(() => {
-    if (listCol(sheetName).some(x => x.toLowerCase() === val.toLowerCase())) return fail(label + ' already exists.');
-    appendRowsText(sheet(sheetName), [[val]]); bustMaster(); return ok(label + ' added.');
-  });
-}
-function removeSimple(sheetName, val, label) {
-  return withLock(() => {
-    const sh = sheet(sheetName), rows = readRows(sheetName, 1);
-    for (let i = rows.length - 1; i >= 0; i--) if (str(rows[i][0]) === str(val)) sh.deleteRow(i + 2);
-    bustMaster(); return ok(label + ' removed.');
-  });
-}
-function addTargetYear(v) {
-  v = str(v); if (!v || v.length > 12) return fail('Enter a valid target year.');
-  ensureYears(); return addSimple(SHEET_YEARS, v, 'Target year');
-}
-function removeTargetYear(v) { ensureYears(); return removeSimple(SHEET_YEARS, v, 'Target year'); }
-function renameTargetYear(oldV, newV) {
-  oldV = str(oldV); newV = str(newV);
-  if (!newV || newV.length > 12) return fail('Enter a valid target year.');
-  ensureYears();
-  return withLock(() => {
-    const rows = readRows(SHEET_YEARS, 1), i = rows.findIndex(r => str(r[0]) === oldV);
-    if (i < 0) return fail('Target year not found.');
-    if (newV !== oldV && rows.some(r => str(r[0]) === newV)) return fail('That target year already exists.');
-    sheet(SHEET_YEARS).getRange(i + 2, 1).setNumberFormat('@').setValue(newV); bustMaster();
-    return ok('Target year updated in the list. (Students who already saved a profile keep their saved year.)');
-  });
-}
-function addFaculty(name, branch, category) {
-  name = str(name); if (!name || !str(branch) || !str(category)) return fail('Fill all fields.');
-  return withLock(() => {
-    if (readRows(SHEET_FACULTIES, 4).some(r => str(r[1]) === name && str(r[2]) === str(branch))) return fail('Faculty already exists in this branch.');
-    appendRowsText(sheet(SHEET_FACULTIES), [['', name, str(branch), str(category)]]); bustMaster(); return ok('Faculty added.');
-  });
-}
-function removeFaculty(name) {
-  return withLock(() => {
-    const sh = sheet(SHEET_FACULTIES), rows = readRows(SHEET_FACULTIES, 4);
-    for (let i = rows.length - 1; i >= 0; i--) if (str(rows[i][1]) === str(name)) sh.deleteRow(i + 2);
-    bustMaster(); return ok('Faculty removed.');
-  });
-}
-
-// ---------------- admin: slots ----------------
-function getSlotsAdmin() {
-  const booked = bookedMap(), out = [];
-  readRows(SHEET_SLOTS, 7).forEach((r, i) => {
-    const fac = str(r[0]), date = normDate(r[2]);
-    for (let c = 3; c <= 5; c++) {
-      if (!r[c]) continue;
-      const time = normTime(r[c]), st = slotStart(date, time);
-      out.push({ row: i + 2, faculty: fac, branch: str(r[1]), date: date, time: time, booked: booked[fac + '|' + date + '|' + time] || 0, capacity: capOf(r[6]), _t: st ? st.getTime() : 0 });
-    }
-  });
-  out.sort((a, b) => a._t - b._t); out.forEach(o => delete o._t);
-  return { success: true, data: out };
-}
-function slotRowOk(sh, row, sig) {
-  row = Number(row); if (!row || row < 2 || row > sh.getLastRow()) return false;
-  const r = sh.getRange(row, 1, 1, 7).getValues()[0];
-  return (str(r[0]) + '|' + normDate(r[2]) + '|' + normTime(r[3])) === sig;
-}
-function updateSlotCapacity(row, sig, cap) {
-  cap = Number(cap); if (!Number.isInteger(cap) || cap < 0 || cap > 1000) return fail('Capacity must be a whole number (0 or more).');
-  return withLock(() => {
-    const sh = sheet(SHEET_SLOTS); if (!slotRowOk(sh, row, sig)) return fail('Slots changed. Please refresh and try again.');
-    sh.getRange(Number(row), 7).setValue(cap); bumpSlots(); return ok('Capacity updated.');
-  });
-}
-function deleteSlot(row, sig) {
-  return withLock(() => {
-    const sh = sheet(SHEET_SLOTS); if (!slotRowOk(sh, row, sig)) return fail('Slots changed. Please refresh and try again.');
-    sh.deleteRow(Number(row)); bumpSlots(); return ok('Slot deleted.');
-  });
-}
-function bulkDeleteSlots(items) {
-  if (!Array.isArray(items) || !items.length) return fail('No slots selected.');
-  return withLock(() => {
-    const sh = sheet(SHEET_SLOTS);
-    const list = items.map(x => ({ row: Number(x.row), sig: str(x.sig) })).filter(x => x.row >= 2).sort((a, b) => b.row - a.row);
-    let done = 0, skipped = 0, prev = -1;
-    list.forEach(x => {
-      if (x.row === prev || !slotRowOk(sh, x.row, x.sig)) { skipped++; return; }
-      sh.deleteRow(x.row); done++; prev = x.row;
-    });
-    bumpSlots();
-    return ok(done + ' slot(s) deleted' + (skipped ? ', ' + skipped + ' skipped (changed - refresh and retry).' : '.'));
-  });
-}
-function addSlot(d) {
-  const fname = str(d.faculty); if (!fname) return fail('Select a faculty.');
-  const v = validNewSlot(d.date, d.time); if (v.err) return fail(v.err);
-  let cap = '';
-  if (str(d.capacity) !== '') { cap = Number(d.capacity); if (!Number.isInteger(cap) || cap < 0 || cap > 1000) return fail('Capacity must be a whole number (0 or more).'); }
-  return withLock(() => {
-    const fac = readRows(SHEET_FACULTIES, 4).find(r => str(r[1]) === fname);
-    if (!fac) return fail('Faculty not found in Faculty List.');
-    const key = fname + '|' + v.date + '|' + v.time;
-    if (readRows(SHEET_SLOTS, 7).some(r => { for (let c = 3; c <= 5; c++) if (r[c] && str(r[0]) + '|' + normDate(r[2]) + '|' + normTime(r[c]) === key) return true; return false; }))
-      return fail('This slot already exists.');
-    appendRowsText(sheet(SHEET_SLOTS), [[fname, str(fac[2]), v.date, v.time, '', '', cap]]); bumpSlots();
-    return ok('Slot added: ' + fname + ' - ' + v.date + ' ' + v.time);
-  });
-}
-function uploadSlotsCSV(csv) {
-  return withLock(() => {
-    const sh = sheet(SHEET_SLOTS), have = {}, facs = readRows(SHEET_FACULTIES, 4).filter(r => str(r[1]));
-    readRows(SHEET_SLOTS, 7).forEach(r => { for (let c = 3; c <= 5; c++) if (r[c]) have[str(r[0]) + '|' + normDate(r[2]) + '|' + normTime(r[c])] = 1; });
-    const add = [], why = []; let skipped = 0;
-    const skip = m => { skipped++; if (why.length < 5) why.push(m); };
-    csvRows(csv).forEach((p, idx) => {
-      if (idx === 0 && /faculty|name/i.test(p[0])) return;
-      const line = idx + 1;
-      if (p.length < 4 || !p[0]) { skip('Row ' + line + ': needs Faculty, Branch, Date, Slot1'); return; }
-      const date = normDate(p[2]), dd = dateObj(date);
-      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date) || !dd || normDate(dd) !== date) { skip('Row ' + line + ': invalid date "' + p[2] + '"'); return; }
-      const cands = facs.filter(r => str(r[1]).toLowerCase() === p[0].toLowerCase());
-      if (!cands.length) { skip('Row ' + line + ': faculty "' + p[0] + '" is not in Faculty List'); return; }
-      const f = cands.find(r => str(r[2]).toLowerCase() === p[1].toLowerCase()) || cands[0], fname = str(f[1]), fbranch = str(f[2]);
-      p.slice(3).filter(Boolean).forEach(t => {
-        const time = normTime(t), k = fname + '|' + date + '|' + time;
-        if (!/^\d{1,2}:\d{2} (AM|PM)$/.test(time)) { skip('Row ' + line + ': invalid time "' + t + '"'); return; }
-        if (have[k]) { skip('Row ' + line + ': duplicate slot'); return; }
-        have[k] = 1; add.push([fname, fbranch, date, time, '', '', '']);
-      });
-    });
-    appendRowsText(sh, add); if (add.length) bumpSlots();
-    return ok(add.length + ' slots uploaded' + (skipped ? ', ' + skipped + ' skipped. ' + why.join(' | ') : '.'));
-  });
-}
-
-// ---------------- admin: users / students / settings ----------------
-function adminUploadUsersCSV(csv) {
-  return withLock(() => {
-    const sh = sheet(SHEET_USERS), haveId = {}, havePh = {};
-    readRows(SHEET_USERS, 2).forEach(r => { haveId[str(r[0])] = 1; havePh[normPhone(r[1])] = 1; });
-    const add = []; let skipped = 0;
-    csvRows(csv).forEach((p, idx) => {
-      if (idx === 0 && /user|id/i.test(p[0])) return;
-      const ph = normPhone(p[1]);
-      if (p.length < 3 || !p[0] || ph.length !== 10 || haveId[p[0]] || havePh[ph] || isAdminPhone(ph)) { skipped++; return; }
-      haveId[p[0]] = 1; havePh[ph] = 1; add.push([p[0], p[1], p[2], '']);
-    });
-    appendRowsText(sh, add); bustUsers();
-    return ok(add.length + ' users uploaded' + (skipped ? ', ' + skipped + ' skipped (invalid / duplicate ID or phone).' : ' successfully.'));
-  });
-}
-function addUser(d) {
-  const id = str(d.id), ph = normPhone(d.phone), branch = str(d.branch), name = str(d.name);
-  if (!id || ph.length !== 10 || !branch) return fail('User ID, 10-digit phone and branch are required.');
-  return withLock(() => {
-    const rows = readRows(SHEET_USERS, 2);
-    if (rows.some(r => str(r[0]) === id)) return fail('This User ID already exists.');
-    if (rows.some(r => normPhone(r[1]) === ph)) return fail('This phone number is already used by another user.');
-    if (isAdminPhone(ph)) return fail('This phone number belongs to an admin.');
-    appendRowsText(sheet(SHEET_USERS), [[id, ph, branch, name]]); bustUsers();
-    return ok('User added.');
-  });
-}
-function getUsersAdmin() {
-  const blocked = blockedSet(), prof = {}, cat = {};
-  readRows(SHEET_PROFILES, 7).forEach(r => { const id = str(r[0]); if (id) prof[id] = { name: str(r[1]), year: str(r[4]) }; });
-  readCols(SHEET_BOOKINGS, 1, 7).forEach(r => { const id = str(r[0]); if (id) cat[id] = str(r[6]); });   // latest booking wins
-  return { success: true, data: readRows(SHEET_USERS, 4).filter(r => str(r[0])).map(r => {
-    const id = str(r[0]), p = prof[id];
-    return { id: id, phone: str(r[1]), branch: str(r[2]), name: str(r[3]) || (p ? p.name : ''), year: p ? p.year : '', category: cat[id] || '', blocked: !!blocked[id] };
-  }) };
-}
-function userRow(id) { const i = readRows(SHEET_USERS, 1).findIndex(r => str(r[0]) === str(id)); return i < 0 ? 0 : i + 2; }
-function deleteUser(id) { return withLock(() => { const r = userRow(id); if (!r) return fail('User not found.'); sheet(SHEET_USERS).deleteRow(r); bustUsers(); return ok('User removed.'); }); }
-function bulkDeleteUsers(ids) {
-  if (!Array.isArray(ids) || !ids.length) return fail('No users selected.');
-  if (ids.length > 3000) return fail('Too many users in one request.');
-  return withLock(() => {
-    const sh = sheet(SHEET_USERS), rows = readRows(SHEET_USERS, 1), set = {};
-    ids.forEach(i => set[str(i)] = 1);
-    let n = 0;
-    for (let i = rows.length - 1; i >= 0; i--) if (set[str(rows[i][0])]) { sh.deleteRow(i + 2); n++; }
-    bustUsers(); return ok(n + ' user(s) removed.');
-  });
-}
-function updateUser(id, phone, branch, name) {
-  const np = normPhone(phone); if (np.length !== 10) return fail('Enter a valid 10-digit phone number.');
-  return withLock(() => {
-    const r = userRow(id); if (!r) return fail('User not found.');
-    if (readRows(SHEET_USERS, 2).some(x => str(x[0]) !== str(id) && normPhone(x[1]) === np)) return fail('This phone number is already used by another user.');
-    if (isAdminPhone(np)) return fail('This phone number belongs to an admin.');
-    const rg = sheet(SHEET_USERS).getRange(r, 2, 1, 3); rg.setNumberFormat('@'); rg.setValues([[str(phone), str(branch), str(name)]]);
-    bustUsers();
-    return ok('User updated.');
-  });
-}
-
-function blockStudent(id, note) {
-  return withLock(() => {
-    const uid = str(id); if (!uid) return fail('Invalid ID.');
-    if (!userRow(uid)) return fail('User not found.');
-    if (isStudentBlocked(uid)) return fail('Already blocked.');
-    appendRowsText(sheet(SHEET_BLOCKED), [[uid, timestamp(), 'Admin', str(note)]]); bustBlocked();
-    return ok('Student access blocked.');
-  });
-}
-function unblockStudent(id) {
-  return withLock(() => {
-    const sh = sheet(SHEET_BLOCKED), uid = str(id), rows = readRows(SHEET_BLOCKED, 4);
-    for (let i = rows.length - 1; i >= 0; i--) if (str(rows[i][0]) === uid) sh.deleteRow(i + 2);
-    bustBlocked(); return ok('Student access restored.');
-  });
-}
-
-function getKnowYourStudents() {
-  const blocked = blockedSet(), cat = {};
-  readCols(SHEET_BOOKINGS, 1, 7).forEach(r => { const id = str(r[0]); if (id) cat[id] = str(r[6]); }); // latest booking wins
-  return { success: true, data: readRows(SHEET_PROFILES, 7).filter(r => str(r[0])).map(r => ({
-    id: str(r[0]), name: str(r[1]), branch: str(r[2]), batch: str(r[3]), year: str(r[4]), phone: str(r[5]), category: cat[str(r[0])] || '', blocked: !!blocked[str(r[0])]
-  })) };
-}
-
-// ---------------- settings + co-admins ----------------
-function getGlobalSettings(main) {
-  const d = { limit: getConfig('GlobalMonthlyLimit', '3'), capacity: getConfig('SlotCapacity', '6'), telegram: getConfig('TelegramLink', ''),
-              reportEmail: getConfig('ReportEmail', ''), reportEnabled: getConfig('ReportEnabled', 'true') };
-  if (main) { d.adminId = getConfig('AdminID', DEFAULT_ADMIN_ID); d.adminPhone = getConfig('AdminPhone', DEFAULT_ADMIN_PHONE); d.adminCode = getConfig('AdminCode', DEFAULT_ADMIN_CODE); }
-  return { success: true, data: d, main: !!main };
-}
-function updateSettings(d, s) {
-  const main = !!s.main, limit = Number(d.limit), cap = Number(d.capacity);
-  if (!Number.isInteger(limit) || limit < 0) return fail('Monthly limit must be a whole number.');
-  if (!Number.isInteger(cap) || cap < 1) return fail('Slot capacity must be at least 1.');
-  if (str(d.telegram) && !/^https?:\/\//i.test(str(d.telegram))) return fail('Telegram link must start with http(s)://');
-  if (main && str(d.adminCode) && str(d.adminCode).length < 4) return fail('Security code must be at least 4 characters.');
-  return withLock(() => {
-    setConfig('GlobalMonthlyLimit', limit); setConfig('SlotCapacity', cap); setConfig('TelegramLink', str(d.telegram));
-    if (main) {
-      if (str(d.adminId)) setConfig('AdminID', str(d.adminId));
-      if (str(d.adminPhone)) setConfig('AdminPhone', normPhone(d.adminPhone));
-      if (str(d.adminCode)) setConfig('AdminCode', str(d.adminCode));
-    }
-    if (d.reportEmail !== undefined) setConfig('ReportEmail', str(d.reportEmail));
-    if (d.reportEnabled !== undefined) setConfig('ReportEnabled', str(d.reportEnabled));
-    bumpSlots();
-    return ok('Settings updated successfully.');
-  });
-}
-function getCoAdminList() { return { success: true, data: coAdmins().map(c => ({ name: c.name, phone: c.phone })) }; }
-function addCoAdmin(d) {
-  const ph = normPhone(d.phone), code = str(d.code), name = str(d.name) || 'Co-Admin';
-  if (ph.length !== 10) return fail('Enter a valid 10-digit phone number.');
-  if (code.length < 4) return fail('Security code must be at least 4 characters.');
-  return withLock(() => {
-    if (ph === normPhone(getConfig('AdminPhone', DEFAULT_ADMIN_PHONE))) return fail('This is already the main admin number.');
-    if (readRows(SHEET_COADMINS, 1).some(r => normPhone(r[0]) === ph)) return fail('This co-admin already exists.');
-    bustUsers(); if (usersMap().byPhone[ph]) return fail('This number is registered as a student. Remove the student first.');
-    appendRowsText(getOrMake(SHEET_COADMINS, ['Phone', 'SecurityCode', 'Name', 'AddedAt']), [[ph, code, name, timestamp()]]);
-    bustCoAdmins(); return ok('Co-admin added.');
-  });
-}
-function removeCoAdmin(phone) {
-  const ph = normPhone(phone);
-  return withLock(() => {
-    const sh = sheet(SHEET_COADMINS); if (!sh) return fail('Co-admin not found.');
-    const rows = readRows(SHEET_COADMINS, 1); let n = 0;
-    for (let i = rows.length - 1; i >= 0; i--) if (normPhone(rows[i][0]) === ph) { sh.deleteRow(i + 2); n++; }
-    bustCoAdmins(); return n ? ok('Co-admin removed.') : fail('Co-admin not found.');
-  });
-}
-
-// ---------------- speed test (run from the editor: speedTest, then View > Logs) ----------------
-function perfProbe() {
-  const out = [], t = (name, fn) => { const s = Date.now(); let note = ''; try { fn(); } catch (e) { note = String(e.message); } out.push({ name: name, ms: Date.now() - s, note: note }); };
-  const users = readRows(SHEET_USERS, 2), uid = str((users[0] || [])[0]), ph = normPhone((users[0] || [])[1]);
-  const f = readRows(SHEET_FACULTIES, 4).find(r => str(r[1])), fac = f ? str(f[1]) : '';
-  t('Student login lookup', () => { const m = usersMap(); return m.byPhone[ph]; });
-  t('Student profile + session', () => { getProfile(uid); });
-  t('Load faculty slots (student)', () => { getSlots(fac); });
-  t('Student dashboard / schedule', () => { studentDashboard(uid); });
-  t('Booking pre-check read (A:H)', () => { readCols(SHEET_BOOKINGS, 1, 8); });
-  t('Master data (dropdowns)', () => { getMaster(); });
-  t('Write lock acquire', () => { const l = LockService.getScriptLock(); l.waitLock(5000); l.releaseLock(); });
-  t('Admin: all bookings list', () => { adminBookings(); });
-  t('Admin: slots list', () => { getSlotsAdmin(); });
-  return out;
-}
-function speedTest() {
-  const runs = 3, agg = {};
-  for (let i = 0; i < runs; i++) perfProbe().forEach(p => { (agg[p.name] = agg[p.name] || []).push(p.ms); });
-  const lines = ['GATE Pro speed test (' + runs + ' runs each, server-side time only)'];
-  Object.keys(agg).forEach(k => {
-    const a = agg[k], avg = Math.round(a.reduce((x, y) => x + y, 0) / a.length);
-    lines.push(k + ': avg ' + avg + ' ms, max ' + Math.max.apply(null, a) + ' ms  ->  ' + (avg < 800 ? 'FAST' : avg < 2000 ? 'OK' : 'SLOW'));
-  });
-  lines.push('Bookings rows: ' + readCols(SHEET_BOOKINGS, 1, 1).length + ' | Users: ' + readCols(SHEET_USERS, 1, 1).length);
-  Logger.log(lines.join('\n')); return lines;
-}
-
-// ---------------- daily health report ----------------
-function buildReport() {
-  const checks = [], info = [];
-  const add = (area, name, lvl, detail, fix) => checks.push({ area: area, name: name, lvl: lvl, detail: String(detail), fix: fix || '' });
-  const safe = (area, fn) => { try { fn(); } catch (err) { const p = parseStack(err); add(area, 'Check crashed', 'fail', err.message + ' (function ' + p.fn + ', line ' + p.line + ')', 'See Apps Script > Executions'); logError('Backend', p.fn, p.line, err.message, 'report:' + area); } };
-  const now = new Date(), today = startOfToday(), dayAgo = new Date(now.getTime() - 86400000);
-
-  safe('Google Sheet', () => {
-    ['Users','Bookings','Config','Profiles','Slots','Faculties','BlockedUsers','Categories','Branches'].forEach(n =>
-      add('Google Sheet', 'Sheet: ' + n, sheet(n) ? 'ok' : 'fail', sheet(n) ? 'Present' : 'Sheet is missing', 'Run setupSheets() once in the Apps Script editor'));
-  });
-  safe('Config', () => {
-    const key = str(getConfig('ApiKey', ''));
-    add('Config', 'ApiKey', key && key.indexOf('CHANGE_ME') !== 0 ? 'ok' : 'fail', key ? (key.indexOf('CHANGE_ME') === 0 ? 'Still the default placeholder' : 'Configured') : 'Missing', 'Run forceFix() or set ApiKey in Config sheet');
-    add('Config', 'AdminID', getConfig('AdminID', '') ? 'ok' : 'fail', getConfig('AdminID', '') ? 'Set' : 'Missing', 'Add AdminID in Config sheet');
-    add('Config', 'SlotCapacity', Number(getConfig('SlotCapacity', '0')) > 0 ? 'ok' : 'fail', String(getConfig('SlotCapacity', '')) || 'Missing', 'Set a number > 0 in System Settings');
-    add('Config', 'Monthly limit', Number(getConfig('GlobalMonthlyLimit', '0')) > 0 ? 'ok' : 'warn', String(getConfig('GlobalMonthlyLimit', '')) || 'Missing', 'Set monthly limit in System Settings');
-    add('Config', 'Report email', str(getConfig('ReportEmail', '')) ? 'ok' : 'warn', str(getConfig('ReportEmail', '')) || 'Not set', 'Set Report Email in System Settings');
-  });
-  let bAll = [];
-  safe('Data', () => {
-    bAll = readRows(SHEET_BOOKINGS, BCOLS).filter(r => str(r[0]));
-    const nUsers = readRows(SHEET_USERS, 1).filter(r => str(r[0])).length, nProf = readRows(SHEET_PROFILES, 1).filter(r => str(r[0])).length;
-    const facs = readRows(SHEET_FACULTIES, 4).filter(r => str(r[1])), facNames = {}; facs.forEach(r => facNames[str(r[1]).toLowerCase()] = 1);
-    add('Data', 'Users registered', nUsers > 0 ? 'ok' : 'fail', nUsers + ' rows', 'Upload users in Add Users');
-    add('Data', 'Profiles completed', nProf > 0 ? 'ok' : 'warn', nProf + ' rows', 'Students create profiles on first login');
-    add('Data', 'Faculties', facs.length > 0 ? 'ok' : 'fail', facs.length + ' rows', 'Add faculties in Faculty List');
-    add('Data', 'Branches', listCol('Branches').length > 0 ? 'ok' : 'fail', listCol('Branches').length + ' rows', 'Add branches in Category & Branches');
-    add('Data', 'Categories', listCol('Categories').length > 0 ? 'ok' : 'fail', listCol('Categories').length + ' rows', 'Add categories in Category & Branches');
-    add('Data', 'Target years', listCol(SHEET_YEARS).length > 0 ? 'ok' : 'warn', listCol(SHEET_YEARS).join(', ') || 'None', 'Add target years in Category & Branches');
-    // slots
-    const slotRows = readRows(SHEET_SLOTS, 7); let total = 0, upcoming = 0, unknown = 0; const withSlots = {};
-    slotRows.forEach(r => { for (let c = 3; c <= 5; c++) { if (!r[c]) continue; total++;
-      const st = slotStart(normDate(r[2]), normTime(r[c])); if (st && st > now) { upcoming++; withSlots[str(r[0]).toLowerCase()] = 1; }
-      if (!facNames[str(r[0]).toLowerCase()]) unknown++; } });
-    if (slotRows.length === 0) add('Data', 'Slots', 'fail', '0 rows in Slots sheet - students cannot book anything', 'Upload slots CSV or use "Add Particular Slot" in Manage Slots');
-    else if (upcoming === 0) add('Data', 'Slots', 'fail', total + ' slots exist but all are in the past - students cannot book', 'Upload / add new upcoming slots in Manage Slots');
-    else add('Data', 'Slots', 'ok', upcoming + ' upcoming slots (' + total + ' total)', '');
-    if (unknown) add('Data', 'Slots - unknown faculty', 'warn', unknown + ' slot(s) use a faculty name that is not in Faculty List (students will not see them)', 'Fix the faculty name / add the faculty');
-    const noSlots = facs.map(r => str(r[1])).filter(n => !withSlots[n.toLowerCase()]);
-    if (upcoming > 0 && noSlots.length) add('Data', 'Faculties without upcoming slots', 'warn', noSlots.slice(0, 6).join(', ') + (noSlots.length > 6 ? ' +' + (noSlots.length - 6) + ' more' : ''), 'Add slots for these faculties');
-    // booking integrity
-    const seen = {}; let dup = 0, over = 0; const cnt = {};
-    bAll.forEach(r => { const id = str(r[B.BID]); if (id) { if (seen[id]) dup++; seen[id] = 1; }
-      if (str(r[B.STATUS]) === 'Booked') { const k = str(r[B.FAC]) + '|' + normDate(r[B.DATE]) + '|' + normTime(r[B.TIME]); cnt[k] = (cnt[k] || 0) + 1; } });
-    const cap = {}; slotRows.forEach(r => { for (let c = 3; c <= 5; c++) if (r[c]) cap[str(r[0]) + '|' + normDate(r[2]) + '|' + normTime(r[c])] = capOf(r[6]); });
-    Object.keys(cnt).forEach(k => { if (cap[k] != null && cnt[k] > cap[k]) over++; });
-    add('Data', 'Booking IDs unique', dup ? 'fail' : 'ok', dup ? dup + ' duplicate booking ID(s)' : 'No duplicates', 'Check Bookings sheet for repeated BookingID');
-    add('Data', 'Slot overbooking', over ? 'warn' : 'ok', over ? over + ' slot(s) above capacity (capacity lowered after booking, or admin reschedule)' : 'None', 'Review in Manage Slots');
-    // activity
-    const todayN = bAll.filter(r => { const d = dateObj(normDate(r[B.DATE])); return d && d.getTime() === today.getTime() && str(r[B.STATUS]) === 'Booked'; }).length;
-    const made24 = bAll.filter(r => { const t = parseTs(r[B.TS]); return t && t > dayAgo; }).length;
-    const canc24 = bAll.filter(r => { const t = parseTs(r[B.CTS]); return t && t > dayAgo; }).length;
-    const cur = adminUtilization().data.find(x => x.month === pad(today.getMonth() + 1) + '/' + today.getFullYear());
-    info.push(['Total bookings (all time)', bAll.length], ['Sessions today (active)', todayN], ['New bookings (last 24h)', made24], ['Cancellations (last 24h)', canc24],
-      ['This month', cur ? 'Booked ' + cur.booked + ' | Done ' + cur.done + ' | Not Joined ' + cur.notJoined + ' | Cancelled ' + cur.cancelled : 'No data'],
-      ['Blocked students', Object.keys(blockedSet()).length], ['Co-admins', coAdmins().length]);
-  });
-  safe('Automation', () => {
-    const trig = ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'sendDailyReport').length;
-    add('Automation', 'Daily report trigger', trig ? 'ok' : 'warn', trig + ' trigger(s) installed', 'Run installTriggers() once');
-    const q = MailApp.getRemainingDailyQuota();
-    add('Automation', 'Mail quota left today', q > 10 ? 'ok' : 'warn', String(q), 'Quota resets daily');
-  });
-  safe('Performance', () => {
-    perfProbe().forEach(p => add('Performance', p.name, p.note ? 'fail' : (p.ms > 4000 ? 'fail' : p.ms > 2000 ? 'warn' : 'ok'), p.note ? p.note : p.ms + ' ms',
-      p.ms > 2000 ? 'Sheet is getting large - archive old bookings (Clear All Bookings backs up first)' : ''));
-  });
-
-  // errors in last 24h, grouped
-  const errs = {}; let errTotal = 0;
-  safe('Errors', () => {
-    const sh = sheet(SHEET_ERRORS); if (!sh) return;
-    const rows = readRows(SHEET_ERRORS, 6);
-    rows.forEach(r => { const t = parseTs(r[0]); if (!t || t < dayAgo) return; errTotal++;
-      const k = [r[1], r[2], r[3], r[4]].join('|'); if (!errs[k]) errs[k] = { layer: str(r[1]), fn: str(r[2]), line: str(r[3]), msg: str(r[4]), ctx: str(r[5]), n: 0, last: str(r[0]) };
-      errs[k].n++; errs[k].last = str(r[0]); });
-    if (rows.length > 1500) sh.deleteRows(2, 700);
-  });
-  const errList = Object.values(errs).sort((a, b) => b.n - a.n);
-
-  const nFail = checks.filter(c => c.lvl === 'fail').length, nWarn = checks.filter(c => c.lvl === 'warn').length, nOk = checks.filter(c => c.lvl === 'ok').length;
-  const level = nFail || errList.length ? 'fail' : (nWarn ? 'warn' : 'ok');
-  const status = level === 'ok' ? 'ALL SYSTEMS GOOD' : (level === 'warn' ? 'WARNINGS' : 'ISSUES DETECTED');
-  const icon = level === 'ok' ? '✅' : (level === 'warn' ? '⚠️' : '❌');
-  const col = { ok: '#16a34a', warn: '#d97706', fail: '#dc2626' };
-
-  const h = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const badge = l => { const m = { ok: ['#dcfce7', '#166534', 'OK'], warn: ['#fef3c7', '#92400e', 'WARNING'], fail: ['#fee2e2', '#991b1b', 'FAIL'] }[l];
-    return '<span style="background:' + m[0] + ';color:' + m[1] + ';padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700">' + m[2] + '</span>'; };
-  const card = (label, val, c) => '<td style="width:25%;padding:6px"><div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center"><div style="font-size:26px;font-weight:800;color:' + c + '">' + val + '</div><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px">' + label + '</div></div></td>';
-  const th = t => '<th style="text-align:left;padding:9px 10px;background:#f1f5f9;color:#475569;font-size:11px;text-transform:uppercase;border-bottom:1px solid #e2e8f0">' + t + '</th>';
-  const td = (t, x) => '<td style="padding:9px 10px;border-bottom:1px solid #f1f5f9;font-size:13px;vertical-align:top;' + (x || '') + '">' + t + '</td>';
-  const section = (title, body) => '<div style="margin-top:22px"><div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:8px">' + title + '</div>' + body + '</div>';
-
-  const checkRows = checks.map(c => '<tr>' + td(h(c.area), 'color:#64748b') + td('<b>' + h(c.name) + '</b>') + td(badge(c.lvl)) + td(h(c.detail)) + td(h(c.fix), 'color:#b45309') + '</tr>').join('');
-  const errBody = errList.length
-    ? '<table width="100%" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:8px"><tr>' + ['Where', 'Function', 'Line', 'Reason', 'Action', 'Times', 'Last seen'].map(th).join('') + '</tr>' +
-      errList.map(e => '<tr>' + td('<b style="color:' + (e.layer === 'Frontend' ? '#7c3aed' : '#dc2626') + '">' + (e.layer === 'Frontend' ? 'Frontend (index.html)' : 'Backend (Code.gs)') + '</b>') + td(h(e.fn || '-')) + td(h(e.line || '-')) + td(h(e.msg)) + td(h(e.ctx)) + td(String(e.n)) + td(h(e.last)) + '</tr>').join('') + '</table>'
-    : '<div style="background:#dcfce7;color:#166534;padding:12px 14px;border-radius:8px;font-size:13px">✅ No errors were logged in the last 24 hours (frontend or backend).</div>';
-  const infoRows = info.map(i => '<tr>' + td(h(i[0]), 'color:#64748b;width:40%') + td('<b>' + h(i[1]) + '</b>') + '</tr>').join('');
-
-  const html = '<div style="font-family:Segoe UI,Arial,sans-serif;background:#f8fafc;padding:20px"><div style="max-width:860px;margin:auto">' +
-    '<div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:14px;padding:22px 26px">' +
-    '<div style="font-size:12px;opacity:.85;letter-spacing:1px">DAILY SYSTEM HEALTH REPORT</div>' +
-    '<div style="font-size:24px;font-weight:800;margin:4px 0">GATE Pro Mentorship</div>' +
-    '<div style="font-size:12px;opacity:.9">Program: Backend Code.gs v' + VERSION + ' (Google Apps Script) &nbsp;|&nbsp; Frontend: index.html &nbsp;|&nbsp; ' + h(timestamp()) + '</div></div>' +
-    '<div style="text-align:center;margin:18px 0 6px"><span style="display:inline-block;background:' + col[level] + ';color:#fff;padding:9px 26px;border-radius:30px;font-size:16px;font-weight:800">' + icon + ' ' + status + '</span></div>' +
-    '<table width="100%" cellspacing="0"><tr>' + card('Checks passed', nOk, col.ok) + card('Warnings', nWarn, col.warn) + card('Failures', nFail, col.fail) + card('Errors (24h)', errTotal, errTotal ? col.fail : col.ok) + '</tr></table>' +
-    section('🐞 Errors detected (last 24 hours)', errBody) +
-    section('🔎 System checks', '<table width="100%" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:8px;background:#fff"><tr>' + ['Area', 'Parameter', 'Status', 'Details / Reason', 'Suggested fix'].map(th).join('') + '</tr>' + checkRows + '</table>') +
-    section('📊 Activity snapshot', '<table width="100%" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:8px;background:#fff">' + infoRows + '</table>') +
-    '<div style="margin-top:22px;text-align:center;font-size:11px;color:#94a3b8">Auto-generated by GATE Pro Mentorship. Frontend errors are captured from student/admin browsers; backend errors include function name and line number of Code.gs.</div>' +
-    '</div></div>';
-  return { status: status, level: level, icon: icon, subject: 'GATE Pro Report ' + icon + ' ' + status + (errTotal ? ' - ' + errTotal + ' error(s)' : ''), html: html, summary: checks.filter(c => c.lvl !== 'ok').map(c => c.name + ':' + c.lvl.toUpperCase()).join('; ') || 'all ok' };
-}
-function deliverReport(email) {
-  try {
-    const r = buildReport();
-    MailApp.sendEmail({ to: email, subject: r.subject, htmlBody: r.html });
-    const lg = sheet(SHEET_REPORTLOG);
-    if (lg) appendRowsText(lg, [[timestamp(), 'daily', r.status, r.summary]]);
-    return true;
-  } catch (err) {
-    const p = parseStack(err); logError('Backend', p.fn, p.line, err.message, 'deliverReport');
-    try { MailApp.sendEmail({ to: email, subject: 'GATE Pro Report FAILED to build', htmlBody: '<p>Report error in <b>' + p.fn + '</b> line <b>' + p.line + '</b>: ' + err.message + '</p>' }); } catch (e) {}
-    return false;
-  }
-}
-function sendDailyReport() {
-  if (str(getConfig('ReportEnabled', 'true')).toLowerCase() !== 'true') return;
-  const email = str(getConfig('ReportEmail', '')); if (!email) return;
-  deliverReport(email);
-}
-function runReportNow() {
-  const email = str(getConfig('ReportEmail', ''));
-  if (!email) return fail('Please set Report Email in settings and save first.');
-  return deliverReport(email) ? ok('Report sent to ' + email) : fail('Report failed. Check Error_Log sheet.');
-}
-function installTriggers() {
-  ScriptApp.getProjectTriggers().forEach(t => { if (t.getHandlerFunction() === 'sendDailyReport') ScriptApp.deleteTrigger(t); });
-  ScriptApp.newTrigger('sendDailyReport').timeBased().atHour(9).nearMinute(0).everyDays(1).create();
-  ScriptApp.newTrigger('sendDailyReport').timeBased().atHour(18).nearMinute(30).everyDays(1).create();
-}
-
-// ---------------- router ----------------
-const STUDENT_ACTIONS = ['saveProfile', 'getDashboard', 'getSlots', 'book', 'markStatus'];
-const SHARED_ACTIONS = ['session', 'getMaster', 'cancel', 'logout', 'logError'];
-const MAIN_ONLY_ACTIONS = ['addCoAdmin', 'removeCoAdmin'];
-
-function route(a, d, s, token) {
-  if (a === 'logout') { cache().remove('s_' + token); return ok('Logged out.'); }
-  if (s.role === 'student') {
-    if (!userExists(s.id)) return { success: false, authError: true, message: 'Your account is no longer active.' };
-    if (isStudentBlocked(s.id)) return { success: false, authError: true, message: 'Your access has been blocked by admin.' };
-  }
-  if (!SHARED_ACTIONS.includes(a)) {
-    const studentOnly = STUDENT_ACTIONS.includes(a);
-    if ((studentOnly && s.role !== 'student') || (!studentOnly && s.role !== 'admin')) return fail('Not allowed.');
-  }
-  if (MAIN_ONLY_ACTIONS.includes(a) && !s.main) return fail('Only the main admin can do this.');
-  switch (a) {
-    case 'session': return sessionInfo(s);
-    case 'getMaster': return getMaster();
-    case 'cancel': return cancelBooking(s, d);
-    case 'logError': return logClientError(s, d, token);
-    case 'saveProfile': return saveProfile(s.id, d);
-    case 'getDashboard': return studentDashboard(s.id);
-    case 'getSlots': return getSlots(d.facName);
-    case 'book': return bookMentorship(s.id, d);
-    case 'markStatus': return markStatus(s.id, d.bookingId, d.status);
-    case 'getAdminData': return adminBookings();
-    case 'getUtilization': return adminUtilization();
-    case 'updateLink': return updateMeetingLink(d.bookingId, d.meetingLink);
-    case 'bulkLink': return adminBulkLink(d.bookingIds, d.meetingLink);
-    case 'rescheduleBooking': return adminRescheduleBooking(d.bookingId, d.date, d.time);
-    case 'bulkReschedule': return adminBulkReschedule(d.bookingIds, d.date, d.time);
-    case 'clearAllBookings': return clearAllBookings();
-    case 'addCategory': return addSimple('Categories', d.catName, 'Category');
-    case 'removeCategory': return removeSimple('Categories', d.catName, 'Category');
-    case 'addBranch': return addSimple('Branches', d.branchName, 'Branch');
-    case 'removeBranch': return removeSimple('Branches', d.branchName, 'Branch');
-    case 'addTargetYear': return addTargetYear(d.year);
-    case 'renameTargetYear': return renameTargetYear(d.oldYear, d.newYear);
-    case 'removeTargetYear': return removeTargetYear(d.year);
-    case 'addFaculty': return addFaculty(d.name, d.branch, d.category);
-    case 'removeFaculty': return removeFaculty(d.facName);
-    case 'uploadSlots': return uploadSlotsCSV(d.csv);
-    case 'addSlot': return addSlot(d);
-    case 'getSlotsAdmin': return getSlotsAdmin();
-    case 'updateSlotCapacity': return updateSlotCapacity(d.row, d.sig, d.newCap);
-    case 'deleteSlot': return deleteSlot(d.row, d.sig);
-    case 'bulkDeleteSlots': return bulkDeleteSlots(d.items);
-    case 'uploadUsers': return adminUploadUsersCSV(d.csv);
-    case 'addUser': return addUser(d);
-    case 'getUsersAdmin': return getUsersAdmin();
-    case 'deleteUser': return deleteUser(d.id);
-    case 'bulkDeleteUsers': return bulkDeleteUsers(d.ids);
-    case 'updateUser': return updateUser(d.id, d.phone, d.branch, d.name);
-    case 'blockStudent': return blockStudent(d.id, d.note);
-    case 'unblockStudent': return unblockStudent(d.id);
-    case 'getKnowYourStudents': return getKnowYourStudents();
-    case 'getSettings': return getGlobalSettings(s.main);
-    case 'updateSettings': return updateSettings(d, s);
-    case 'getCoAdmins': return getCoAdminList();
-    case 'addCoAdmin': return addCoAdmin(d);
-    case 'removeCoAdmin': return removeCoAdmin(d.phone);
-    case 'runReportNow': return runReportNow();
-    default: return fail('Invalid action');
-  }
-}
-
-function jsonOut(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
-
-function doPost(e) {
-  let req = null;
-  try {
-    const q = (e && e.parameter) || {};
-    let provided = str(q.apiKey);
-    if (!provided && e && e.queryString) {
-      const m = e.queryString.match(/apiKey=([^&]+)/);
-      if (m) provided = str(decodeURIComponent(m[1]));
-    }
-    const expected = str(getConfig('ApiKey', '')), ip = str(q.ip).slice(0, 64);
-    if (!expected || provided !== expected) {
-      // never reveals the key - only tells which side is empty
-      return jsonOut({ success: false, message: 'Key Mismatch', keyReceived: provided.length > 0, keyConfigured: expected.length > 0 });
-    }
-    req = JSON.parse(e.postData.contents);
-    const d = req.data || {};
-    if (req.action === 'login') return jsonOut(handleLogin(d, ip));
-    const s = getSession(req.token);
-    if (!s) return jsonOut({ success: false, authError: true, message: 'Session expired. Please login again.' });
-    return jsonOut(route(req.action, d, s, req.token));
-  } catch (err) {
-    const p = parseStack(err);
-    logError('Backend', p.fn, p.line, err.message, req && req.action);
-    return jsonOut({ success: false, message: 'Server error. Please try again. If it continues, contact admin.' });
-  }
-}
-
-// Run once from the editor if the ApiKey row is empty / still a placeholder (same key as before)
-function forceFix() {
-  cache().remove('cfg'); _cfg = null;
-  const sh = sheet('Config'), data = sh.getDataRange().getValues();
-  let found = false;
-  for (let i = 0; i < data.length; i++) {
-    if (String(data[i][0]).trim() === 'ApiKey') {
-      const v = String(data[i][1] || '').trim();
-      if (!v || v.indexOf('CHANGE_ME') === 0) sh.getRange(i + 1, 2).setValue('GatePro_Secure_Key_2025');
-      found = true; break;
-    }
-  }
-  if (!found) sh.appendRow(['ApiKey', 'GatePro_Secure_Key_2025']);
-  cache().remove('cfg'); _cfg = null;
-  Logger.log('Force Fix Complete!');
-}
+/* cancel dropdown: ONLY upcoming sessions; those inside the 10-hour window are shown but disabled */
+async function loadCancelDropdown() {
+  const d = await getDash(true); if (!d) return;
+  const list = d.data.filter(b => b.upcoming);
+  const hrs = d.cancelHours || 10;
+  $('cancelBookingId').innerHTML = (list.length ? '<option value="">Select Booking</option>' : '<option value="">No upcoming bookings to cancel</option>') +
+    list.map(b => `<option value="${esc(b.bookingId)}" ${b.canCancel ? '' : 'disabled'}>${esc(b.date)} ${esc(b.time)} - ${esc(b.faculty)}${b.canCancel ? '' : ` (cancel closed: less than ${hrs} hrs left)`}</option>`).join('');
+}
+async function handleCancel() {
+  const id = $('cancelBookingId').value; if (!id) return alert('Select a booking.');
+  if (!confirm('Cancel this session?')) return;
+  const r = await api('cancel', { bookingId: id, reason: $('cancelReason').value.trim() });
+  alert(r.message); $('cancelReason').value = ''; dash = null; await loadCancelDropdown(); await loadStudentData();
+}
+</script>
+</body>
+</html>
