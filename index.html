@@ -10,14 +10,13 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
 body{background-color:#0f172a;display:flex;justify-content:center;align-items:center;min-height:100vh;min-height:100dvh;padding:20px}
 
-/* Background: full image always visible (contain) over a blurred cover copy -> nothing is cut on any screen */
 .bg-layer{position:fixed;inset:0;pointer-events:none}
 .bg-blur{z-index:-3;background:url('bg.jpg.png') center/cover no-repeat;filter:blur(18px) brightness(.85);transform:scale(1.08)}
 .bg-main{z-index:-2;background:url('bg.jpg.png') center/contain no-repeat}
 body::before{content:"";position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:-1;pointer-events:none}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:15px;overflow-y:auto}
-.modal-box{background:#fff;padding:30px;border-radius:15px;width:100%;max-width:500px;text-align:center;animation:pop .3s ease}
+.modal-box{background:#fff;padding:30px;border-radius:15px;width:100%;max-width:500px;text-align:center;animation:pop .3s ease;max-height:92vh;overflow-y:auto}
 @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
 .container{background:var(--card-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);width:100%;padding:40px;display:flex;flex-direction:column;animation:slideUp .5s ease-out;max-width:450px;border:1px solid rgba(255,255,255,.2)}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
@@ -26,6 +25,7 @@ h2{color:var(--text-main);font-size:22px;font-weight:700;text-align:center;margi
 .input-group label,.input-row label{display:block;margin-bottom:5px;color:var(--text-muted);font-size:13px;font-weight:600;text-transform:uppercase}
 .input-group input,.input-group select,.input-group textarea,.input-row input,.input-row select{width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;background:rgba(255,255,255,.9)}
 .input-group input:focus,.input-group select:focus,.input-row input:focus{border-color:var(--primary);background:#fff}
+.req::after{content:" *";color:#ef4444}
 .btn{padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;transition:.3s;display:inline-flex;justify-content:center;align-items:center;width:100%}
 .btn:disabled{opacity:.7;cursor:not-allowed}
 .btn-primary{background:var(--primary)}.btn-primary:hover{background:var(--primary-hover)}
@@ -35,7 +35,6 @@ h2{color:var(--text-main);font-size:22px;font-weight:700;text-align:center;margi
 .btn-gray{background:#64748b}.btn-gray:hover{background:#475569}
 .sm{width:auto;padding:4px 10px;font-size:12px}
 
-/* spinners */
 .btn-spin{display:inline-block;flex:none;width:15px;height:15px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:8px}
 .sm .btn-spin{width:11px;height:11px;border-width:2px;margin-right:5px}
 .big-spin{width:46px;height:46px;border:5px solid rgba(99,102,241,.2);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
@@ -68,24 +67,31 @@ th{background:#f8fafc;color:#64748b;font-weight:600}
 .input-row{display:flex;gap:15px;margin-bottom:15px}.input-row>div{flex:1}
 .filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
 .filters input,.filters select{padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;outline:none}
+.bulkbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#eef2ff;border:1px solid #c7d2fe;padding:10px 12px;border-radius:10px;margin-bottom:15px}
+.bulkbar .cnt{font-weight:600;color:#3730a3;font-size:13px;margin-right:6px}
+.addbox{background:#f8fafc;border:1px dashed #94a3b8;border-radius:10px;padding:15px;margin-bottom:20px}
+.addbox h4{margin-bottom:10px;font-size:14px}
 .notice-banner{background:#e0e7ff;color:#3730a3;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;font-weight:500;font-size:14px;display:none}
 .notice-banner a{color:#4338ca;font-weight:700;text-decoration:underline}
-.chip{background:#e2e8f0;padding:5px 10px;border-radius:5px;font-size:13px;display:flex;gap:10px;align-items:center}
+.chip{background:#e2e8f0;padding:5px 10px;border-radius:5px;font-size:13px;display:flex;gap:8px;align-items:center}
 .chip button{background:transparent;border:none;color:red;cursor:pointer;font-weight:700}
+.chip button.ed{color:#4f46e5}
 .slot-stat-badge{padding:3px 8px;border-radius:6px;font-size:12px;font-weight:700}
 .stat-full{background:#fee2e2;color:#991b1b}.stat-available{background:#d1fae5;color:#065f46}
 .cap-input{width:60px;padding:5px;text-align:center;border:1px solid #cbd5e1;border-radius:5px}
 .cell-in{padding:4px 6px;border:1px solid #cbd5e1;border-radius:5px}
 small{color:#64748b}
-.success-box{background:#fff;padding:35px 30px;border-radius:15px;max-width:480px;text-align:center;animation:pop .3s ease}
-.success-box .icon{font-size:56px;margin-bottom:15px}
-.success-box h2{color:#059669;margin-bottom:10px}
-.success-box p{color:#64748b;font-size:14px;line-height:1.6;margin-bottom:15px}
+.success-box{background:#fff;padding:30px 28px;border-radius:15px;max-width:520px;width:100%;text-align:left;animation:pop .3s ease;max-height:92vh;overflow-y:auto}
+.success-box .icon{font-size:52px;margin-bottom:10px;text-align:center}
+.success-box h2{color:#059669;margin-bottom:14px}
+.success-box p{color:#334155;font-size:14px;line-height:1.65;margin-bottom:12px}
+.success-box .det p{margin-bottom:4px;font-size:15px}
 .util-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;margin-top:15px}
 .util-card{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:20px;border-radius:12px}
 .util-card h4{font-size:13px;opacity:.85;margin-bottom:8px;font-weight:500}
 .util-card .big{font-size:28px;font-weight:700}
 .util-card .row{display:flex;justify-content:space-between;margin-top:10px;font-size:12px;opacity:.95}
+.vres{font-size:13px;margin:12px 0;padding:10px;border-radius:8px;background:#f1f5f9;text-align:left;line-height:1.6}
 @media(max-width:768px){
   body{padding:10px;align-items:flex-start}
   .container{padding:25px;margin:auto}
@@ -108,12 +114,12 @@ small{color:#64748b}
 
 <div class="modal-overlay" id="profileModal"><div class="modal-box">
   <h2>Complete Your Profile</h2>
-  <p style="font-size:13px;margin-bottom:15px;color:#64748b">Please fill these details to continue. They cannot be changed later.</p>
-  <div class="input-group"><input type="text" id="profName" placeholder="Full Name"></div>
-  <div class="input-group"><select id="profBranch"><option value="">Select Branch</option></select></div>
-  <div class="input-group"><input type="text" id="profBatch" placeholder="Batch (e.g. CSE-A)"></div>
-  <div class="input-group"><select id="profYear"><option value="">Target Year</option><option>2026</option><option>2027</option><option>2028</option></select></div>
-  <div class="input-group"><input type="text" id="profPhone" placeholder="Register PW Number"></div>
+  <p style="font-size:13px;margin-bottom:15px;color:#64748b">All fields are compulsory. They cannot be changed later.</p>
+  <div class="input-group"><input type="text" id="profName" placeholder="Full Name *"></div>
+  <div class="input-group"><select id="profBranch"><option value="">Select Branch *</option></select></div>
+  <div class="input-group"><input type="text" id="profBatch" placeholder="Batch (e.g. CSE-A) *"></div>
+  <div class="input-group"><select id="profYear"><option value="">Target Year *</option></select></div>
+  <div class="input-group"><input type="text" id="profPhone" placeholder="Register PW Number *"></div>
   <button class="btn btn-primary" onclick="run(this,submitProfile)">Save Profile</button>
 </div></div>
 
@@ -128,9 +134,18 @@ small{color:#64748b}
 
 <div class="modal-overlay" id="bookingSuccessModal"><div class="success-box">
   <div class="icon">🎉</div>
-  <h2>Booking Confirmed!</h2>
-  <p><b>Booking ID:</b> <span id="succBookingId" style="color:#4f46e5;font-weight:700"></span></p>
-  <p>We will update your meeting link today. You will get the update when the link is updated in the faculty's Telegram group.</p>
+  <h2 style="text-align:center">Booking Confirmed!</h2>
+  <div class="det">
+    <p>Booking date - <b id="succDate"></b></p>
+    <p>Booking Time - <b id="succTime"></b></p>
+    <p>Faculty name - <b id="succFac"></b></p>
+  </div>
+  <p style="margin-top:14px">The session link will be visible in My Scheduled Sessions 15 minutes before your scheduled time.</p>
+  <p>Please click on Join at your scheduled time to attend the session.</p>
+  <p>Once the link is updated, you will also be notified in the Close Faculty Group.</p>
+  <p>You will get 3 booking chances per month.</p>
+  <p>You can make your next booking after 10 days.</p>
+  <p>Note: Please make sure to join the session on time. 😊</p>
   <button class="btn btn-primary" onclick="document.getElementById('bookingSuccessModal').style.display='none'">Got it</button>
 </div></div>
 
@@ -146,13 +161,38 @@ small{color:#64748b}
 </div></div>
 
 <div class="modal-overlay" id="bulkRescheduleModal"><div class="modal-box" style="text-align:left">
-  <h2 style="text-align:left">Bulk Reschedule</h2>
+  <h2 style="text-align:left">Bulk Reschedule (Date &amp; Time)</h2>
   <p style="font-size:13px;color:#64748b;margin-bottom:15px" id="bulkInfo"></p>
   <div class="input-group"><label>New Date</label><input type="date" id="bulkDate"></div>
   <div class="input-group"><label>New Time</label><input type="time" id="bulkTime"></div>
   <div style="display:flex;gap:10px">
     <button class="btn btn-primary" onclick="run(this,confirmBulkReschedule)">Update All</button>
     <button class="btn btn-gray" onclick="document.getElementById('bulkRescheduleModal').style.display='none'">Cancel</button>
+  </div>
+</div></div>
+
+<div class="modal-overlay" id="bulkLinkModal"><div class="modal-box" style="text-align:left">
+  <h2 style="text-align:left">Bulk Update Meeting Link</h2>
+  <p style="font-size:13px;color:#64748b;margin-bottom:15px" id="bulkLinkInfo"></p>
+  <div class="input-group"><label>Meeting Link</label><input type="text" id="bulkLinkInput" placeholder="https://..."></div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-success" onclick="run(this,confirmBulkLink)">Update All</button>
+    <button class="btn btn-gray" onclick="document.getElementById('bulkLinkModal').style.display='none'">Cancel</button>
+  </div>
+</div></div>
+
+<div class="modal-overlay" id="bulkDelUsersModal"><div class="modal-box" style="text-align:left">
+  <h2 style="text-align:left">Delete Selected Users</h2>
+  <p style="font-size:14px;margin-bottom:12px;color:#991b1b;font-weight:600" id="bulkDelInfo"></p>
+  <div style="background:#fef3c7;color:#92400e;padding:10px;border-radius:8px;font-size:12px;line-height:1.5;margin-bottom:12px">
+    <b>Optional – protect users:</b> upload a CSV of users you do NOT want deleted (columns: <b>User ID, Phone Number, Branch, Target Year</b>). Any selected user found in this file will be kept.
+  </div>
+  <input type="file" id="protectFile" accept=".csv" style="width:100%;padding:8px;border:1px dashed #f59e0b;border-radius:8px" onchange="$('protectResult').innerHTML=''">
+  <div id="protectResult" class="vres" style="display:none"></div>
+  <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+    <button class="btn btn-warn" style="flex:1" onclick="run(this,validateProtect)">✔ Validate</button>
+    <button class="btn btn-danger" style="flex:1" onclick="run(this,confirmBulkDelUsers)">🗑 Delete</button>
+    <button class="btn btn-gray" style="flex:1" onclick="document.getElementById('bulkDelUsersModal').style.display='none'">Cancel</button>
   </div>
 </div></div>
 
@@ -182,7 +222,7 @@ small{color:#64748b}
       </div>
       <div id="studentMenus" style="display:none">
         <button onclick="switchView('viewBook',this)" class="active">📝 Book Mentorship</button>
-        <button onclick="switchView('viewMySchedule',this)">📅 My Schedule</button>
+        <button onclick="switchView('viewMySchedule',this)">📅 My Scheduled Sessions</button>
         <button onclick="switchView('viewCancel',this)">❌ Cancel Session</button>
       </div>
     </div>
@@ -194,12 +234,12 @@ small{color:#64748b}
     <div class="topbar"><h2 id="pageTitle">Dashboard</h2><div style="font-weight:600;color:#64748b;font-size:14px">Welcome, <span id="displayName" style="color:var(--primary)">User</span></div></div>
     <div class="content-area">
 
+      <!-- ===== ALL BOOKINGS ===== -->
       <div id="viewAllBookings" class="view-section active"><div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px">
           <h3>All Student Bookings</h3>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-primary sm" style="padding:8px 15px" onclick="run(this,()=>downloadCSV('bookings'))">Download CSV</button>
-            <button class="btn btn-warn sm" style="padding:8px 15px" onclick="run(this,openBulkReschedule)">📅 Bulk Reschedule</button>
             <button class="btn btn-danger sm" style="padding:8px 15px" onclick="run(this,clearAllBookings)">🗑 Clear All Bookings</button>
           </div>
         </div>
@@ -209,18 +249,26 @@ small{color:#64748b}
           <select id="filterBranch"><option value="">All Branches</option></select>
           <select id="filterCategory"><option value="">All Categories</option></select>
           <select id="filterFaculty"><option value="">All Faculties</option></select>
-          <input type="text" id="filterSearch" placeholder="Search Name / ID..." onkeydown="if(event.key==='Enter')run($('applyBookBtn'),applyBookingFilter)">
+          <input type="text" id="filterSearch" placeholder="Search Name / ID / Phone / Mail..." onkeydown="if(event.key==='Enter')run($('applyBookBtn'),applyBookingFilter)">
           <button class="btn btn-primary sm" id="applyBookBtn" style="padding:8px 16px" onclick="run(this,applyBookingFilter)">🔍 Apply Filter</button>
           <button class="btn btn-gray sm" style="padding:8px 16px" onclick="run(this,resetBookingFilter)">Reset</button>
+        </div>
+        <div class="bulkbar">
+          <span class="cnt" id="selCount">0 selected</span>
+          <button class="btn btn-success sm" style="padding:7px 12px" onclick="run(this,openBulkLink)">🔗 Bulk Set Link</button>
+          <button class="btn btn-danger sm" style="padding:7px 12px" onclick="run(this,bulkDeleteLinks)">🧹 Bulk Delete Link</button>
+          <button class="btn btn-warn sm" style="padding:7px 12px" onclick="run(this,openBulkReschedule)">📅 Bulk Date &amp; Time</button>
+          <small>Tick the boxes in the first column for bulk actions, or use the buttons on each row for a single student.</small>
         </div>
         <div class="table-container"><table>
           <thead><tr>
             <th style="width:30px"><input type="checkbox" id="selectAllBookings" onchange="toggleSelectAll(this)"></th>
-            <th>Student</th><th>Branch/Batch</th><th>Faculty</th><th>Date &amp; Time</th><th>Booking Status</th><th>Session Status</th><th>Link</th><th>Action</th>
+            <th>Student</th><th>Mail ID</th><th>Phone</th><th>Branch/Batch</th><th>Faculty</th><th>Date &amp; Time</th><th>Booking Status</th><th>Session Status</th><th>Meeting Link</th><th>Action</th>
           </tr></thead>
           <tbody id="adminBookingsBody"></tbody></table></div>
       </div></div>
 
+      <!-- ===== UTILIZATION ===== -->
       <div id="viewUtilization" class="view-section"><div class="card">
         <h3 style="margin-bottom:5px">Session Utilization Status (by Month)</h3>
         <p style="font-size:13px;color:#64748b;margin-bottom:15px">Total bookings, sessions done, not joined, and cancelled per month.</p>
@@ -231,11 +279,13 @@ small{color:#64748b}
           <tbody id="utilBody"></tbody></table></div>
       </div></div>
 
+      <!-- ===== KNOW YOUR STUDENTS ===== -->
       <div id="viewKnowStudents" class="view-section"><div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
           <h3>Student Database</h3><button class="btn btn-primary sm" style="padding:8px 15px" onclick="run(this,()=>downloadCSV('students'))">Download CSV</button></div>
         <div class="filters">
           <select id="searchStudentBranch"><option value="">All Branches</option></select>
+          <select id="searchStudentYear"><option value="">All Target Years</option></select>
           <select id="searchStudentCategory"><option value="">All Categories</option></select>
           <input type="text" id="searchStudentPhone" placeholder="Search Name / ID / PW..." onkeydown="if(event.key==='Enter')run($('applyStuBtn'),applyStudentFilter)">
           <button class="btn btn-primary sm" id="applyStuBtn" style="padding:8px 16px" onclick="run(this,applyStudentFilter)">🔍 Apply Filter</button>
@@ -244,8 +294,9 @@ small{color:#64748b}
         <div class="table-container"><table><thead><tr><th>Name</th><th>Branch</th><th>Batch</th><th>Target Year</th><th>PW Number</th><th>Category</th><th>Status</th><th>Action</th></tr></thead><tbody id="studentsBody"></tbody></table></div>
       </div></div>
 
+      <!-- ===== CATEGORY / BRANCH / TARGET YEAR ===== -->
       <div id="viewAddMaster" class="view-section"><div class="card">
-        <h3 style="margin-bottom:15px">Manage Categories &amp; Branches</h3>
+        <h3 style="margin-bottom:15px">Manage Categories, Branches &amp; Target Years</h3>
         <div class="input-row" style="padding-bottom:20px;border-bottom:1px solid #ccc">
           <div><label>Add Category</label><input type="text" id="newCatName" placeholder="e.g. GATE"></div>
           <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="run(this,addCat)">Add</button></div></div>
@@ -253,9 +304,15 @@ small{color:#64748b}
         <div class="input-row">
           <div><label>Add Branch</label><input type="text" id="newBranchName" placeholder="e.g. CSE"></div>
           <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="run(this,addBranch)">Add</button></div></div>
-        <div id="branchList" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+        <div id="branchList" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px"></div>
+        <div class="input-row" style="padding-top:20px;border-top:1px solid #ccc">
+          <div><label>Add Target Year</label><input type="text" id="newYearName" placeholder="e.g. 2029" maxlength="12"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="run(this,addYear)">Add</button></div></div>
+        <p style="font-size:12px;color:#64748b;margin-bottom:10px">✎ changes the name in the list (shown to new students). Students who already saved their profile keep their saved year.</p>
+        <div id="yearList" style="display:flex;flex-wrap:wrap;gap:10px"></div>
       </div></div>
 
+      <!-- ===== FACULTY ===== -->
       <div id="viewAddFaculty" class="view-section"><div class="card">
         <h3 style="margin-bottom:15px">Add &amp; Manage Faculties</h3>
         <div class="input-row">
@@ -266,54 +323,99 @@ small{color:#64748b}
         <div class="table-container"><table><thead><tr><th>Faculty Name</th><th>Branch</th><th>Category</th><th>Action</th></tr></thead><tbody id="facultyListBody"></tbody></table></div>
       </div></div>
 
+      <!-- ===== SLOTS ===== -->
       <div id="viewSlots" class="view-section"><div class="card">
+        <div class="addbox">
+          <h4>➕ Add a Particular Slot</h4>
+          <div class="input-row">
+            <div><label>Faculty</label><select id="slotFac"><option value="">Select Faculty</option></select></div>
+            <div><label>Date</label><input type="date" id="slotDate"></div>
+            <div><label>Time</label><input type="time" id="slotTime"></div>
+            <div><label>Capacity (optional)</label><input type="number" id="slotCap" min="0" placeholder="Default"></div>
+          </div>
+          <button class="btn btn-success" style="width:200px" onclick="run(this,addSlotAdmin)">Add Slot</button>
+        </div>
         <h3 style="margin-bottom:15px">Upload Slots CSV</h3>
-        <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>Faculty Name, Branch, Date (DD/MM/YYYY), Slot1, Slot2, Slot3...</b></p>
+        <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>Faculty Name, Branch, Date (DD/MM/YYYY), Slot1, Slot2, Slot3...</b> (faculty must already be in Faculty List)</p>
         <input type="file" id="slotsFile" accept=".csv" style="margin-bottom:15px;padding:10px;border:1px dashed #6366f1;border-radius:8px;width:100%">
         <button class="btn btn-primary" style="width:200px;margin-bottom:30px" onclick="run(this,()=>uploadCSV('slotsFile','uploadSlots',loadSlotsAdmin))">Upload File</button>
-        <h4 style="margin-bottom:15px">Existing Slots &amp; Bookings</h4>
-        <div class="table-container"><table><thead><tr><th>Faculty</th><th>Date</th><th>Time Slot</th><th>Booked</th><th>Capacity (Editable)</th><th>Action</th></tr></thead><tbody id="adminSlotsBody"></tbody></table></div>
+        <h4 style="margin-bottom:12px">Existing Slots &amp; Bookings</h4>
+        <div class="bulkbar">
+          <span class="cnt" id="slotSelCount">0 selected</span>
+          <button class="btn btn-danger sm" style="padding:7px 12px" onclick="run(this,bulkDeleteSlotsUI)">🗑 Delete Selected Slots</button>
+          <small>Tick slots for bulk delete, or use "Del Slot" on a row for a single slot.</small>
+        </div>
+        <div class="table-container"><table><thead><tr><th style="width:30px"><input type="checkbox" id="selectAllSlots" onchange="toggleAllSlots(this)"></th><th>Faculty</th><th>Date</th><th>Time Slot</th><th>Booked</th><th>Capacity (Editable)</th><th>Action</th></tr></thead><tbody id="adminSlotsBody"></tbody></table></div>
       </div></div>
 
+      <!-- ===== USERS ===== -->
       <div id="viewUsersCSV" class="view-section"><div class="card">
-        <h3 style="margin-bottom:15px">Add Students to System</h3>
+        <div class="addbox">
+          <h4>➕ Add a Particular User</h4>
+          <div class="input-row">
+            <div><label>User ID</label><input type="text" id="addUId"></div>
+            <div><label>Phone Number</label><input type="tel" id="addUPhone" placeholder="10-digit"></div>
+            <div><label>Branch</label><select id="addUBranch"><option value="">Select Branch</option></select></div>
+            <div><label>Name (optional)</label><input type="text" id="addUName"></div>
+          </div>
+          <button class="btn btn-success" style="width:200px" onclick="run(this,addUserAdmin)">Add User</button>
+        </div>
+        <h3 style="margin-bottom:15px">Add Students to System (CSV)</h3>
         <p style="font-size:13px;margin-bottom:10px;color:#64748b">Format: <b>User ID, Phone Number, Branch</b> (each phone number must be unique)</p>
         <input type="file" id="usersFile" accept=".csv" style="margin-bottom:15px;padding:10px;border:1px dashed #10b981;border-radius:8px;width:100%">
         <button class="btn btn-success" style="width:200px;margin-bottom:30px" onclick="run(this,()=>uploadCSV('usersFile','uploadUsers',loadUsersAdmin))">Upload Users</button>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:8px"><h4>Registered Users</h4>
-          <input type="text" id="searchUserAdmin" placeholder="Search User ID / Phone..." oninput="renderUsersAdminTable()" style="padding:8px;border:1px solid #ccc;border-radius:5px"></div>
-        <div class="table-container"><table><thead><tr><th>User ID</th><th>Phone</th><th>Branch</th><th>Name</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminUsersBody"></tbody></table></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h4>Registered Users</h4>
+          <input type="text" id="searchUserAdmin" placeholder="Search User ID / Phone / Name..." oninput="renderUsersAdminTable()" style="padding:8px;border:1px solid #ccc;border-radius:5px"></div>
+        <div class="bulkbar">
+          <span class="cnt" id="userSelCount">0 selected</span>
+          <button class="btn btn-danger sm" style="padding:7px 12px" onclick="run(this,openBulkDelUsers)">🗑 Delete Selected Users</button>
+          <small>Tick users for bulk delete, or use "Del" on a row for a single user.</small>
+        </div>
+        <div class="table-container"><table><thead><tr><th style="width:30px"><input type="checkbox" id="selectAllUsers" onchange="toggleAllUsers(this)"></th><th>User ID</th><th>Phone</th><th>Branch</th><th>Name</th><th>Target Year</th><th>Category</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminUsersBody"></tbody></table></div>
       </div></div>
 
+      <!-- ===== SETTINGS ===== -->
       <div id="viewSettings" class="view-section"><div class="card">
         <h3 style="margin-bottom:15px">System Settings</h3>
         <div class="input-row"><div><label>Monthly Limit</label><input type="number" id="setLimit" min="0"></div><div><label>Default Slot Capacity</label><input type="number" id="setCapacity" min="1"></div></div>
         <div class="input-row"><div><label>Telegram Link</label><input type="text" id="setTelegram" placeholder="https://t.me/..."></div></div>
-        <div class="input-row"><div><label>Admin ID</label><input type="text" id="setAdminId"></div><div><label>Admin Phone</label><input type="text" id="setAdminPhone"></div><div><label>Admin Security Code</label><input type="text" id="setAdminCode"></div></div>
+        <div class="input-row main-only"><div><label>Admin ID</label><input type="text" id="setAdminId"></div><div><label>Admin Phone</label><input type="text" id="setAdminPhone"></div><div><label>Admin Security Code</label><input type="text" id="setAdminCode"></div></div>
         <div class="input-row"><div><label>Report Email</label><input type="email" id="setReportEmail" placeholder="admin@example.com"></div><div><label>Daily Report Enabled</label><select id="setReportEnabled"><option value="true">Yes</option><option value="false">No</option></select></div></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn-success" style="width:200px" onclick="run(this,saveSettings)">Save Settings</button>
           <button class="btn btn-primary" style="width:200px" onclick="run(this,runReportNow)">📧 Send Report Now</button>
         </div>
+        <div class="main-only" style="margin-top:30px;padding-top:20px;border-top:1px solid #e2e8f0">
+          <h3 style="margin-bottom:5px">Co-Admins</h3>
+          <p style="font-size:12px;color:#64748b;margin-bottom:12px">A co-admin logs in with their own phone number + security code and gets admin access (cannot manage co-admins or main admin credentials).</p>
+          <div class="input-row">
+            <div><label>Name</label><input type="text" id="coName" placeholder="Co-admin name"></div>
+            <div><label>Phone Number</label><input type="tel" id="coPhone" placeholder="10-digit"></div>
+            <div><label>Security Code</label><input type="text" id="coCode" placeholder="min 4 characters"></div>
+          </div>
+          <button class="btn btn-primary" style="width:200px;margin-bottom:15px" onclick="run(this,addCoAdminUI)">➕ Add Co-Admin</button>
+          <div class="table-container"><table><thead><tr><th>Name</th><th>Phone</th><th>Action</th></tr></thead><tbody id="coAdminBody"></tbody></table></div>
+        </div>
       </div></div>
 
+      <!-- ===== STUDENT VIEWS ===== -->
       <div id="viewBook" class="view-section"><div class="card">
         <div id="telegramBanner" class="notice-banner">Join this GATE Pro Mentorship Telegram group link for further mentorship update: <a id="telegramLinkForm" href="#" target="_blank" rel="noopener">Click Here</a></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px"><h3>Book Mentorship</h3><span id="chancesBadge" class="badge bg-booked" style="font-size:14px">… Left</span></div>
-        <div class="input-group"><label>Branch</label><select id="branch" onchange="filterFaculty()"></select></div>
-        <div class="input-group"><label>Category</label><select id="category" onchange="filterFaculty()"></select></div>
-        <div class="input-group"><label>Faculty</label><select id="faculty" onchange="fetchSlots()"><option value="">Select Faculty</option></select></div>
-        <div class="input-group"><label>Date (DD/MM/YYYY)</label><select id="bookDate" onchange="fillTimes()"><option value="">Select Faculty first</option></select></div>
-        <div class="input-group"><label>Time Slot</label><select id="timeSlot"><option value="">Select Date first</option></select></div>
-        <div class="input-group"><label>Mail ID</label><input type="email" id="bookEmail" placeholder="student@example.com"></div>
-        <div class="input-group"><label>Registered Phone Number</label><input type="tel" id="bookPhone" placeholder="10-digit number"></div>
-        <div class="input-group"><label>Query</label><textarea id="query" maxlength="1000"></textarea></div>
+        <div class="input-group"><label class="req">Branch</label><select id="branch" onchange="filterFaculty()"></select></div>
+        <div class="input-group"><label class="req">Category</label><select id="category" onchange="filterFaculty()"></select></div>
+        <div class="input-group"><label class="req">Faculty</label><select id="faculty" onchange="fetchSlots()"><option value="">Select Faculty</option></select></div>
+        <div class="input-group"><label class="req">Date (DD/MM/YYYY)</label><select id="bookDate" onchange="fillTimes()"><option value="">Select Faculty first</option></select></div>
+        <div class="input-group"><label class="req">Time Slot</label><select id="timeSlot"><option value="">Select Date first</option></select></div>
+        <div class="input-group"><label class="req">Mail ID</label><input type="email" id="bookEmail" placeholder="student@example.com"></div>
+        <div class="input-group"><label class="req">Registered Phone Number</label><input type="tel" id="bookPhone" placeholder="10-digit number"></div>
+        <div class="input-group"><label class="req">Query</label><textarea id="query" maxlength="1000" placeholder="Write your query for the mentor"></textarea></div>
         <div id="telegramQueryBanner" style="background:#f1f5f9;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px;display:none">Join this GATE Pro Mentorship telegram group link for further mentorship update - <a id="telegramLinkQuery" href="#" target="_blank" rel="noopener" style="color:#6366f1;font-weight:600">Click Here</a></div>
         <button class="btn btn-success" id="bookBtn" onclick="run(this,handleBooking)">Book Now</button>
       </div></div>
 
       <div id="viewMySchedule" class="view-section"><div class="card">
-        <h3 style="margin-bottom:15px">My Schedule</h3>
+        <h3 style="margin-bottom:15px">My Scheduled Sessions</h3>
         <div class="table-container"><table><thead><tr><th>ID</th><th>Date/Time</th><th>Faculty</th><th>Status</th><th>Session Status</th><th>Meeting Link</th></tr></thead><tbody id="scheduleBody"></tbody></table></div>
       </div></div>
 
@@ -332,17 +434,29 @@ small{color:#64748b}
 <script>
 const API_URL = "/api/proxy";
 const TOKEN_KEY = 'gpm_token';
-let token = null, role = null, master = null, dash = null, dashAt = 0, pendingId = '';
+let token = null, role = null, isMain = false, master = null, dash = null, dashAt = 0, pendingId = '';
 let adminBookingsList = [], students = [], slotsAdmin = [], usersAdmin = [], facSlots = [], utilData = [];
-let selectedBookings = new Set(), adminTriggerPhone = '';
+let selectedBookings = new Set(), selectedSlots = new Set(), selectedUsers = new Set(), protectIds = new Set(), adminTriggerPhone = '';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const digits = s => String(s || '').replace(/\D/g, '').slice(-10);
+const dateOk = d => d && !isNaN(new Date(d));
 
-/* ---------- spinner helpers ---------- */
-// button spinner: shows a spinner inside the clicked button until the work finishes (min 350ms so it is always visible)
+/* ---------- frontend error reporting (goes to the daily report with function + line) ---------- */
+let _logging = false;
+const fnFromErr = er => { const m = String(er && er.stack || '').match(/at\s+(\S+)\s+\(/); return m ? m[1] : '(anonymous)'; };
+const lineFromErr = er => { const m = String(er && er.stack || '').match(/:(\d+):\d+\)?\s*$/m); return m ? m[1] : ''; };
+function logClient(fn, line, msg, ctx) {
+  if (_logging || !token) return; _logging = true;
+  fetch(API_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'logError', token, data: { fn: String(fn), line: String(line || ''), msg: String(msg), ctx: String(ctx || '') } }) })
+    .catch(() => {}).finally(() => { _logging = false; });
+}
+window.addEventListener('error', e => logClient(fnFromErr(e.error), e.lineno || lineFromErr(e.error), e.message, 'window.onerror'));
+window.addEventListener('unhandledrejection', e => { const r = e.reason || {}; logClient(fnFromErr(r), lineFromErr(r), r.message || r, 'unhandledrejection'); });
+
+/* ---------- spinner helpers: every button that runs through run() shows a spinner until the work finishes ---------- */
 async function run(btn, fn) {
   if (!btn || btn.dataset.busy) return;
   btn.dataset.busy = '1';
@@ -350,7 +464,7 @@ async function run(btn, fn) {
   btn.disabled = true; btn.innerHTML = '<span class="btn-spin"></span>' + old;
   const t0 = Date.now();
   try { await fn(btn); }
-  catch (e) { console.error(e); alert('Something went wrong. Please try again.'); }
+  catch (e) { console.error(e); logClient(fnFromErr(e), lineFromErr(e), e.message || e, 'button'); alert('Something went wrong. Please try again.'); }
   finally {
     const wait = 350 - (Date.now() - t0); if (wait > 0) await sleep(wait);
     btn.disabled = false; btn.innerHTML = old; delete btn.dataset.busy;
@@ -366,11 +480,11 @@ function api(action, data) {
   return fetch(API_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action, token, data: data || {} }) })
     .then(r => r.json())
     .then(res => { if (res.authError && token) forceLogout(res.message); return res; })
-    .catch(() => ({ success: false, message: 'Network error. Please try again.' }))
+    .catch(e => { logClient('api(' + action + ')', '', 'Network/parse error: ' + (e && e.message), action); return { success: false, message: 'Network error. Please try again.' }; })
     .finally(() => netDelta(-1));
 }
 
-/* ---------- session: PER TAB (sessionStorage) so student/admin in same browser never mix ---------- */
+/* ---------- session: PER TAB (sessionStorage) ---------- */
 function getTok() { try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; } }
 function setTok(t) { try { sessionStorage.setItem(TOKEN_KEY, t); } catch (e) {} }
 function clearSession() { try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} token = null; }
@@ -379,7 +493,7 @@ function forceLogout(msg) { clearSession(); alert(msg || 'Session expired.'); lo
 async function logout() { if (token) await api('logout'); clearSession(); location.reload(); }
 
 window.onload = async function () {
-  purgeLegacy();                       // old shared tokens are never trusted
+  purgeLegacy();
   token = getTok();
   if (!token) return showLogin();
   const res = await api('session');
@@ -388,16 +502,17 @@ window.onload = async function () {
 function showLogin() { $('bootLoader').style.display = 'none'; $('loginSection').style.display = 'flex'; }
 
 async function afterAuth(res) {
-  role = res.role;
+  role = res.role; isMain = !!res.main;
   $('bootLoader').style.display = 'none'; $('loginSection').style.display = 'none';
   if (role === 'student' && !(res.profile && res.profile.isComplete)) {
     await loadMaster(); $('profileModal').style.display = 'flex'; return;
   }
-  $('displayName').innerText = role === 'admin' ? 'Admin' : (res.name || (res.profile && res.profile.name) || 'Student');
+  $('displayName').innerText = role === 'admin' ? (res.name || 'Admin') : (res.name || (res.profile && res.profile.name) || 'Student');
   $('dashboardLayout').style.display = 'flex';
   const admin = role === 'admin';
   $('adminMenus').style.display = admin ? 'block' : 'none';
   $('studentMenus').style.display = admin ? 'none' : 'block';
+  document.querySelectorAll('.main-only').forEach(el => el.style.display = isMain ? '' : 'none');
   loadMaster();
   await switchView(admin ? 'viewAllBookings' : 'viewBook', document.querySelector(admin ? '#adminMenus button' : '#studentMenus button'));
 }
@@ -420,7 +535,7 @@ async function handleLogin() {
     showErr('Admin detected. Please enter your Security Code.');
   } else showErr(res.message || 'Login failed');
 }
-$('loginPhone').addEventListener('input', () => {   // hide admin code box if a different number is typed
+$('loginPhone').addEventListener('input', () => {
   if ($('adminCodeGroup').style.display !== 'none' && digits($('loginPhone').value) !== adminTriggerPhone) {
     $('adminCodeGroup').style.display = 'none'; $('loginAdminCode').value = ''; $('loginError').style.display = 'none';
   }
@@ -429,7 +544,7 @@ $('loginPhone').addEventListener('input', () => {   // hide admin code box if a 
 
 async function submitProfile() {
   const data = { name: $('profName').value, branch: $('profBranch').value, batch: $('profBatch').value, year: $('profYear').value, phone: $('profPhone').value };
-  if (Object.values(data).some(v => !String(v).trim())) return alert('Fill all fields');
+  if (Object.values(data).some(v => !String(v).trim())) return alert('All fields are compulsory. Please fill every field.');
   const res = await api('saveProfile', data);
   if (res.success) { $('profileModal').style.display = 'none'; const s = await api('session'); if (s.success) afterAuth(s); }
   else alert(res.message);
@@ -448,19 +563,21 @@ function opts(id, arr, ph) {
   if (keep && arr.includes(keep)) el.value = keep;
 }
 function fillMasterUI() {
-  const cats = master.categories, brs = master.branches, facs = master.faculties;
+  const cats = master.categories, brs = master.branches, facs = master.faculties, yrs = master.targetYears || [];
   opts('facCategory', cats, 'Select'); opts('category', cats, 'Select Category'); opts('filterCategory', cats, 'All Categories');
   opts('facBranch', brs, 'Select'); opts('branch', brs, 'Select Branch'); opts('filterBranch', brs, 'All Branches');
-  opts('searchStudentBranch', brs, 'All Branches'); opts('profBranch', brs, 'Select Branch');
-  opts('searchStudentCategory', cats, 'All Categories');
-  opts('filterFaculty', [...new Set(facs.map(f => f.name))], 'All Faculties');
+  opts('searchStudentBranch', brs, 'All Branches'); opts('profBranch', brs, 'Select Branch *'); opts('addUBranch', brs, 'Select Branch');
+  opts('searchStudentCategory', cats, 'All Categories'); opts('profYear', yrs, 'Target Year *');
+  const facNames = [...new Set(facs.map(f => f.name))];
+  opts('filterFaculty', facNames, 'All Faculties'); opts('slotFac', facNames, 'Select Faculty');
   $('categoryList').innerHTML = cats.map(c => `<span class="chip">${esc(c)} <button data-act="delCat" data-id="${esc(c)}">✕</button></span>`).join('');
   $('branchList').innerHTML = brs.map(b => `<span class="chip">${esc(b)} <button data-act="delBr" data-id="${esc(b)}">✕</button></span>`).join('');
+  $('yearList').innerHTML = yrs.map(y => `<span class="chip">${esc(y)} <button class="ed" title="Change" data-act="editYear" data-id="${esc(y)}">✎</button><button data-act="delYear" data-id="${esc(y)}">✕</button></span>`).join('');
   $('facultyListBody').innerHTML = facs.map(f => `<tr><td>${esc(f.name)}</td><td>${esc(f.branch)}</td><td>${esc(f.category)}</td><td><button class="btn btn-danger sm" data-act="delFac" data-id="${esc(f.name)}">Remove</button></td></tr>`).join('');
   if (role === 'student') filterFaculty();
 }
 
-/* ---------- navigation (page spinner on every tab click) ---------- */
+/* ---------- navigation ---------- */
 async function switchView(id, btn) {
   document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
   $(id).classList.add('active');
@@ -480,15 +597,19 @@ const ACTIONS = {
   delCat: async (b, id) => { if (!confirm('Remove Category?')) return; const r = await api('removeCategory', { catName: id }); alert(r.message); await loadMaster(true); },
   delBr: async (b, id) => { if (!confirm('Remove Branch?')) return; const r = await api('removeBranch', { branchName: id }); alert(r.message); await loadMaster(true); },
   delFac: async (b, id) => { if (!confirm('Remove Faculty?')) return; const r = await api('removeFaculty', { facName: id }); alert(r.message); await loadMaster(true); },
+  editYear: async (b, id) => { const v = prompt('Change target year "' + id + '" to:', id); if (v === null || !v.trim() || v.trim() === id) return; const r = await api('renameTargetYear', { oldYear: id, newYear: v.trim() }); alert(r.message); await loadMaster(true); },
+  delYear: async (b, id) => { if (!confirm('Remove target year ' + id + '?')) return; const r = await api('removeTargetYear', { year: id }); alert(r.message); await loadMaster(true); },
   setLink: async (b, id, tr) => { const r = await api('updateLink', { bookingId: id, meetingLink: tr.querySelector('.lnk').value.trim() }); alert(r.message); if (r.success) await loadAdminBookings(); },
+  delLink: async (b, id) => { if (!confirm('Delete the meeting link of this booking?')) return; const r = await api('updateLink', { bookingId: id, meetingLink: '' }); alert(r.message); if (r.success) await loadAdminBookings(); },
   admCancel: async (b, id) => { if (!confirm('Cancel this booking?')) return; const r = await api('cancel', { bookingId: id, reason: 'Cancelled by Admin' }); alert(r.message); await loadAdminBookings(); },
   reschedule: async (b, id) => openRescheduleModal(id),
   saveCap: async (b, id, tr) => { const r = await api('updateSlotCapacity', { row: b.dataset.row, sig: b.dataset.sig, newCap: tr.querySelector('.cap-input').value }); alert(r.message); await loadSlotsAdmin(); },
   delSlot: async (b) => { if (!confirm('Delete this slot?')) return; const r = await api('deleteSlot', { row: b.dataset.row, sig: b.dataset.sig }); alert(r.message); await loadSlotsAdmin(); },
   saveUser: async (b, id, tr) => { const r = await api('updateUser', { id, phone: tr.querySelector('.ph').value, branch: tr.querySelector('.br').value, name: tr.querySelector('.nm').value }); alert(r.message); await loadUsersAdmin(); },
-  delUser: async (b, id) => { if (!confirm('Remove this user?')) return; const r = await api('deleteUser', { id }); alert(r.message); await loadUsersAdmin(); },
+  delUser: async (b, id) => { if (!confirm('Remove this user?')) return; const r = await api('deleteUser', { id }); alert(r.message); selectedUsers.delete(id); await loadUsersAdmin(); },
   blockStu: async (b, id) => { if (!confirm('Block this student from login/booking?')) return; const r = await api('blockStudent', { id, note: 'Blocked by admin' }); alert(r.message); await loadStudents(); },
-  unblockStu: async (b, id) => { if (!confirm('Restore access for this student?')) return; const r = await api('unblockStudent', { id }); alert(r.message); await loadStudents(); }
+  unblockStu: async (b, id) => { if (!confirm('Restore access for this student?')) return; const r = await api('unblockStudent', { id }); alert(r.message); await loadStudents(); },
+  delCo: async (b, id) => { if (!confirm('Remove this co-admin?')) return; const r = await api('removeCoAdmin', { phone: id }); alert(r.message); await loadCoAdmins(); }
 };
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
@@ -509,25 +630,30 @@ function filteredBookings() {
   const fD = $('filterFrom').value, tD = $('filterTo').value, fB = $('filterBranch').value, fC = $('filterCategory').value, fF = $('filterFaculty').value, q = $('filterSearch').value.trim().toLowerCase();
   return adminBookingsList.filter(b => {
     if (fD || tD) { const p = b.date.split('/'), bd = `${p[2]}-${p[1]}-${p[0]}`; if (fD && bd < fD) return false; if (tD && bd > tD) return false; }
-    return (!fB || b.branch === fB) && (!fC || b.category === fC) && (!fF || b.faculty === fF) && (!q || b.name.toLowerCase().includes(q) || b.studentId.toLowerCase().includes(q));
+    return (!fB || b.branch === fB) && (!fC || b.category === fC) && (!fF || b.faculty === fF) &&
+      (!q || b.name.toLowerCase().includes(q) || b.studentId.toLowerCase().includes(q) || b.phone.toLowerCase().includes(q) || b.email.toLowerCase().includes(q));
   });
 }
+function updateSelCount() { $('selCount').innerText = selectedBookings.size + ' selected'; }
 function renderAdminTable() {
   $('adminBookingsBody').innerHTML = filteredBookings().map(b => {
     const booked = b.status === 'Booked';
-    const link = booked ? `<input class="lnk cell-in" value="${esc(b.meetingLink)}" placeholder="Paste Link" style="width:100px"> <button class="btn btn-success sm" data-act="setLink" data-id="${esc(b.bookingId)}">Set</button>` : '-';
-    const act = booked ? `<button class="btn btn-warn sm" data-act="reschedule" data-id="${esc(b.bookingId)}">📅</button> <button class="btn btn-danger sm" data-act="admCancel" data-id="${esc(b.bookingId)}">Cancel</button>` : '-';
+    const link = booked ? `<input class="lnk cell-in" value="${esc(b.meetingLink)}" placeholder="Paste Link" style="width:130px"> <button class="btn btn-success sm" data-act="setLink" data-id="${esc(b.bookingId)}">Set</button> <button class="btn btn-gray sm" title="Delete link" data-act="delLink" data-id="${esc(b.bookingId)}">🗑</button>` : '-';
+    const act = booked ? `<button class="btn btn-warn sm" title="Change date & time" data-act="reschedule" data-id="${esc(b.bookingId)}">📅</button> <button class="btn btn-danger sm" data-act="admCancel" data-id="${esc(b.bookingId)}">Cancel</button>` : '-';
     const q = b.query ? `<br><small title="${esc(b.query)}">💬 ${esc(b.query.slice(0, 30))}${b.query.length > 30 ? '…' : ''}</small>` : '';
     const cb = booked ? `<input type="checkbox" class="book-chk" data-id="${esc(b.bookingId)}" ${selectedBookings.has(b.bookingId) ? 'checked' : ''} onchange="toggleBookingSelect(this)">` : '';
     return `<tr><td>${cb}</td>
-      <td><b>${esc(b.name)}</b><br><small>${esc(b.studentId)}</small><br><small>${esc(b.email)} ${esc(b.phone)}</small>${q}</td>
+      <td><b>${esc(b.name)}</b><br><small>${esc(b.studentId)}</small>${q}</td>
+      <td>${esc(b.email) || '-'}</td><td>${esc(b.phone) || '-'}</td>
       <td>${esc(b.branch)}/${esc(b.batchName)}</td><td>${esc(b.faculty)}</td><td>${esc(b.date)}<br>${esc(b.time)}</td>
       <td><span class="badge ${booked ? 'bg-booked' : 'bg-cancelled'}">${esc(b.status)}</span></td><td>${sessionBadge(b)}</td><td>${link}</td><td>${act}</td></tr>`;
   }).join('');
+  updateSelCount();
 }
-function toggleBookingSelect(cb) { if (cb.checked) selectedBookings.add(cb.dataset.id); else selectedBookings.delete(cb.dataset.id); }
+function toggleBookingSelect(cb) { if (cb.checked) selectedBookings.add(cb.dataset.id); else selectedBookings.delete(cb.dataset.id); updateSelCount(); }
 function toggleSelectAll(cb) {
   document.querySelectorAll('.book-chk').forEach(el => { el.checked = cb.checked; if (cb.checked) selectedBookings.add(el.dataset.id); else selectedBookings.delete(el.dataset.id); });
+  updateSelCount();
 }
 async function clearAllBookings() {
   if (!confirm('This will remove ALL bookings (backup saved). Continue?')) return;
@@ -535,7 +661,7 @@ async function clearAllBookings() {
   const r = await api('clearAllBookings'); alert(r.message); await loadAdminBookings();
 }
 
-/* reschedule (date / time pickers) */
+/* reschedule */
 const dmy2ymd = d => { const p = String(d).split('/'); return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : ''; };
 function to24(t) { const m = String(t).match(/(\d+):(\d+)\s*(AM|PM)/i); if (!m) return ''; let h = +m[1]; const pm = m[3].toUpperCase() === 'PM'; if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; return String(h).padStart(2, '0') + ':' + m[2]; }
 let reschBookingId = '';
@@ -553,9 +679,10 @@ async function confirmReschedule() {
   alert(r.message);
   if (r.success) { $('rescheduleModal').style.display = 'none'; await loadAdminBookings(); }
 }
+function needSelection() { if (!selectedBookings.size) { alert('Select at least one booking first (checkbox in the left column).'); return false; } return true; }
 async function openBulkReschedule() {
-  if (!selectedBookings.size) return alert('Select at least one booking first (checkbox in left column).');
-  $('bulkInfo').innerText = `${selectedBookings.size} booking(s) selected.`;
+  if (!needSelection()) return;
+  $('bulkInfo').innerText = `${selectedBookings.size} booking(s) selected. They will all be moved to the date & time below.`;
   $('bulkRescheduleModal').style.display = 'flex';
 }
 async function confirmBulkReschedule() {
@@ -564,6 +691,25 @@ async function confirmBulkReschedule() {
   const r = await api('bulkReschedule', { bookingIds: Array.from(selectedBookings), date: d, time: t });
   alert(r.message);
   if (r.success) { $('bulkRescheduleModal').style.display = 'none'; selectedBookings.clear(); await loadAdminBookings(); }
+}
+async function openBulkLink() {
+  if (!needSelection()) return;
+  $('bulkLinkInfo').innerText = `The same link will be set for ${selectedBookings.size} selected booking(s).`;
+  $('bulkLinkInput').value = ''; $('bulkLinkModal').style.display = 'flex';
+}
+async function confirmBulkLink() {
+  const l = $('bulkLinkInput').value.trim();
+  if (!l) return alert('Paste the meeting link first.');
+  const r = await api('bulkLink', { bookingIds: Array.from(selectedBookings), meetingLink: l });
+  alert(r.message);
+  if (r.success) { $('bulkLinkModal').style.display = 'none'; selectedBookings.clear(); await loadAdminBookings(); }
+}
+async function bulkDeleteLinks() {
+  if (!needSelection()) return;
+  if (!confirm(`Delete the meeting link of ${selectedBookings.size} selected booking(s)?`)) return;
+  const r = await api('bulkLink', { bookingIds: Array.from(selectedBookings), meetingLink: '' });
+  alert(r.message);
+  if (r.success) { selectedBookings.clear(); await loadAdminBookings(); }
 }
 
 /* ---------- admin: utilization ---------- */
@@ -583,8 +729,8 @@ function csvCell(v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v 
 async function downloadCSV(type) {
   let head, rows;
   if (type === 'bookings') {
-    head = ['StudentName', 'StudentID', 'Email', 'Phone', 'Branch', 'Batch', 'Faculty', 'Date', 'Time', 'BookingStatus', 'SessionStatus', 'Query'];
-    rows = filteredBookings().map(b => [b.name, b.studentId, b.email, b.phone, b.branch, b.batchName, b.faculty, b.date, b.time, b.status, b.status === 'Booked' ? b.isDone : '-', b.query]);
+    head = ['StudentName', 'StudentID', 'Email', 'Phone', 'Branch', 'Batch', 'Faculty', 'Date', 'Time', 'BookingStatus', 'SessionStatus', 'MeetingLink', 'Query'];
+    rows = filteredBookings().map(b => [b.name, b.studentId, b.email, b.phone, b.branch, b.batchName, b.faculty, b.date, b.time, b.status, b.status === 'Booked' ? b.isDone : '-', b.meetingLink, b.query]);
   } else {
     head = ['Name', 'StudentID', 'Branch', 'Batch', 'TargetYear', 'PWNumber', 'Category', 'Blocked'];
     rows = filteredStudents().map(s => [s.name, s.id, s.branch, s.batch, s.year, s.phone, s.category || '', s.blocked ? 'Yes' : 'No']);
@@ -595,12 +741,20 @@ async function downloadCSV(type) {
 }
 
 /* ---------- admin: students ---------- */
-async function loadStudents() { const r = await api('getKnowYourStudents'); if (r.success) { students = r.data; renderStudentsTable(); } }
+async function loadStudents() {
+  const r = await api('getKnowYourStudents');
+  if (r.success) {
+    students = r.data;
+    const ys = [...new Set([...(master ? master.targetYears || [] : []), ...students.map(s => s.year)].filter(Boolean))].sort();
+    opts('searchStudentYear', ys, 'All Target Years');
+    renderStudentsTable();
+  }
+}
 async function applyStudentFilter() { await loadStudents(); }
-async function resetStudentFilter() { ['searchStudentBranch', 'searchStudentCategory', 'searchStudentPhone'].forEach(id => $(id).value = ''); await loadStudents(); }
+async function resetStudentFilter() { ['searchStudentBranch', 'searchStudentYear', 'searchStudentCategory', 'searchStudentPhone'].forEach(id => $(id).value = ''); await loadStudents(); }
 function filteredStudents() {
-  const br = $('searchStudentBranch').value, cat = $('searchStudentCategory').value, q = $('searchStudentPhone').value.trim().toLowerCase();
-  return students.filter(s => (!br || s.branch === br) && (!cat || s.category === cat) &&
+  const br = $('searchStudentBranch').value, yr = $('searchStudentYear').value, cat = $('searchStudentCategory').value, q = $('searchStudentPhone').value.trim().toLowerCase();
+  return students.filter(s => (!br || s.branch === br) && (!yr || s.year === yr) && (!cat || s.category === cat) &&
     (!q || s.name.toLowerCase().includes(q) || s.phone.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)));
 }
 function renderStudentsTable() {
@@ -616,22 +770,45 @@ function renderStudentsTable() {
 /* ---------- admin: master / faculty ---------- */
 async function addCat() { const v = $('newCatName').value.trim(); if (!v) return alert('Enter a category name'); const r = await api('addCategory', { catName: v }); alert(r.message); $('newCatName').value = ''; await loadMaster(true); }
 async function addBranch() { const v = $('newBranchName').value.trim(); if (!v) return alert('Enter a branch name'); const r = await api('addBranch', { branchName: v }); alert(r.message); $('newBranchName').value = ''; await loadMaster(true); }
+async function addYear() { const v = $('newYearName').value.trim(); if (!v) return alert('Enter a target year'); const r = await api('addTargetYear', { year: v }); alert(r.message); if (r.success) $('newYearName').value = ''; await loadMaster(true); }
 async function addFac() {
   const n = $('facName').value.trim(), b = $('facBranch').value, c = $('facCategory').value;
   if (!n || !b || !c) return alert('Fill all fields');
   const r = await api('addFaculty', { name: n, branch: b, category: c }); alert(r.message); $('facName').value = ''; await loadMaster(true);
 }
 
-/* ---------- admin: slots / users / settings ---------- */
-async function loadSlotsAdmin() { const r = await api('getSlotsAdmin'); if (r.success) { slotsAdmin = r.data; renderSlotsAdminTable(); } }
+/* ---------- admin: slots ---------- */
+async function loadSlotsAdmin() { const r = await api('getSlotsAdmin'); if (r.success) { slotsAdmin = r.data; selectedSlots.clear(); $('selectAllSlots').checked = false; renderSlotsAdminTable(); } }
+const slotSig = s => `${s.faculty}|${s.date}|${s.time}`;
+function updateSlotCount() { $('slotSelCount').innerText = selectedSlots.size + ' selected'; }
 function renderSlotsAdminTable() {
   $('adminSlotsBody').innerHTML = slotsAdmin.map(s => {
-    const sig = esc(`${s.faculty}|${s.date}|${s.time}`), full = s.booked >= s.capacity;
-    return `<tr><td>${esc(s.faculty)}<br><small>${esc(s.branch)}</small></td><td>${esc(s.date)}</td><td>${esc(s.time)}</td>
+    const sig = esc(slotSig(s)), full = s.booked >= s.capacity;
+    return `<tr><td><input type="checkbox" class="slot-chk" data-sig="${sig}" ${selectedSlots.has(slotSig(s)) ? 'checked' : ''} onchange="toggleSlotSel(this)"></td>
+      <td>${esc(s.faculty)}<br><small>${esc(s.branch)}</small></td><td>${esc(s.date)}</td><td>${esc(s.time)}</td>
       <td><span class="slot-stat-badge ${full ? 'stat-full' : 'stat-available'}">${s.booked} Booked</span></td>
       <td><input type="number" min="0" value="${s.capacity}" class="cap-input"> <button class="btn btn-success sm" data-act="saveCap" data-row="${s.row}" data-sig="${sig}">Save</button></td>
       <td><button class="btn btn-danger sm" data-act="delSlot" data-row="${s.row}" data-sig="${sig}">Del Slot</button></td></tr>`;
   }).join('');
+  updateSlotCount();
+}
+function toggleSlotSel(cb) { if (cb.checked) selectedSlots.add(cb.dataset.sig); else selectedSlots.delete(cb.dataset.sig); updateSlotCount(); }
+function toggleAllSlots(cb) {
+  document.querySelectorAll('.slot-chk').forEach(el => { el.checked = cb.checked; if (cb.checked) selectedSlots.add(el.dataset.sig); else selectedSlots.delete(el.dataset.sig); });
+  updateSlotCount();
+}
+async function bulkDeleteSlotsUI() {
+  if (!selectedSlots.size) return alert('Select at least one slot first.');
+  const items = slotsAdmin.filter(s => selectedSlots.has(slotSig(s))).map(s => ({ row: s.row, sig: slotSig(s) }));
+  const withBookings = slotsAdmin.filter(s => selectedSlots.has(slotSig(s)) && s.booked > 0).length;
+  if (!confirm(`Delete ${items.length} selected slot(s)?` + (withBookings ? `\n\nWarning: ${withBookings} of them already have bookings (bookings stay, but the slot disappears).` : ''))) return;
+  const r = await api('bulkDeleteSlots', { items }); alert(r.message); await loadSlotsAdmin();
+}
+async function addSlotAdmin() {
+  const f = $('slotFac').value, d = $('slotDate').value, t = $('slotTime').value;
+  if (!f || !d || !t) return alert('Select faculty, date and time.');
+  const r = await api('addSlot', { faculty: f, date: d, time: t, capacity: $('slotCap').value });
+  alert(r.message); if (r.success) { $('slotTime').value = ''; $('slotCap').value = ''; await loadSlotsAdmin(); }
 }
 function uploadCSV(inputId, action, after) {
   const f = $(inputId); if (!f.files.length) { alert('Please select a CSV file first.'); return Promise.resolve(); }
@@ -642,19 +819,86 @@ function uploadCSV(inputId, action, after) {
     reader.readAsText(f.files[0]);
   });
 }
-async function loadUsersAdmin() { const r = await api('getUsersAdmin'); if (r.success) { usersAdmin = r.data; renderUsersAdminTable(); } }
-function renderUsersAdminTable() {
+
+/* ---------- admin: users ---------- */
+async function loadUsersAdmin() { const r = await api('getUsersAdmin'); if (r.success) { usersAdmin = r.data; const ids = new Set(usersAdmin.map(u => u.id)); selectedUsers.forEach(i => { if (!ids.has(i)) selectedUsers.delete(i); }); $('selectAllUsers').checked = false; renderUsersAdminTable(); } }
+function filteredUsers() {
   const q = $('searchUserAdmin').value.toLowerCase();
-  $('adminUsersBody').innerHTML = usersAdmin.filter(u => u.id.toLowerCase().includes(q) || u.phone.includes(q)).map(u => `<tr><td>${esc(u.id)}</td>
+  return usersAdmin.filter(u => u.id.toLowerCase().includes(q) || u.phone.includes(q) || u.name.toLowerCase().includes(q));
+}
+function updateUserCount() { $('userSelCount').innerText = selectedUsers.size + ' selected'; }
+function renderUsersAdminTable() {
+  $('adminUsersBody').innerHTML = filteredUsers().map(u => `<tr><td><input type="checkbox" class="usr-chk" data-id="${esc(u.id)}" ${selectedUsers.has(u.id) ? 'checked' : ''} onchange="toggleUserSel(this)"></td><td>${esc(u.id)}</td>
     <td><input class="ph cell-in" value="${esc(u.phone)}" style="width:110px"></td><td><input class="br cell-in" value="${esc(u.branch)}" style="width:80px"></td><td><input class="nm cell-in" value="${esc(u.name)}" style="width:130px"></td>
+    <td>${esc(u.year) || '-'}</td><td>${esc(u.category) || '-'}</td>
     <td>${u.blocked ? '<span class="badge bg-blocked">Blocked</span>' : '<span class="badge bg-booked">Active</span>'}</td>
     <td><button class="btn btn-success sm" data-act="saveUser" data-id="${esc(u.id)}">Save</button> <button class="btn btn-danger sm" data-act="delUser" data-id="${esc(u.id)}">Del</button></td></tr>`).join('');
+  updateUserCount();
 }
+function toggleUserSel(cb) { if (cb.checked) selectedUsers.add(cb.dataset.id); else selectedUsers.delete(cb.dataset.id); updateUserCount(); }
+function toggleAllUsers(cb) {
+  document.querySelectorAll('.usr-chk').forEach(el => { el.checked = cb.checked; if (cb.checked) selectedUsers.add(el.dataset.id); else selectedUsers.delete(el.dataset.id); });
+  updateUserCount();
+}
+async function addUserAdmin() {
+  const id = $('addUId').value.trim(), ph = $('addUPhone').value.trim(), br = $('addUBranch').value, nm = $('addUName').value.trim();
+  if (!id || !ph || !br) return alert('User ID, phone number and branch are required.');
+  const r = await api('addUser', { id, phone: ph, branch: br, name: nm }); alert(r.message);
+  if (r.success) { ['addUId', 'addUPhone', 'addUName'].forEach(x => $(x).value = ''); await loadUsersAdmin(); }
+}
+function parseCsv(text) {
+  const lines = String(text).replace(/^\ufeff/, '').split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return [];
+  const d = lines[0].includes(',') ? ',' : lines[0].includes(';') ? ';' : lines[0].includes('\t') ? '\t' : ',';
+  return lines.map(l => l.split(d).map(s => s.trim().replace(/^"(.*)"$/, '$1')));
+}
+const readFileText = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = () => rej(new Error('Could not read file')); r.readAsText(f); });
+async function openBulkDelUsers() {
+  if (!selectedUsers.size) return alert('Select at least one user first.');
+  $('protectFile').value = ''; $('protectResult').style.display = 'none'; $('protectResult').innerHTML = ''; protectIds = new Set();
+  $('bulkDelInfo').innerText = `${selectedUsers.size} user(s) selected for deletion.`;
+  $('bulkDelUsersModal').style.display = 'flex';
+}
+async function validateProtect() {
+  protectIds = new Set();
+  const box = $('protectResult'), f = $('protectFile').files[0]; box.style.display = 'block';
+  if (!f) { box.innerHTML = 'No file chosen – nothing is protected. All ' + selectedUsers.size + ' selected user(s) will be deleted.'; return; }
+  const rows = parseCsv(await readFileText(f)), byId = {}, byPh = {};
+  usersAdmin.forEach(u => { byId[u.id] = u; byPh[digits(u.phone)] = u; });
+  let notFound = 0, notSelected = 0, invalid = 0; const warns = [];
+  rows.forEach((p, i) => {
+    if (i === 0 && /user|id/i.test(p[0])) return;
+    const id = p[0] || '', ph = digits(p[1]);
+    if (!id && !ph) { invalid++; return; }
+    const u = byId[id] || byPh[ph];
+    if (!u) { notFound++; return; }
+    if (!selectedUsers.has(u.id)) { notSelected++; return; }
+    protectIds.add(u.id);
+    if (byId[id] && ph && digits(u.phone) !== ph) warns.push(`${u.id}: phone in file differs from system`);
+    else if (p[2] && u.branch && p[2].toLowerCase() !== u.branch.toLowerCase()) warns.push(`${u.id}: branch in file (${p[2]}) differs from system (${u.branch})`);
+    else if (p[3] && u.year && p[3] !== u.year) warns.push(`${u.id}: target year in file (${p[3]}) differs from system (${u.year})`);
+  });
+  const del = selectedUsers.size - protectIds.size;
+  box.innerHTML = `<b>✔ Validated</b><br>🛡 Protected (will NOT be deleted): <b>${protectIds.size}</b><br>🗑 Will be deleted: <b>${del}</b><br>` +
+    `Rows not in system: ${notFound} | Rows not in your selection: ${notSelected} | Invalid rows: ${invalid}` +
+    (warns.length ? `<br><span style="color:#b45309">⚠ ${warns.slice(0, 5).map(esc).join('<br>⚠ ')}${warns.length > 5 ? '<br>…and ' + (warns.length - 5) + ' more' : ''}</span>` : '');
+}
+async function confirmBulkDelUsers() {
+  if ($('protectFile').files[0]) await validateProtect(); else protectIds = new Set();
+  const ids = [...selectedUsers].filter(i => !protectIds.has(i));
+  if (!ids.length) return alert('Nothing to delete – all selected users are protected.');
+  if (!confirm(`Permanently delete ${ids.length} user(s)?` + (protectIds.size ? `\n${protectIds.size} protected user(s) will be kept.` : ''))) return;
+  const r = await api('bulkDeleteUsers', { ids }); alert(r.message);
+  if (r.success) { $('bulkDelUsersModal').style.display = 'none'; selectedUsers.clear(); await loadUsersAdmin(); }
+}
+
+/* ---------- admin: settings + co-admins ---------- */
 async function loadSettings() {
   const r = await api('getSettings'); if (!r.success) return;
   $('setLimit').value = r.data.limit; $('setCapacity').value = r.data.capacity; $('setTelegram').value = r.data.telegram;
-  $('setAdminId').value = r.data.adminId; $('setAdminPhone').value = r.data.adminPhone; $('setAdminCode').value = r.data.adminCode;
+  if (isMain) { $('setAdminId').value = r.data.adminId; $('setAdminPhone').value = r.data.adminPhone; $('setAdminCode').value = r.data.adminCode; }
   $('setReportEmail').value = r.data.reportEmail || ''; $('setReportEnabled').value = r.data.reportEnabled || 'true';
+  if (isMain) await loadCoAdmins();
 }
 async function saveSettings() {
   const r = await api('updateSettings', {
@@ -665,6 +909,17 @@ async function saveSettings() {
   alert(r.message);
 }
 async function runReportNow() { const r = await api('runReportNow'); alert(r.message); }
+async function loadCoAdmins() {
+  const r = await api('getCoAdmins'); if (!r.success) return;
+  $('coAdminBody').innerHTML = r.data.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td><button class="btn btn-danger sm" data-act="delCo" data-id="${esc(c.phone)}">Remove</button></td></tr>`).join('')
+    || '<tr><td colspan="3" style="text-align:center;color:#64748b">No co-admins added</td></tr>';
+}
+async function addCoAdminUI() {
+  const name = $('coName').value.trim(), phone = $('coPhone').value.trim(), code = $('coCode').value.trim();
+  if (!phone || !code) return alert('Phone number and security code are required.');
+  const r = await api('addCoAdmin', { name, phone, code }); alert(r.message);
+  if (r.success) { ['coName', 'coPhone', 'coCode'].forEach(x => $(x).value = ''); await loadCoAdmins(); }
+}
 
 /* ---------- student ---------- */
 async function getDash(force) {
@@ -711,10 +966,13 @@ function fillTimes() {
 async function handleBooking() {
   const data = { branch: $('branch').value, category: $('category').value, faculty: $('faculty').value, date: $('bookDate').value, time: $('timeSlot').value,
                  email: $('bookEmail').value.trim(), phone: $('bookPhone').value.trim(), query: $('query').value.trim() };
-  if (!data.branch || !data.category || !data.faculty || !data.date || !data.time || !data.email || !data.phone) return alert('Fill all fields');
+  if (Object.values(data).some(v => !v)) return alert('All fields are compulsory. Please fill every field (including Query).');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) return alert('Enter a valid Mail ID.');
+  if (digits(data.phone).length !== 10) return alert('Enter a valid 10-digit phone number.');
   const r = await api('book', data);
   if (r.success) {
-    $('succBookingId').innerText = r.bookingId; $('bookingSuccessModal').style.display = 'flex';
+    $('succDate').innerText = data.date; $('succTime').innerText = data.time; $('succFac').innerText = data.faculty;
+    $('bookingSuccessModal').style.display = 'flex';
     $('query').value = ''; resetSlots(); $('faculty').value = ''; dash = null;
     switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]);
   } else { alert('Booking Failed!\n' + r.message); if (data.faculty) await fetchSlots(); }
