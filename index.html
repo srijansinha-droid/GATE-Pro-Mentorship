@@ -136,6 +136,16 @@ small{color:#64748b}
   </div>
 </div></div>
 
+<div class="modal-overlay" id="joinModal"><div class="modal-box">
+  <h2>Join Session</h2>
+  <p style="font-size:15px;margin-bottom:8px;color:#1e293b;font-weight:600">Are you going to join this mentorship session?</p>
+  <p style="font-size:13px;margin-bottom:20px;color:#64748b" id="joinInfo"></p>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-success" onclick="run(this,()=>submitJoin('yes'))">Yes</button>
+    <button class="btn btn-danger" onclick="run(this,()=>submitJoin('no'))">No</button>
+  </div>
+</div></div>
+
 <div class="modal-overlay" id="bookingSuccessModal"><div class="success-box">
   <div class="icon">🎉</div>
   <h2 style="text-align:center">Booking Confirmed!</h2>
@@ -148,7 +158,7 @@ small{color:#64748b}
   <p>Please click on Join at your scheduled time to attend the session.</p>
   <p>Once the link is updated, you will also be notified in the Close Faculty Group.</p>
   <p>You will get 3 booking chances per month.</p>
-  <p>You can make your next booking after 10 days.</p>
+  <p>You can make your next booking after <b id="succGap">10</b> days.</p>
   <p>Note: Please make sure to join the session on time. 😊</p>
   <button class="btn btn-primary" onclick="document.getElementById('bookingSuccessModal').style.display='none'">Got it</button>
 </div></div>
@@ -279,7 +289,7 @@ small{color:#64748b}
         <div id="utilContainer"><p style="color:#64748b">Loading…</p></div>
         <h4 style="margin-top:25px;margin-bottom:10px">Detailed Table</h4>
         <div class="table-container"><table>
-          <thead><tr><th>Month</th><th>Total</th><th>Booked</th><th>Done</th><th>Not Joined</th><th>Not Done</th><th>Cancelled</th></tr></thead>
+          <thead><tr><th>Month</th><th>Total</th><th>Booked</th><th>Done</th><th>Not Joined</th><th>Not Done</th><th>Declined</th><th>Cancelled</th></tr></thead>
           <tbody id="utilBody"></tbody></table></div>
       </div></div>
 
@@ -381,7 +391,7 @@ small{color:#64748b}
       <!-- ===== SETTINGS ===== -->
       <div id="viewSettings" class="view-section"><div class="card">
         <h3 style="margin-bottom:15px">System Settings</h3>
-        <div class="input-row"><div><label>Monthly Limit</label><input type="number" id="setLimit" min="0"></div><div><label>Default Slot Capacity</label><input type="number" id="setCapacity" min="1"></div></div>
+        <div class="input-row"><div><label>Monthly Limit</label><input type="number" id="setLimit" min="0"></div><div><label>Default Slot Capacity</label><input type="number" id="setCapacity" min="1"></div><div><label>Booking Gap (Days)</label><input type="number" id="setGap" min="0" max="365"></div></div>
         <div class="input-row"><div><label>Telegram Link</label><input type="text" id="setTelegram" placeholder="https://t.me/..."></div></div>
         <div class="input-row main-only"><div><label>Admin ID</label><input type="text" id="setAdminId"></div><div><label>Admin Phone</label><input type="text" id="setAdminPhone"></div><div><label>Admin Security Code</label><input type="text" id="setAdminCode"></div></div>
         <div class="input-row"><div><label>Report Email</label><input type="email" id="setReportEmail" placeholder="admin@example.com"></div><div><label>Daily Report Enabled</label><select id="setReportEnabled"><option value="true">Yes</option><option value="false">No</option></select></div></div>
@@ -443,6 +453,8 @@ let adminBookingsList = [], students = [], slotsAdmin = [], usersAdmin = [], fac
 let selectedBookings = new Set(), selectedSlots = new Set(), selectedUsers = new Set(), protectIds = new Set(), adminTriggerPhone = '';
 // big admin tables only draw the first PAGE rows (keeps the page fast); "Show more" draws the next PAGE
 const PAGE = 200, lim = { book: PAGE, stu: PAGE, usr: PAGE };
+let gapDays = 10, joinBid = '', tBook = 0, tStu = 0, tUsr = 0, tSlot = 0, masterAt = 0, masterP = null;
+const PRE = {};   // requests started in parallel with the session check on page reload
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -480,11 +492,11 @@ function netDelta(n) { netCount = Math.max(0, netCount + n); $('netBadge').style
 function pageLoading(on) { pageCount = Math.max(0, pageCount + (on ? 1 : -1)); $('viewLoader').style.display = pageCount > 0 ? 'flex' : 'none'; }
 
 /* ---------- API ---------- */
-function api(action, data) {
+function api(action, data, quiet) {
   netDelta(1);
   return fetch(API_URL, { method: 'POST', cache: 'no-store', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action, token, data: data || {} }) })
     .then(r => r.json())
-    .then(res => { if (res.authError && token) forceLogout(res.message); return res; })
+    .then(res => { if (res.authError && token && !quiet) forceLogout(res.message); return res; })
     .catch(e => { logClient('api(' + action + ')', '', 'Network/parse error: ' + (e && e.message), action); return { success: false, message: 'Network error. Please try again.' }; })
     .finally(() => netDelta(-1));
 }
@@ -502,6 +514,10 @@ window.onload = async function () {
   purgeLegacy();
   token = getTok();
   if (!token) return showLogin();
+  // start the data requests at the same time as the session check (saves one full round trip on reload)
+  const sr = getSavedRole();
+  if (sr === 'student') { PRE.master = api('getMaster', null, true); PRE.dash = api('getDashboard', null, true); }
+  else if (sr === 'admin') { PRE.master = api('getMaster', null, true); PRE.admin = api('getAdminData', null, true); }
   const res = await api('session');
   // the role the SERVER says this token has must match the role saved at login, otherwise start clean
   const saved = getSavedRole();
@@ -567,10 +583,15 @@ async function submitProfile() {
 
 /* ---------- master data ---------- */
 async function loadMaster(force) {
-  if (master && !force) return master;
-  const r = await api('getMaster');
-  if (r.success) { master = r.data; fillMasterUI(); }
-  return master;
+  if (master && !force && Date.now() - masterAt < 60000) return master;
+  if (masterP && !force) return masterP;
+  masterP = (async () => {
+    const p = PRE.master; PRE.master = null;
+    const r = await (p || api('getMaster'));
+    if (r.success) { master = r.data; masterAt = Date.now(); fillMasterUI(); }
+    return master;
+  })();
+  try { return await masterP; } finally { masterP = null; }
 }
 function opts(id, arr, ph) {
   const el = $(id); if (!el) return; const keep = el.value;
@@ -601,14 +622,21 @@ async function switchView(id, btn) {
     btn.classList.add('active');
     $('pageTitle').innerText = btn.innerText.replace(/^[^A-Za-z]+/, '').trim();
   }
-  const L = { viewAllBookings: loadAdminBookings, viewUtilization: loadUtilization, viewKnowStudents: loadStudents, viewSettings: loadSettings,
-              viewMySchedule: loadSchedule, viewCancel: loadCancelDropdown, viewBook: loadStudentData, viewSlots: loadSlotsAdmin, viewUsersCSV: loadUsersAdmin,
-              viewAddMaster: () => loadMaster(true), viewAddFaculty: () => loadMaster(true) };
+  const L = { viewAllBookings: () => loadAdminBookings(true), viewUtilization: loadUtilization, viewKnowStudents: () => loadStudents(true), viewSettings: loadSettings,
+              viewMySchedule: loadSchedule, viewCancel: loadCancelDropdown, viewBook: loadStudentData, viewSlots: () => loadSlotsAdmin(true), viewUsersCSV: () => loadUsersAdmin(true),
+              viewAddMaster: () => loadMaster(), viewAddFaculty: () => loadMaster() };
   if (L[id]) { pageLoading(true); try { await L[id](); } finally { pageLoading(false); } }
 }
 
 /* ---------- row buttons (all get a spinner through run()) ---------- */
 const ACTIONS = {
+  join: async (b, id) => {
+    if (b.dataset.done === '1') return doJoin(id, 'yes');            // already joined once -> straight in, no question
+    joinBid = id;
+    const x = dash && dash.data ? dash.data.find(z => z.bookingId === id) : null;
+    $('joinInfo').innerText = x ? `${x.faculty} | ${x.date} ${x.time}` : '';
+    $('joinModal').style.display = 'flex';
+  },
   more: async (b, id) => { lim[id] += PAGE; ({ book: renderAdminTable, stu: renderStudentsTable, usr: renderUsersAdminTable })[id](); },
   delCat: async (b, id) => { if (!confirm('Remove Category?')) return; const r = await api('removeCategory', { catName: id }); alert(r.message); await loadMaster(true); },
   delBr: async (b, id) => { if (!confirm('Remove Branch?')) return; const r = await api('removeBranch', { branchName: id }); alert(r.message); await loadMaster(true); },
@@ -636,10 +664,14 @@ document.addEventListener('click', e => {
 const sessionBadge = b => {
   if (b.status !== 'Booked') return '-';
   if (b.isDone === 'Done') return '<span class="badge bg-done">Done</span>';
-  if (b.isDone === 'Not Done' || b.isDone === 'Not Joined') return `<span class="badge bg-cancelled">${esc(b.isDone)}</span>`;
+  if (b.isDone === 'Not Done' || b.isDone === 'Not Joined' || b.isDone === 'Declined') return `<span class="badge bg-cancelled">${esc(b.isDone)}</span>`;
   return '<span class="badge bg-pending">Pending</span>';
 };
-async function loadAdminBookings() { const r = await api('getAdminData'); if (r.success) { adminBookingsList = r.data; selectedBookings.clear(); $('selectAllBookings').checked = false; lim.book = PAGE; renderAdminTable(); } }
+async function loadAdminBookings(useCache) {
+  if (useCache === true && adminBookingsList.length && Date.now() - tBook < 30000) { renderAdminTable(); return; }   // switching tabs: reuse data < 30 s old
+  const p = PRE.admin; PRE.admin = null;
+  const r = await (p || api('getAdminData')); if (r.success) { tBook = Date.now(); adminBookingsList = r.data; selectedBookings.clear(); $('selectAllBookings').checked = false; lim.book = PAGE; renderAdminTable(); }
+}
 // filters work on the data already loaded in the browser (no server call -> instant)
 async function applyBookingFilter() { lim.book = PAGE; renderAdminTable(); }
 async function resetBookingFilter() { ['filterFrom', 'filterTo', 'filterBranch', 'filterCategory', 'filterFaculty', 'filterSearch'].forEach(id => $(id).value = ''); lim.book = PAGE; renderAdminTable(); }
@@ -737,9 +769,10 @@ async function loadUtilization() {
   $('utilContainer').innerHTML = utilData.length ? '<div class="util-grid">' + utilData.map(u =>
     `<div class="util-card"><h4>${esc(u.month)}</h4><div class="big">${u.total}</div>
     <div class="row"><span>Done: ${u.done}</span><span>Not Joined: ${u.notJoined}</span></div>
-    <div class="row"><span>Not Done: ${u.notDone}</span><span>Cancelled: ${u.cancelled}</span></div></div>`).join('') + '</div>' : '<p style="color:#64748b">No data yet.</p>';
-  $('utilBody').innerHTML = utilData.map(u => `<tr><td><b>${esc(u.month)}</b></td><td>${u.total}</td><td>${u.booked}</td><td>${u.done}</td><td>${u.notJoined}</td><td>${u.notDone}</td><td>${u.cancelled}</td></tr>`).join('')
-    || '<tr><td colspan="7" style="text-align:center;color:#64748b">No data</td></tr>';
+    <div class="row"><span>Not Done: ${u.notDone}</span><span>Declined: ${u.declined || 0}</span></div>
+    <div class="row"><span>Cancelled: ${u.cancelled}</span></div></div>`).join('') + '</div>' : '<p style="color:#64748b">No data yet.</p>';
+  $('utilBody').innerHTML = utilData.map(u => `<tr><td><b>${esc(u.month)}</b></td><td>${u.total}</td><td>${u.booked}</td><td>${u.done}</td><td>${u.notJoined}</td><td>${u.notDone}</td><td>${u.declined || 0}</td><td>${u.cancelled}</td></tr>`).join('')
+    || '<tr><td colspan="8" style="text-align:center;color:#64748b">No data</td></tr>';
 }
 
 /* ---------- CSV ---------- */
@@ -759,10 +792,11 @@ async function downloadCSV(type) {
 }
 
 /* ---------- admin: students ---------- */
-async function loadStudents() {
+async function loadStudents(useCache) {
+  if (useCache === true && students.length && Date.now() - tStu < 30000) { renderStudentsTable(); return; }
   const r = await api('getKnowYourStudents');
   if (r.success) {
-    students = r.data;
+    students = r.data; tStu = Date.now();
     const ys = [...new Set([...(master ? master.targetYears || [] : []), ...students.map(s => s.year)].filter(Boolean))].sort();
     opts('searchStudentYear', ys, 'All Target Years');
     lim.stu = PAGE; renderStudentsTable();
@@ -797,7 +831,7 @@ async function addFac() {
 }
 
 /* ---------- admin: slots ---------- */
-async function loadSlotsAdmin() { const r = await api('getSlotsAdmin'); if (r.success) { slotsAdmin = r.data; selectedSlots.clear(); $('selectAllSlots').checked = false; renderSlotsAdminTable(); } }
+async function loadSlotsAdmin(useCache) { if (useCache === true && slotsAdmin.length && Date.now() - tSlot < 30000) { renderSlotsAdminTable(); return; } const r = await api('getSlotsAdmin'); if (r.success) { tSlot = Date.now(); slotsAdmin = r.data; selectedSlots.clear(); $('selectAllSlots').checked = false; renderSlotsAdminTable(); } }
 const slotSig = s => `${s.faculty}|${s.date}|${s.time}`;
 function updateSlotCount() { $('slotSelCount').innerText = selectedSlots.size + ' selected'; }
 function renderSlotsAdminTable() {
@@ -840,7 +874,7 @@ function uploadCSV(inputId, action, after) {
 }
 
 /* ---------- admin: users ---------- */
-async function loadUsersAdmin() { const r = await api('getUsersAdmin'); if (r.success) { usersAdmin = r.data; const ids = new Set(usersAdmin.map(u => u.id)); selectedUsers.forEach(i => { if (!ids.has(i)) selectedUsers.delete(i); }); $('selectAllUsers').checked = false; lim.usr = PAGE; renderUsersAdminTable(); } }
+async function loadUsersAdmin(useCache) { if (useCache === true && usersAdmin.length && Date.now() - tUsr < 30000) { renderUsersAdminTable(); return; } const r = await api('getUsersAdmin'); if (r.success) { tUsr = Date.now(); usersAdmin = r.data; const ids = new Set(usersAdmin.map(u => u.id)); selectedUsers.forEach(i => { if (!ids.has(i)) selectedUsers.delete(i); }); $('selectAllUsers').checked = false; lim.usr = PAGE; renderUsersAdminTable(); } }
 function filteredUsers() {
   const q = $('searchUserAdmin').value.toLowerCase();
   return usersAdmin.filter(u => u.id.toLowerCase().includes(q) || u.phone.includes(q) || u.name.toLowerCase().includes(q));
@@ -916,14 +950,14 @@ async function confirmBulkDelUsers() {
 /* ---------- admin: settings + co-admins ---------- */
 async function loadSettings() {
   const r = await api('getSettings'); if (!r.success) return;
-  $('setLimit').value = r.data.limit; $('setCapacity').value = r.data.capacity; $('setTelegram').value = r.data.telegram;
+  $('setLimit').value = r.data.limit; $('setCapacity').value = r.data.capacity; $('setGap').value = r.data.gapDays; $('setTelegram').value = r.data.telegram;
   if (isMain) { $('setAdminId').value = r.data.adminId; $('setAdminPhone').value = r.data.adminPhone; $('setAdminCode').value = r.data.adminCode; }
   $('setReportEmail').value = r.data.reportEmail || ''; $('setReportEnabled').value = r.data.reportEnabled || 'true';
   if (isMain) await loadCoAdmins();
 }
 async function saveSettings() {
   const r = await api('updateSettings', {
-    limit: $('setLimit').value, capacity: $('setCapacity').value, telegram: $('setTelegram').value.trim(),
+    limit: $('setLimit').value, capacity: $('setCapacity').value, gapDays: $('setGap').value, telegram: $('setTelegram').value.trim(),
     adminId: $('setAdminId').value.trim(), adminPhone: $('setAdminPhone').value.trim(), adminCode: $('setAdminCode').value.trim(),
     reportEmail: $('setReportEmail').value.trim(), reportEnabled: $('setReportEnabled').value
   });
@@ -946,10 +980,12 @@ async function addCoAdminUI() {
 // dashboard data is reused for 20 s between tabs; it is cleared (dash=null) after every booking / cancel / status change
 async function getDash(force) {
   if (!force && dash && Date.now() - dashAt < 20000) return dash;
-  const r = await api('getDashboard'); if (r.success) { dash = r; dashAt = Date.now(); } return dash;
+  const p = PRE.dash; PRE.dash = null;
+  const r = await (p || api('getDashboard')); if (r.success) { dash = r; dashAt = Date.now(); } return dash;
 }
 async function loadStudentData() {
   const d = await getDash(false); if (!d) return;
+  if (d.gapDays != null) gapDays = d.gapDays;
   $('chancesBadge').innerText = d.chancesLeft + '/' + d.limit + ' Left';
   $('chancesBadge').className = 'badge ' + (d.chancesLeft <= 0 ? 'bg-cancelled' : 'bg-booked');
   if (d.telegram && /^https?:\/\//i.test(d.telegram)) {
@@ -994,7 +1030,7 @@ async function handleBooking() {
   const r = await api('book', data);
   if (r.success) {
     $('succDate').innerText = data.date; $('succTime').innerText = data.time; $('succFac').innerText = data.faculty;
-    $('bookingSuccessModal').style.display = 'flex';
+    $('succGap').innerText = gapDays; $('bookingSuccessModal').style.display = 'flex';
     $('query').value = ''; resetSlots(); $('faculty').value = ''; dash = null;
     switchView('viewMySchedule', document.querySelectorAll('#studentMenus button')[1]);
   } else { alert('Booking Failed!\n' + r.message); if (data.faculty) await fetchSlots(); }
@@ -1003,11 +1039,29 @@ async function loadSchedule() {
   const d = await getDash(false); if (!d) return;
   $('scheduleBody').innerHTML = d.data.map(b => {
     let lnk = '-';
-    if (b.linkState === 'open' && /^https?:\/\//i.test(b.meetingLink)) lnk = `<a href="${esc(b.meetingLink)}" target="_blank" rel="noopener">Join</a>`;
+    if (b.linkState === 'open') lnk = `<button class="btn btn-success sm" data-act="join" data-id="${esc(b.bookingId)}" data-done="${b.isDone === 'Done' ? 1 : 0}">Join</button>`;
     else if (b.linkState === 'expired') lnk = 'Expired'; else if (b.linkState === 'soon') lnk = 'Available 15m before';
     return `<tr><td>${esc(b.bookingId)}</td><td>${esc(b.date)} ${esc(b.time)}</td><td>${esc(b.faculty)}</td><td style="color:${b.status === 'Booked' ? '#10b981' : '#ef4444'}">${esc(b.status)}</td><td>${sessionBadge(b)}</td><td>${lnk}</td></tr>`;
   }).join('');
 }
+/* Join flow: Yes -> marked Done + link opens, No -> marked Declined. Link is only given by the server after this answer. */
+async function doJoin(bid, choice) {
+  let w = null;
+  if (choice === 'yes') {      // open the tab NOW (inside the click) so popup blockers allow it; the link is filled in after the server answers
+    try { w = window.open('', '_blank'); if (w) { try { w.opener = null; } catch (e) {} w.document.title = 'Opening session…'; w.document.body.innerText = 'Opening your session…'; } } catch (e) { w = null; }
+  }
+  const r = await api('joinSession', { bookingId: bid, choice });
+  $('joinModal').style.display = 'none'; dash = null;
+  if (!r.success) { if (w) w.close(); alert(r.message || 'Could not join. Please try again.'); await loadSchedule(); return; }
+  if (choice === 'yes') {
+    if (!/^https?:\/\//i.test(r.link || '')) { if (w) w.close(); alert('The meeting link is invalid. Please contact support.'); }
+    else if (w) w.location.href = r.link;
+    else if (confirm('Your browser blocked the new tab. Open the session in this tab?')) location.href = r.link;
+  } else alert(r.message);
+  await loadSchedule();
+}
+async function submitJoin(choice) { return doJoin(joinBid, choice); }
+
 async function submitStatus(s) {
   if (!pendingId) { $('statusModal').style.display = 'none'; return; }
   const r = await api('markStatus', { bookingId: pendingId, status: s });
