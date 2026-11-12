@@ -13,14 +13,14 @@
 body{background-color:#0f172a;display:flex;justify-content:center;align-items:center;min-height:100vh;min-height:100dvh;padding:20px}
 
 .bg-layer{position:fixed;inset:0;pointer-events:none}
-.bg-blur{z-index:-3;background:url('bg.jpg.png') center/cover no-repeat;filter:blur(18px) brightness(.85);transform:scale(1.08)}
+.bg-blur{z-index:-3;background:url('bg.jpg.png') center/cover no-repeat}
 .bg-main{z-index:-2;background:url('bg.jpg.png') center/contain no-repeat}
 body::before{content:"";position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:-1;pointer-events:none}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:15px;overflow-y:auto}
 .modal-box{background:#fff;padding:30px;border-radius:15px;width:100%;max-width:500px;text-align:center;animation:pop .3s ease;max-height:92vh;overflow-y:auto}
 @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
-.container{background:var(--card-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);width:100%;padding:40px;display:flex;flex-direction:column;animation:slideUp .5s ease-out;max-width:450px;border:1px solid rgba(255,255,255,.2)}
+.container{background:var(--card-bg);border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);width:100%;padding:40px;display:flex;flex-direction:column;animation:slideUp .5s ease-out;max-width:450px;border:1px solid rgba(255,255,255,.2)}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
 h2{color:var(--text-main);font-size:22px;font-weight:700;text-align:center;margin-bottom:20px}
 .input-group{margin-bottom:15px}
@@ -44,6 +44,11 @@ h2{color:var(--text-main);font-size:22px;font-weight:700;text-align:center;margi
 #viewLoader{position:absolute;inset:0;background:rgba(248,250,252,.65);display:none;justify-content:center;align-items:center;z-index:50}
 #netBadge{position:fixed;right:16px;bottom:16px;background:#1e293b;color:#fff;padding:8px 14px;border-radius:25px;font-size:12px;display:none;align-items:center;gap:8px;z-index:1200;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 #netBadge .btn-spin{margin:0}
+
+/* upload progress box */
+.pbar{height:16px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin:14px 0 8px}
+.pbar>div{height:100%;width:0;background:linear-gradient(90deg,#6366f1,#10b981);transition:width .2s}
+.pct{font-size:36px;font-weight:700;color:var(--primary)}
 
 .msg{padding:10px;border-radius:8px;margin-top:15px;display:none;font-size:13px;text-align:center;font-weight:500}
 .error-msg{background:#fee2e2;color:#991b1b}
@@ -195,6 +200,17 @@ small{color:#64748b}
   </div>
 </div></div>
 
+<div class="modal-overlay" id="adminCancelModal"><div class="modal-box" style="text-align:left">
+  <h2 style="text-align:left">Cancel Booking</h2>
+  <p style="font-size:13px;color:#64748b;margin-bottom:15px" id="adminCancelInfo"></p>
+  <div class="input-group"><label class="req">Cancellation Reason</label><input type="text" id="adminCancelReason" maxlength="300" placeholder="Reason (compulsory)"></div>
+  <p style="font-size:12px;color:#64748b;margin-bottom:15px">This reason will also be shown to the student in My Scheduled Sessions.</p>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-danger" onclick="run(this,confirmAdminCancel)">Cancel Booking</button>
+    <button class="btn btn-gray" onclick="document.getElementById('adminCancelModal').style.display='none'">Close</button>
+  </div>
+</div></div>
+
 <div class="modal-overlay" id="bulkDelUsersModal"><div class="modal-box" style="text-align:left">
   <h2 style="text-align:left">Delete Selected Users</h2>
   <p style="font-size:14px;margin-bottom:12px;color:#991b1b;font-weight:600" id="bulkDelInfo"></p>
@@ -208,6 +224,14 @@ small{color:#64748b}
     <button class="btn btn-danger" style="flex:1" onclick="run(this,confirmBulkDelUsers)">🗑 Delete</button>
     <button class="btn btn-gray" style="flex:1" onclick="document.getElementById('bulkDelUsersModal').style.display='none'">Cancel</button>
   </div>
+</div></div>
+
+<div class="modal-overlay" id="progressModal" style="z-index:1500"><div class="modal-box">
+  <h2 id="progTitle">Uploading…</h2>
+  <div class="pct" id="progPct">0%</div>
+  <div class="pbar"><div id="progBar"></div></div>
+  <p style="font-size:13px;color:#64748b;line-height:1.6" id="progText"></p>
+  <button class="btn btn-primary" id="progClose" style="display:none;margin-top:14px" onclick="document.getElementById('progressModal').style.display='none'">OK</button>
 </div></div>
 
 <div class="container" id="bootLoader" style="align-items:center"><h2 style="margin:0 0 15px">Loading…</h2><div class="big-spin"></div></div>
@@ -272,12 +296,13 @@ small{color:#64748b}
           <button class="btn btn-success sm" style="padding:7px 12px" onclick="run(this,openBulkLink)">🔗 Bulk Set Link</button>
           <button class="btn btn-danger sm" style="padding:7px 12px" onclick="run(this,bulkDeleteLinks)">🧹 Bulk Delete Link</button>
           <button class="btn btn-warn sm" style="padding:7px 12px" onclick="run(this,openBulkReschedule)">📅 Bulk Date &amp; Time</button>
+          <button class="btn btn-danger sm" style="padding:7px 12px" onclick="run(this,openBulkCancel)">❌ Bulk Cancel</button>
           <small>Tick the boxes in the first column for bulk actions, or use the buttons on each row for a single student.</small>
         </div>
         <div class="table-container"><table>
           <thead><tr>
             <th style="width:30px"><input type="checkbox" id="selectAllBookings" onchange="toggleSelectAll(this)"></th>
-            <th>Student</th><th>Mail ID</th><th>Phone</th><th>Branch/Batch</th><th>Faculty</th><th>Date &amp; Time</th><th>Booking Status</th><th>Session Status</th><th>Meeting Link</th><th>Action</th>
+            <th>Student</th><th>Mail ID</th><th>Phone</th><th>Branch/Batch</th><th>Faculty</th><th>Date &amp; Time</th><th>Booking Status</th><th>Session Status</th><th>Cancelled By / Reason</th><th>Meeting Link</th><th>Action</th>
           </tr></thead>
           <tbody id="adminBookingsBody"></tbody></table></div>
       </div></div>
@@ -625,7 +650,12 @@ async function switchView(id, btn) {
   const L = { viewAllBookings: () => loadAdminBookings(true), viewUtilization: loadUtilization, viewKnowStudents: () => loadStudents(true), viewSettings: loadSettings,
               viewMySchedule: loadSchedule, viewCancel: loadCancelDropdown, viewBook: loadStudentData, viewSlots: () => loadSlotsAdmin(true), viewUsersCSV: () => loadUsersAdmin(true),
               viewAddMaster: () => loadMaster(), viewAddFaculty: () => loadMaster() };
-  if (L[id]) { pageLoading(true); try { await L[id](); } finally { pageLoading(false); } }
+  if (L[id]) {
+    // if the table already has data, show it at once (no loading overlay) and refresh it quietly in the background
+    const warm = (id === 'viewAllBookings' && adminBookingsList.length) || (id === 'viewKnowStudents' && students.length) || (id === 'viewSlots' && slotsAdmin.length) || (id === 'viewUsersCSV' && usersAdmin.length);
+    if (!warm) pageLoading(true);
+    try { await L[id](); } finally { if (!warm) pageLoading(false); }
+  }
 }
 
 /* ---------- row buttons (all get a spinner through run()) ---------- */
@@ -643,9 +673,10 @@ const ACTIONS = {
   delFac: async (b, id) => { if (!confirm('Remove Faculty?')) return; const r = await api('removeFaculty', { facName: id }); alert(r.message); await loadMaster(true); },
   editYear: async (b, id) => { const v = prompt('Change target year "' + id + '" to:', id); if (v === null || !v.trim() || v.trim() === id) return; const r = await api('renameTargetYear', { oldYear: id, newYear: v.trim() }); alert(r.message); await loadMaster(true); },
   delYear: async (b, id) => { if (!confirm('Remove target year ' + id + '?')) return; const r = await api('removeTargetYear', { year: id }); alert(r.message); await loadMaster(true); },
-  setLink: async (b, id, tr) => { const r = await api('updateLink', { bookingId: id, meetingLink: tr.querySelector('.lnk').value.trim() }); alert(r.message); if (r.success) await loadAdminBookings(); },
-  delLink: async (b, id) => { if (!confirm('Delete the meeting link of this booking?')) return; const r = await api('updateLink', { bookingId: id, meetingLink: '' }); alert(r.message); if (r.success) await loadAdminBookings(); },
-  admCancel: async (b, id) => { if (!confirm('Cancel this booking?')) return; const r = await api('cancel', { bookingId: id, reason: 'Cancelled by Admin' }); alert(r.message); await loadAdminBookings(); },
+  // link set / delete: only that one row is updated in the browser (no full reload of all bookings -> fast)
+  setLink: async (b, id, tr) => { const l = tr.querySelector('.lnk').value.trim(); const r = await api('updateLink', { bookingId: id, meetingLink: l }); alert(r.message); if (r.success) { const x = adminBookingsList.find(z => z.bookingId === id); if (x) x.meetingLink = l; } },
+  delLink: async (b, id) => { if (!confirm('Delete the meeting link of this booking?')) return; const r = await api('updateLink', { bookingId: id, meetingLink: '' }); alert(r.message); if (r.success) { const x = adminBookingsList.find(z => z.bookingId === id); if (x) x.meetingLink = ''; renderAdminTable(); } },
+  admCancel: async (b, id) => openCancelModal([id]),
   reschedule: async (b, id) => openRescheduleModal(id),
   saveCap: async (b, id, tr) => { const r = await api('updateSlotCapacity', { row: b.dataset.row, sig: b.dataset.sig, newCap: tr.querySelector('.cap-input').value }); alert(r.message); await loadSlotsAdmin(); },
   delSlot: async (b) => { if (!confirm('Delete this slot?')) return; const r = await api('deleteSlot', { row: b.dataset.row, sig: b.dataset.sig }); alert(r.message); await loadSlotsAdmin(); },
@@ -692,12 +723,14 @@ function renderAdminTable() {
     const act = booked ? `<button class="btn btn-warn sm" title="Change date & time" data-act="reschedule" data-id="${esc(b.bookingId)}">📅</button> <button class="btn btn-danger sm" data-act="admCancel" data-id="${esc(b.bookingId)}">Cancel</button>` : '-';
     const q = b.query ? `<br><small title="${esc(b.query)}">💬 ${esc(b.query.slice(0, 30))}${b.query.length > 30 ? '…' : ''}</small>` : '';
     const cb = booked ? `<input type="checkbox" class="book-chk" data-id="${esc(b.bookingId)}" ${selectedBookings.has(b.bookingId) ? 'checked' : ''} onchange="toggleBookingSelect(this)">` : '';
+    const cinfo = b.status === 'Cancelled' ? `<b>${esc(b.cancelledBy || '-')}</b><br><small>${esc(b.cancelReason || '-')}</small>` : '-';
     return `<tr><td>${cb}</td>
       <td><b>${esc(b.name)}</b><br><small>${esc(b.studentId)}</small>${q}</td>
       <td>${esc(b.email) || '-'}</td><td>${esc(b.phone) || '-'}</td>
       <td>${esc(b.branch)}/${esc(b.batchName)}</td><td>${esc(b.faculty)}</td><td>${esc(b.date)}<br>${esc(b.time)}</td>
-      <td><span class="badge ${booked ? 'bg-booked' : 'bg-cancelled'}">${esc(b.status)}</span></td><td>${sessionBadge(b)}</td><td>${link}</td><td>${act}</td></tr>`;
-  }).join('') + (all.length > list.length ? moreRow(11, 'book', all.length, list.length) : '');
+      <td><span class="badge ${booked ? 'bg-booked' : 'bg-cancelled'}">${esc(b.status)}</span></td><td>${sessionBadge(b)}</td>
+      <td style="white-space:normal;min-width:150px">${cinfo}</td><td>${link}</td><td>${act}</td></tr>`;
+  }).join('') + (all.length > list.length ? moreRow(12, 'book', all.length, list.length) : '');
   updateSelCount();
 }
 function toggleBookingSelect(cb) { if (cb.checked) selectedBookings.add(cb.dataset.id); else selectedBookings.delete(cb.dataset.id); updateSelCount(); }
@@ -709,6 +742,28 @@ async function clearAllBookings() {
   if (!confirm('This will remove ALL bookings (backup saved). Continue?')) return;
   if (prompt('Type CLEAR to confirm') !== 'CLEAR') return alert('Cancelled.');
   const r = await api('clearAllBookings'); alert(r.message); await loadAdminBookings();
+}
+
+/* admin cancel (single + bulk): reason is compulsory and is also shown to the student */
+let cancelIds = [];
+function openCancelModal(ids) {
+  cancelIds = ids;
+  const b = ids.length === 1 ? adminBookingsList.find(x => x.bookingId === ids[0]) : null;
+  $('adminCancelInfo').innerText = ids.length === 1 ? (b ? `Student: ${b.name} | Faculty: ${b.faculty} | ${b.date} ${b.time}` : '') : `${ids.length} bookings will be cancelled with the same reason.`;
+  $('adminCancelReason').value = ''; $('adminCancelModal').style.display = 'flex';
+}
+async function openBulkCancel() { if (!needSelection()) return; openCancelModal(Array.from(selectedBookings)); }
+async function confirmAdminCancel() {
+  const reason = $('adminCancelReason').value.trim();
+  if (reason.length < 3) return alert('Cancellation reason is compulsory (at least 3 characters).');
+  const r = cancelIds.length === 1 ? await api('cancel', { bookingId: cancelIds[0], reason }) : await api('bulkCancel', { bookingIds: cancelIds, reason });
+  alert(r.message);
+  if (r.success) {
+    $('adminCancelModal').style.display = 'none';
+    const set = new Set(cancelIds);
+    adminBookingsList.forEach(b => { if (set.has(b.bookingId) && b.status === 'Booked') { b.status = 'Cancelled'; b.cancelledBy = 'Admin'; b.cancelReason = reason; } });
+    selectedBookings.clear(); $('selectAllBookings').checked = false; renderAdminTable();
+  }
 }
 
 /* reschedule */
@@ -750,16 +805,18 @@ async function openBulkLink() {
 async function confirmBulkLink() {
   const l = $('bulkLinkInput').value.trim();
   if (!l) return alert('Paste the meeting link first.');
-  const r = await api('bulkLink', { bookingIds: Array.from(selectedBookings), meetingLink: l });
+  const ids = new Set(selectedBookings);
+  const r = await api('bulkLink', { bookingIds: Array.from(ids), meetingLink: l });
   alert(r.message);
-  if (r.success) { $('bulkLinkModal').style.display = 'none'; selectedBookings.clear(); await loadAdminBookings(); }
+  if (r.success) { $('bulkLinkModal').style.display = 'none'; adminBookingsList.forEach(b => { if (ids.has(b.bookingId) && b.status === 'Booked') b.meetingLink = l; }); selectedBookings.clear(); $('selectAllBookings').checked = false; renderAdminTable(); }
 }
 async function bulkDeleteLinks() {
   if (!needSelection()) return;
   if (!confirm(`Delete the meeting link of ${selectedBookings.size} selected booking(s)?`)) return;
-  const r = await api('bulkLink', { bookingIds: Array.from(selectedBookings), meetingLink: '' });
+  const ids = new Set(selectedBookings);
+  const r = await api('bulkLink', { bookingIds: Array.from(ids), meetingLink: '' });
   alert(r.message);
-  if (r.success) { selectedBookings.clear(); await loadAdminBookings(); }
+  if (r.success) { adminBookingsList.forEach(b => { if (ids.has(b.bookingId) && b.status === 'Booked') b.meetingLink = ''; }); selectedBookings.clear(); $('selectAllBookings').checked = false; renderAdminTable(); }
 }
 
 /* ---------- admin: utilization ---------- */
@@ -780,8 +837,8 @@ function csvCell(v) { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v 
 async function downloadCSV(type) {
   let head, rows;
   if (type === 'bookings') {
-    head = ['StudentName', 'StudentID', 'Email', 'Phone', 'Branch', 'Batch', 'Faculty', 'Date', 'Time', 'BookingStatus', 'SessionStatus', 'MeetingLink', 'Query'];
-    rows = filteredBookings().map(b => [b.name, b.studentId, b.email, b.phone, b.branch, b.batchName, b.faculty, b.date, b.time, b.status, b.status === 'Booked' ? b.isDone : '-', b.meetingLink, b.query]);
+    head = ['StudentName', 'StudentID', 'Email', 'Phone', 'Branch', 'Batch', 'Faculty', 'Date', 'Time', 'BookingStatus', 'SessionStatus', 'MeetingLink', 'Query', 'CancelledBy', 'CancelReason'];
+    rows = filteredBookings().map(b => [b.name, b.studentId, b.email, b.phone, b.branch, b.batchName, b.faculty, b.date, b.time, b.status, b.status === 'Booked' ? b.isDone : '-', b.meetingLink, b.query, b.cancelledBy || '', b.cancelReason || '']);
   } else {
     head = ['Name', 'StudentID', 'Branch', 'Batch', 'TargetYear', 'PWNumber', 'Category', 'Blocked'];
     rows = filteredStudents().map(s => [s.name, s.id, s.branch, s.batch, s.year, s.phone, s.category || '', s.blocked ? 'Yes' : 'No']);
@@ -863,14 +920,37 @@ async function addSlotAdmin() {
   const r = await api('addSlot', { faculty: f, date: d, time: t, capacity: $('slotCap').value });
   alert(r.message); if (r.success) { $('slotTime').value = ''; $('slotCap').value = ''; await loadSlotsAdmin(); }
 }
-function uploadCSV(inputId, action, after) {
-  const f = $(inputId); if (!f.files.length) { alert('Please select a CSV file first.'); return Promise.resolve(); }
-  return new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = async e => { const r = await api(action, { csv: e.target.result }); alert(r.message); f.value = ''; await after(); resolve(); };
-    reader.onerror = () => { alert('Could not read the file.'); resolve(); };
-    reader.readAsText(f.files[0]);
-  });
+
+/* ---------- CSV upload with a centre progress box (0 - 100 %) ---------- */
+function showProg(title, pct, text, fin) {
+  $('progressModal').style.display = 'flex';
+  $('progTitle').innerText = title; $('progPct').innerText = pct + '%'; $('progBar').style.width = pct + '%';
+  $('progText').innerHTML = text || ''; $('progClose').style.display = fin ? 'inline-flex' : 'none';
+}
+// the file is sent to the server in small parts, so the real percentage can be shown while it uploads
+async function uploadCSV(inputId, action, after) {
+  const f = $(inputId); if (!f.files.length) return alert('Please select a CSV file first.');
+  const isSlots = action === 'uploadSlots', title = isSlots ? 'Uploading Slots…' : 'Uploading Users…', what = isSlots ? 'slots' : 'users';
+  let text; try { text = await readFileText(f.files[0]); } catch (e) { return alert('Could not read the file.'); }
+  const lines = String(text).replace(/^\ufeff/, '').split(/\r?\n/).filter(l => l.trim());
+  const hdr = isSlots ? /faculty|name/i : /user|id/i;
+  const start = lines.length && hdr.test(lines[0].split(/[,;\t]/)[0]) ? 1 : 0, rows = lines.slice(start), total = rows.length;
+  if (!total) return alert('The file has no data rows.');
+  const SIZE = isSlots ? 50 : 300;
+  let added = 0, skipped = 0, why = [], failMsg = '';
+  showProg(title, 0, `0 / ${total} rows processed`);
+  for (let i = 0; i < total; i += SIZE) {
+    const r = await api(action, { csv: rows.slice(i, i + SIZE).join('\n'), noHeader: true, offset: i + start });
+    if (!r.success) { failMsg = r.message || 'Upload failed'; break; }
+    added += r.added || 0; skipped += r.skipped || 0; (r.why || []).forEach(w => { if (why.length < 5) why.push(w); });
+    const done = Math.min(total, i + SIZE);
+    showProg(title, Math.round(done * 100 / total), `${done} / ${total} rows processed`);
+  }
+  f.value = '';
+  const extra = why.length ? '<br><small>' + why.map(esc).join('<br>') + '</small>' : '';
+  if (failMsg) showProg('❌ Upload stopped', Math.round((added + skipped) * 100 / total), esc(failMsg) + `<br>${added} ${what} were already uploaded.`, true);
+  else showProg('✅ Updated', 100, `<b>${added}</b> ${what} uploaded` + (skipped ? `, <b>${skipped}</b> skipped.` : ' successfully.') + extra, true);
+  await after();
 }
 
 /* ---------- admin: users ---------- */
@@ -1041,7 +1121,8 @@ async function loadSchedule() {
     let lnk = '-';
     if (b.linkState === 'open') lnk = `<button class="btn btn-success sm" data-act="join" data-id="${esc(b.bookingId)}" data-done="${b.isDone === 'Done' ? 1 : 0}">Join</button>`;
     else if (b.linkState === 'expired') lnk = 'Expired'; else if (b.linkState === 'soon') lnk = 'Available 15m before';
-    return `<tr><td>${esc(b.bookingId)}</td><td>${esc(b.date)} ${esc(b.time)}</td><td>${esc(b.faculty)}</td><td style="color:${b.status === 'Booked' ? '#10b981' : '#ef4444'}">${esc(b.status)}</td><td>${sessionBadge(b)}</td><td>${lnk}</td></tr>`;
+    const cinfo = b.status === 'Cancelled' ? `<br><small>Cancelled by: <b>${esc(b.cancelledBy || '-')}</b><br>Reason: ${esc(b.cancelReason || '-')}</small>` : '';
+    return `<tr><td>${esc(b.bookingId)}</td><td>${esc(b.date)} ${esc(b.time)}</td><td>${esc(b.faculty)}</td><td style="color:${b.status === 'Booked' ? '#10b981' : '#ef4444'}">${esc(b.status)}${cinfo}</td><td>${sessionBadge(b)}</td><td>${lnk}</td></tr>`;
   }).join('');
 }
 /* Join flow: Yes -> marked Done + link opens, No -> marked Declined. Link is only given by the server after this answer. */
