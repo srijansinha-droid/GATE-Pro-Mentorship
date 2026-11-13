@@ -16,10 +16,10 @@ body{background-color:#0f172a;display:flex;justify-content:center;align-items:ce
 .bg-blur{z-index:-3;background:#0f172a url('bg.jpg.png') center center/cover no-repeat;-webkit-filter:blur(18px) brightness(.85);filter:blur(18px) brightness(.85);-webkit-transform:scale(1.08);transform:scale(1.08)}
 .bg-main{z-index:-2;background:url('bg.jpg.png') center center/contain no-repeat}
 body::before{content:"";position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,.45);z-index:-1;pointer-events:none}
-/* phones / tablets in portrait: show the picture sharp, filling the screen (no blur, no tiny contain image) */
+/* phones / tablets: the WHOLE picture stays visible (no zoom / no crop), sharp, centred; blurred copy fills the empty space around it */
 @media (max-width:900px),(orientation:portrait){
-  .bg-blur{display:none}
-  .bg-main{background:#0f172a url('bg.jpg.png') center center/cover no-repeat;background-attachment:scroll}
+  .bg-blur{-webkit-filter:blur(12px) brightness(.8);filter:blur(12px) brightness(.8)}
+  .bg-main{background-position:center center;background-size:contain;background-repeat:no-repeat}
 }
 
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:15px;overflow-y:auto}
